@@ -1,0 +1,10 @@
+exports.Compress = require('./compressXML');
+exports.Ignore = require('./ignoreMetadata');
+exports.OrgList = require('./orgList');
+exports.OrgDescribe = require('./orgDescribe');
+exports.LocalList = require('./localList');
+exports.LocalDescribe = require('./localDescribe');
+exports.CompareOrg = require('./compareOrgWithLocal');
+exports.CompareLocal = require('./compareLocalWithOrg');
+exports.Repair = require('./repair');
+exports.PackageGenerator = require('./packageGenerator');

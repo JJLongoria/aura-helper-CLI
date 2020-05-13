@@ -1,0 +1,50 @@
+{
+  "name": "aura-helper-cli",
+  "productName": "Aura Helper CLI",
+  "version": "1.0.0",
+  "description": "Command Line Interface Application for support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects",
+  "main": "src/aura-helper.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compileWin32": "pkg ./ --target \"node12-win-x86\" --output \"./bin/windows/x86/aura-helper\"",
+    "compileWin64": "pkg ./ --target \"node12-win-x64\" --output \"./bin/windows/x64/aura-helper\"",
+    "compileLinux64": "pkg ./ --target \"node12-linux-x64\" --output \"./bin/linux/x64/aura-helper\"",
+    "compileMacOS64": "pkg ./ --target \"node12-macos-x64\" --output \"./bin/macos/x64/aura-helper\""
+  },
+  "bin": {
+    "aura-helper": "src/aura-helper.js",
+    "ah": "src/aura-helper.js"
+  },
+  "keywords": [],
+  "author": "Juan José Longoria López (Kanko)",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/JJLongoria/aura-helper-CLI.git",
+    "type": "git"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^5.0.0",
+    "fast-xml-parser": "^3.16.0",
+    "he": "^1.2.0",
+    "inquirer": "^7.1.0",
+    "ts-node": "^8.8.2",
+    "typescript": "^3.8.3",
+    "unzipper": "^0.10.10"
+  },
+  "devDependencies": {
+    "@types/node": "^13.11.0"
+  },
+  "pkg": {
+    "assets": [
+      "./node_modules/colors/**",
+      "./node_modules/commander/**",
+      "./node_modules/fast-xml-parser/**",
+      "./node_modules/he/**",
+      "./node_modules/inquirer/**",
+      "./node_modules/ts-node/**",
+      "./node_modules/typescript/**",
+      "./node_modules/unzipper/**"
+    ]
+  }
+}
