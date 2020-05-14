@@ -33,28 +33,21 @@ class Response {
     }
 
     static progress(percentage, message, format) {
-        if (format === 'json') {
+        if (!format || format === 'json') {
             let body = getResponseBody();
             body.status = 0;
             body.result = {
                 message: message,
                 data: {
-                    percentage: percentage,
+                    percentage: (percentage) ? percentage : -1,
                 }
             };
             return JSON.stringify(body, null, 2);
         } else if (format === 'plaintext') {
-            return message + ' (' + percentage + '%)';
-        } else {
-            let body = getResponseBody();
-            body.status = 0;
-            body.result = {
-                message: message,
-                data: {
-                    percentage: percentage,
-                }
-            };
-            return JSON.stringify(body, null, 2);
+            if(percentage)
+                return message + ' (' + percentage + '%)';
+            else
+                return message;
         }
     }
 

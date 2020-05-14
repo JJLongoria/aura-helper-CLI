@@ -40,7 +40,7 @@ class Connection {
         let downloadOptions = {
             orgNamespace: (options && options.orgNamespace) ? options.orgNamespace : "",
             downloadAll: (options && options.downloadAll) ? options.downloadAll : false,
-            progressReport: (options && options.progressReport) ? options.progressReport : "json",
+            progressReport: (options && options.progressReport) ? options.progressReport : undefined,
         };
         percentage = 0;
         abort = false;
@@ -96,69 +96,7 @@ class Connection {
             }
         });
     }
-
-    static getAllMetadataFromOrg(user, options, output) {
-        let downloadOptions = {
-            orgNamespace: (options && options.orgNamespace) ? options.orgNamespace : "",
-            downloadAll: (options && options.downloadAll) ? options.downloadAll : false,
-            progressReport: (options && options.progressReport) ? options.progressReport : "json",
-        };
-        abort = false;
-        percentage = 0;
-        return new Promise(async function (resolve, reject) {
-            metadata = {};
-            let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: true });
-            if (metadataTypes && metadataTypes.length > 0) {
-                metadataObjectsData.sort(function (a, b) {
-                    return a.xmlName.toLowerCase().localeCompare(b.xmlName.toLowerCase());
-                });
-                increment = MathUtils.round(100 / metadataTypes.length, 2);
-                let nBatches = 4;
-                let recordsPerBatch = Math.ceil(metadataTypes.length / nBatches);
-                batches = [];
-                let counter = 0;
-                let batch;
-                for (const object of metadataTypes) {
-                    if (!batch) {
-                        batch = {
-                            batchId: 'Bacth_' + counter,
-                            records: [],
-                            completed: false
-                        }
-                        counter++;
-                    }
-                    if (batch) {
-                        batch.records.push(object);
-                        if (batch.records.length === recordsPerBatch) {
-                            batches.push(batch);
-                            batch = undefined;
-                        }
-                    }
-                }
-                if (batch)
-                    batches.push(batch);
-                for (const batchToProcess of batches) {
-                    Connection.downloadMatadataFromOrg(user, batchToProcess.records, downloadOptions, output).then(function (downloadedMetadata) {
-                        Object.keys(downloadedMetadata).forEach(function (key) {
-                            metadata[key] = downloadedMetadata[key];
-                        });
-                        batchToProcess.completed = true;
-                        let nCompleted = 0;
-                        for (const resultBatch of batches) {
-                            if (resultBatch.completed)
-                                nCompleted++;
-                        }
-                        if (nCompleted === batches.length) {
-                            resolve(metadata);
-                        }
-                    }).catch(function (error) {
-                        reject(error);
-                    });
-                }
-            }
-        });
-    }
-
+    
     static getMetadataTypesFromOrg(user, root, options) {
         if (!options) {
             options = {

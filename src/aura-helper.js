@@ -5,14 +5,13 @@ const inquirer = require("inquirer");
 
 // METADATA COMMANDS
 // Local Commands
-Commands.Metadata.Compress.createCommand(program);
-Commands.Metadata.Ignore.createCommand(program);
+Commands.Metadata.LocalCompress.createCommand(program);
+Commands.Metadata.LocalIgnore.createCommand(program);
 Commands.Metadata.LocalList.createCommand(program);
 Commands.Metadata.LocalDescribe.createCommand(program);
-//Commands.Metadata.CompareLocal.createCommand(program);
-Commands.Metadata.Repair.createCommand(program);
-Commands.Metadata.PackageGenerator.createCommand(program);
-// TODO: Add more dependencies for repair (record types, topics for object, etc..)
+//Commands.Metadata.LocalCompare.createCommand(program);
+Commands.Metadata.LocalRepair.createCommand(program);
+Commands.Metadata.LocalPackageGenerator.createCommand(program);
 // TODO: Add more types for threat in ignore command
 // TODO: Retrieve full profiles
 // TODO: Retrieve full permission sets
@@ -25,11 +24,11 @@ Commands.Metadata.PackageGenerator.createCommand(program);
 // OrgCommands
 Commands.Metadata.OrgList.createCommand(program);
 Commands.Metadata.OrgDescribe.createCommand(program);
-Commands.Metadata.CompareOrg.createCommand(program);
+Commands.Metadata.OrgCompare.createCommand(program);
 
 
 // Core Commands
-Commands.Core.Update.createCommand(program);
+//Commands.Core.Update.createCommand(program);
 
 
 program.parse(process.argv);

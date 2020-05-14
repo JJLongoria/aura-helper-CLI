@@ -28,7 +28,8 @@ class Printer {
                 selectedColor = colors.white;
                 break;
         }
-        console.log(selectedColor(text));
+        console.log(text);
+        //console.log(selectedColor(text));
     }
 
     static printError(text){
