@@ -98,5 +98,17 @@ class XMLParser {
         return '<?xml version="1.0" encoding="UTF-8"?>\n';
     }
 
+    static startTag(text, tag) {
+        if (text.indexOf('<' + tag + '>') !== -1)
+            return tag;
+        return undefined;
+    }
+
+    static endTag(text, tag) {
+        if (text.indexOf('</' + tag + '>') !== -1)
+            return tag;
+        return undefined;
+    }
+
 }
 module.exports = XMLParser;

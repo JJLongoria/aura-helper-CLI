@@ -1,13 +1,14 @@
 const path = require('path');
 const os = require('os');
 const FileReader = require('./fileReader').FileReader;
+const StrUtils = require('../utils/strUtils');
 
 class Paths {
     static getBasename(filePath) {
         return path.basename(filePath);
     }
     static getFolderPath(filePath) {
-        return path.dirname(filePath);
+        return StrUtils.replace(path.dirname(filePath));
     }
     static getBundleHelperPath(filePath) {
         return filePath.replace('.cmp', '').replace('.auradoc', '').replace('.svg', '').replace('.css', '').replace('.design', '').replace('.app', '').replace('.app', 'Renderer.js').replace('.app', 'Controller.js') + 'Helper.js';
@@ -19,7 +20,7 @@ class Paths {
         return filePath.replace('.cmp', '').replace('.auradoc', '').replace('.svg', '').replace('.css', '').replace('.design', '').replace('.app', '').replace('.app', 'Controller.js').replace('.app', 'Helper.js') + 'Renderer.js';
     }
     static getAbsolutePath(fileOrFolder) {
-        return path.resolve(fileOrFolder);
+        return StrUtils.replace(path.resolve(fileOrFolder), '\\', '/');
     }
     static getAppPath() {
         let result = [];

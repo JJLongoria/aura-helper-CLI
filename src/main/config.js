@@ -55,9 +55,5 @@ class Config {
     static getProjectConfig(projectFolder) {
         return JSON.parse(FileReader.readFileSync(projectFolder + '/sfdx-project.json'));
     }
-
-    static getPackage(){
-        console.log(process.cwd());
-    }
 }
 module.exports = Config;
