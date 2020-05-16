@@ -45,7 +45,7 @@ async function run(args) {
             return;
         }
         let username = await Config.getAuthUsername(args.root);
-        let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: true });
+        let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
         if (args.sendTo) {
             args.sendTo = Paths.getAbsolutePath(args.sendTo);
             let baseDir = Paths.getFolderPath(args.sendTo);

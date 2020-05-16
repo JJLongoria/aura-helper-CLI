@@ -68,7 +68,7 @@ function describeMetadata(args) {
     return new Promise(async function (resolve, reject) {
         try {
             let username = await Config.getAuthUsername(args.root);
-            let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: true });
+            let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
             let typesFromLocal = await describeLocalMetadata(args, folderMetadataMap);
             let objectNames = Object.keys(typesFromLocal);

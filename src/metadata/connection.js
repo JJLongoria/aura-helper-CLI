@@ -97,7 +97,7 @@ class Connection {
         });
     }
     
-    static getMetadataTypesFromOrg(user, root, options) {
+    static getMetadataTypes(user, root, options) {
         if (!options) {
             options = {
                 forceDownload: false,

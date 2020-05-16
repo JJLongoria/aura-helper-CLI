@@ -4,6 +4,7 @@ const ErrorCodes = require('../errors');
 const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
 const Metadata = require('../../metadata');
+const Utils = require('./Utils');
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const FileWriter = FileSystem.FileWriter;
@@ -52,17 +53,15 @@ async function run(args) {
         return;
     }
     let username = await Config.getAuthUsername(args.root);
-    let types;
+    let types = [];
     if (args.all) {
         types = [];
-        let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: true });
+        let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
         for (const type of metadataTypes) {
             types.push(type.xmlName);
         }
     } else if (args.type) {
-        types = [args.type];
-        if (args.type.indexOf(' ') !== -1)
-            types = args.type.split(' ');
+        types = Utils.getTypes(args.type);
     }
     describeMetadata(args, username, types).then(function (result) {
         if (args.sendTo) {

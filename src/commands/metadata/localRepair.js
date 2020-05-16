@@ -6,6 +6,7 @@ const Languages = require('../../languages');
 const Metadata = require('../../metadata');
 const Config = require('../../main/config');
 const StrUtils = require('../../utils/strUtils');
+const Utils = require('./Utils');
 const FileChecker = FileSystem.FileChecker;
 const FileReader = FileSystem.FileReader;
 const FileWriter = FileSystem.FileWriter;
@@ -105,38 +106,19 @@ function run(args) {
             types[key] = ['*'];
         });
     } else if (args.type) {
-        let typesTmp = [args.type];
-        if (args.type.indexOf(',') !== -1)
-            typesTmp = args.type.split(',');
-        else if (args.type.indexOf(' ') !== -1)
-            typesTmp = args.type.split(' ');
-        for (const typeTmp of typesTmp) {
-            if (typeTmp.indexOf(':') !== -1) {
-                let splits = typeTmp.split(':');
-                let metadataType = splits[0].trim();
-                let metadataObject = splits[1].trim();
-                if (!TYPES_FOR_REPAIR_DATA[metadataType]) {
-                    Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --type selected for repair (' + metadataType + '). Select an available type for repair'));
-                    return;
-                }
-                if (!types[metadataType])
-                    types[metadataType] = [];
-                types[metadataType].push(metadataObject);
-            } else {
-                let metadataType = typeTmp.trim();
-                if (!TYPES_FOR_REPAIR_DATA[metadataType]) {
-                    Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --type selected for repair (' + metadataType + '). Select an available type for repair'));
-                    return;
-                }
-                types[metadataType] = ['*'];
+        types = Utils.getAdvanceTypes(args.type);
+        Object.keys().forEach(function (key) {
+            if (!TYPES_FOR_REPAIR_DATA[key]) {
+                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --type selected for repair (' + key + '). Select an available type for repair'));
+                return;
             }
-        }
+        });
     }
     repairDependencies(args, types).then(function (result) {
         if (args.onlyCheck) {
             Output.Printer.printSuccess(Response.success("The next metadata types has dependencies errors", result));
         } else {
-            Output.Printer.printSuccess(Response.success("Repair metadata finished successfully", result));
+            Output.Printer.printSuccess(Response.success("Repair metadata finished successfully"));
         }
     }).catch(function (error) {
         Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
@@ -151,7 +133,7 @@ function repairDependencies(args, types) {
     return new Promise(async function (resolve, reject) {
         try {
             let username = await Config.getAuthUsername(args.root);
-            let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: false });
+            let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: false });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
             let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
             let results = {};
@@ -177,7 +159,7 @@ function repairDependencies(args, types) {
             if (args.onlyCheck)
                 resolve(processErrors(args, results, metadataFromFileSystem));
             else
-                resolve(results);
+                resolve();
         } catch (error) {
             reject(error);
         }

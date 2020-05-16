@@ -68,7 +68,7 @@ function listLocalMetadata(args) {
         try {
             let metadata = [];
             let username = await Config.getAuthUsername(args.root);
-            let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: false });
+            let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: false });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
             let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
             Object.keys(folderMetadataMap).forEach(function (folder) {
