@@ -9,7 +9,91 @@ const FileChecker = fileSystem.FileChecker;
 const Paths = fileSystem.Paths;
 const XMLParser = languages.XMLParser;
 
+METADATA_XML_RELATION = {
+     Workflow: {
+          outboundMessages: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE
+          },
+          knowledgePublishes: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH
+          },
+          tasks: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.WORKFLOW_TASK
+          },
+          rules: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.WORKFLOW_RULE
+          },
+          fieldUpdates: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.WORKFLOW_FIELD_UPDATE
+          },
+          alerts: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.WORKFLOW_ALERT
+          }
+     },
+     SharingRules: {
+          sharingCriteriaRules: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.SHARING_CRITERIA_RULE
+          },
+          sharingOwnerRules: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.SHARING_OWNER_RULE
+          },
+          sharingGuestRules: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.SHARING_GUEST_RULE
+          },
+          sharingTerritoryRules: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.SHARING_TERRITORY_RULE
+          }
+     },
+     AssignmentRules: {
+          assignmentRule: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.ASSIGNMENT_RULE
+          }
+     },
+     AutoResponseRules: {
+          autoresponseRule: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.AUTORESPONSE_RULE
+          }
+     },
+     EscalationRules: {
+          escalationRule: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.ESCALATION_RULE
+          }
+     },
+     MatchingRules: {
+          matchingRules: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.MATCHING_RULE
+          }
+     },
+     CustomLabels: {
+          labels: {
+               fieldKey: 'fullName',
+               type: MetadataTypes.CUSTOM_LABEL
+          }
+     }
+}
+
+
+
+
 class MetadataFactory {
+
+     static getMetadataXMLRelation(){
+          return METADATA_XML_RELATION;
+     }
 
      static createFolderMetadataMap(dataFromOrg) {
           let folderMetadataMap = {};
@@ -110,53 +194,8 @@ class MetadataFactory {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath, true);
                               metadata[metadataType.xmlName] = newMetadata;
-                         } else if (folder == 'labels') {
-                              let customLabels = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_LABELS, false, folderPath, metadataType.suffix);
-                              customLabels.childs = MetadataFactory.getMetadataObjects(folderPath, false);
-                              metadata[MetadataTypes.CUSTOM_LABELS] = customLabels;
-                              let customLabel = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_LABEL, false, folderPath, metadataType.suffix);
-                              customLabel.childs = MetadataFactory.getCustomLabelsMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.CUSTOM_LABEL] = customLabel;
-                         } else if (folder == 'assignmentRules') {
-                              let assignmentRules = MetadataFactory.createMetadataType(MetadataTypes.ASSIGNMENT_RULES, false, folderPath, metadataType.suffix);
-                              assignmentRules.childs = MetadataFactory.getMetadataObjects(folderPath, false);
-                              metadata[MetadataTypes.ASSIGNMENT_RULES] = assignmentRules;
-                              let assignmentRule = MetadataFactory.createMetadataType(MetadataTypes.ASSIGNMENT_RULES, false, folderPath, metadataType.suffix);
-                              assignmentRule.childs = MetadataFactory.getAssignmentRulesMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.ASSIGNMENT_RULE] = assignmentRule;
-                         } else if (folder == 'autoResponseRules') {
-                              let autoResponseRules = MetadataFactory.createMetadataType(MetadataTypes.AUTORESPONSE_RULES, false, folderPath, metadataType.suffix);
-                              autoResponseRules.childs = MetadataFactory.getMetadataObjects(folderPath, false);
-                              metadata[MetadataTypes.AUTORESPONSE_RULES] = autoResponseRules;
-                              let autoResponseRule = MetadataFactory.createMetadataType(MetadataTypes.AUTORESPONSE_RULE, false, folderPath, metadataType.suffix);
-                              autoResponseRule.childs = MetadataFactory.getAutoResponseRulesMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.AUTORESPONSE_RULE] = autoResponseRule;
-                         } else if (folder == 'escalationRules') {
-                              let escalationRules = MetadataFactory.createMetadataType(MetadataTypes.ESCALATION_RULES, false, folderPath, metadataType.suffix);
-                              escalationRules.childs = MetadataFactory.getMetadataObjects(folderPath, false);
-                              metadata[MetadataTypes.ESCALATION_RULES] = escalationRules;
-                              let escalationRule = MetadataFactory.createMetadataType(MetadataTypes.ESCALATION_RULE, false, folderPath, metadataType.suffix);
-                              escalationRule.childs = MetadataFactory.getEscalationRulesMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.ESCALATION_RULE] = escalationRule;
-                         } else if (folder == 'matchingRules') {
-                              let matchingRules = MetadataFactory.createMetadataType(MetadataTypes.MATCHING_RULES, false, folderPath, metadataType.suffix);
-                              matchingRules.childs = MetadataFactory.getMetadataObjects(folderPath, false);
-                              metadata[MetadataTypes.MATCHING_RULES] = matchingRules;
-                              let matchingRule = MetadataFactory.createMetadataType(MetadataTypes.MATCHING_RULE, false, folderPath, metadataType.suffix);
-                              matchingRule.childs = MetadataFactory.getMatchingRulesMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.MATCHING_RULE] = matchingRule;
-                         } else if (folder == 'sharingRules') {
-                              let sharingRules = MetadataFactory.createMetadataType(MetadataTypes.SHARING_RULE, false, folderPath, metadataType.suffix);
-                              sharingRules.childs = MetadataFactory.getMetadataObjects(folderPath, false);
-                              metadata[MetadataTypes.SHARING_RULE] = sharingRules;
-                              let sharingCriteriaRules = MetadataFactory.createMetadataType(MetadataTypes.SHARING_CRITERIA_RULE, false, folderPath, metadataType.suffix);
-                              sharingCriteriaRules.childs = MetadataFactory.getSharingCriteriaRulesMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.SHARING_CRITERIA_RULE] = sharingCriteriaRules;
-                              let sharingOwnerRules = MetadataFactory.createMetadataType(MetadataTypes.SHARING_OWNER_RULE, false, folderPath, metadataType.suffix);
-                              sharingOwnerRules.childs = MetadataFactory.getSharingOwnerRulesMetadataFromFile(folderPath);
-                              metadata[MetadataTypes.SHARING_OWNER_RULE] = sharingOwnerRules;
-                         } else if (folder == 'workflows') {
-                              metadata = MetadataFactory.getWorkflowsMetadata(metadata, folderPath);
+                         } else if(METADATA_XML_RELATION[metadataType.xmlName]){
+                              MetadataFactory.getMetadataFromFiles(metadataType, metadata, folderPath);
                          } else {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath);
@@ -168,131 +207,52 @@ class MetadataFactory {
           return metadata;
      }
 
-     static getCustomLabelsMetadataFromFile(folderPath) {
-          let filePath = folderPath + '/CustomLabels.labels-meta.xml';
-          let customLabels = XMLParser.parseXML(FileReader.readFileSync(filePath));
-          let objects = {};
-          if (customLabels.CustomLabels && customLabels.CustomLabels.labels) {
-               let labels = Utils.forceArray(customLabels.CustomLabels.labels);
-               for (const label of labels) {
-                    objects[label.fullName] = MetadataFactory.createMetadataObject(label.fullName, false, filePath);
-               }
-          }
-          return objects;
-     }
-
-     static getAssignmentRulesMetadataFromFile(folderPath) {
+     static getMetadataFromFiles(metadataType, metadata, folderPath) {
+          let mainObject = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
+          mainObject.childs = MetadataFactory.getMetadataObjects(folderPath, false);
+          metadata[metadataType.xmlName] = mainObject;
           let files = FileReader.readDirSync(folderPath);
-          let objects = {};
+          let collectionsData = METADATA_XML_RELATION[metadataType.xmlName];
           for (const file of files) {
                let path = folderPath + '/' + file;
-               let sObj = file.substring(0, file.indexOf('.'));
-               objects[sObj] = MetadataFactory.createMetadataObject(sObj, false, path);
                let xmlData = XMLParser.parseXML(FileReader.readFileSync(path));
-               if (xmlData.AssignmentRules && xmlData.AssignmentRules.assignmentRule) {
-                    let rules = Utils.forceArray(xmlData.AssignmentRules.assignmentRule);
-                    for (const rule of rules) {
-                         objects[sObj].childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, path);
+               if (metadataType.xmlName === MetadataTypes.CUSTOM_LABELS) {
+                    if (xmlData[metadataType.xmlName]) {
+                         Object.keys(collectionsData).forEach(function (collectionName) {
+                              let collectionData = collectionsData[collectionName];
+                              if (xmlData[metadataType.xmlName][collectionName]) {
+                                   xmlData[metadataType.xmlName][collectionName] = Utils.forceArray(xmlData[metadataType.xmlName][collectionName]);
+                                   for (let xmlElement of xmlData[metadataType.xmlName][collectionName]) {
+                                        let elementKey = xmlElement[collectionData.fieldKey];
+                                        if (!metadata[collectionData.type])
+                                             metadata[collectionData.type] = MetadataFactory.createMetadataType(collectionData.type, false, folderPath, metadataType.suffix);
+                                        if (!metadata[collectionData.type].childs[elementKey])
+                                             metadata[collectionData.type].childs[elementKey] = MetadataFactory.createMetadataObject(elementKey, false, path);
+                                   }
+                              }
+                         });
+                    }
+               } else {
+                    if (xmlData[metadataType.xmlName]) {
+                         Object.keys(collectionsData).forEach(function (collectionName) {
+                              let collectionData = collectionsData[collectionName];
+                              if (xmlData[metadataType.xmlName][collectionName]) {
+                                   let sObj = file.substring(0, file.indexOf('.'));
+                                   if (!metadata[collectionData.type])
+                                        metadata[collectionData.type] = MetadataFactory.createMetadataType(collectionData.type, false, folderPath, metadataType.suffix);
+                                   if (!metadata[collectionData.type].childs[sObj])
+                                        metadata[collectionData.type].childs[sObj] = MetadataFactory.createMetadataObject(sObj, false);
+                                   xmlData[metadataType.xmlName][collectionName] = Utils.forceArray(xmlData[metadataType.xmlName][collectionName]);
+                                   for (let xmlElement of xmlData[metadataType.xmlName][collectionName]) {
+                                        let elementKey = xmlElement[collectionData.fieldKey];
+                                        if (!metadata[collectionData.type].childs[sObj].childs[elementKey])
+                                             metadata[collectionData.type].childs[sObj].childs[elementKey] = MetadataFactory.createMetadataObject(elementKey, false, path);
+                                   }
+                              }
+                         });
                     }
                }
-
           }
-          return objects;
-     }
-
-     static getAutoResponseRulesMetadataFromFile(folderPath) {
-          let files = FileReader.readDirSync(folderPath);
-          let objects = {};
-          for (const file of files) {
-               let path = folderPath + '/' + file;
-               let sObj = file.substring(0, file.indexOf('.'));
-               objects[sObj] = MetadataFactory.createMetadataObject(sObj, false, path);
-               let xmlData = XMLParser.parseXML(FileReader.readFileSync(path));
-               if (xmlData.AutoResponseRules && xmlData.AutoResponseRules.autoresponseRule) {
-                    let rules = Utils.forceArray(xmlData.AutoResponseRules.autoresponseRule);
-                    for (const rule of rules) {
-                         objects[sObj].childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, path);
-                    }
-               }
-
-          }
-          return objects;
-     }
-
-     static getEscalationRulesMetadataFromFile(folderPath) {
-          let files = FileReader.readDirSync(folderPath);
-          let objects = {};
-          for (const file of files) {
-               let path = folderPath + '/' + file;
-               let sObj = file.substring(0, file.indexOf('.'));
-               objects[sObj] = MetadataFactory.createMetadataObject(sObj, false, path);
-               let xmlData = XMLParser.parseXML(FileReader.readFileSync(path));
-               if (xmlData.EscalationRules && xmlData.EscalationRules.escalationRule) {
-                    let rules = Utils.forceArray(xmlData.EscalationRules.escalationRule);
-                    for (const rule of rules) {
-                         objects[sObj].childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, path);
-                    }
-               }
-
-          }
-          return objects;
-     }
-
-     static getMatchingRulesMetadataFromFile(folderPath) {
-          let files = FileReader.readDirSync(folderPath);
-          let objects = {};
-          for (const file of files) {
-               let path = folderPath + '/' + file;
-               let sObj = file.substring(0, file.indexOf('.'));
-               objects[sObj] = MetadataFactory.createMetadataObject(sObj, false, path);
-               let xmlData = XMLParser.parseXML(FileReader.readFileSync(path));
-               if (xmlData.MatchingRules && xmlData.MatchingRules.matchingRule) {
-                    let rules = Utils.forceArray(xmlData.MatchingRules.matchingRule);
-                    for (const rule of rules) {
-                         objects[sObj].childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, path);
-                    }
-               }
-
-          }
-          return objects;
-     }
-
-     static getSharingCriteriaRulesMetadataFromFile(folderPath) {
-          let files = FileReader.readDirSync(folderPath);
-          let objects = {};
-          for (const file of files) {
-               let path = folderPath + '/' + file;
-               let sObj = file.substring(0, file.indexOf('.'));
-               objects[sObj] = MetadataFactory.createMetadataObject(sObj, false, path);
-               let xmlData = XMLParser.parseXML(FileReader.readFileSync(path));
-               if (xmlData.SharingRules && xmlData.SharingRules.sharingCriteriaRules) {
-                    let rules = Utils.forceArray(xmlData.SharingRules.sharingCriteriaRules);
-                    for (const rule of rules) {
-                         objects[sObj].childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, path);
-                    }
-               }
-
-          }
-          return objects;
-     }
-
-     static getSharingOwnerRulesMetadataFromFile(folderPath) {
-          let files = FileReader.readDirSync(folderPath);
-          let objects = {};
-          for (const file of files) {
-               let path = folderPath + '/' + file;
-               let sObj = file.substring(0, file.indexOf('.'));
-               objects[sObj] = MetadataFactory.createMetadataObject(sObj, false);
-               let xmlData = XMLParser.parseXML(FileReader.readFileSync(path));
-               if (xmlData.SharingRules && xmlData.SharingRules.sharingOwnerRules) {
-                    let rules = Utils.forceArray(xmlData.SharingRules.sharingOwnerRules);
-                    for (const rule of rules) {
-                         objects[sObj].childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, path);
-                    }
-               }
-
-          }
-          return objects;
      }
 
      static getApprovalProcessesMetadataFromFolder(folderPath) {
@@ -515,73 +475,6 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getWorkflowsMetadata(metadata, folderPath) {
-          let files = FileReader.readDirSync(folderPath);
-          metadata[MetadataTypes.WORKFLOW] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW, false, folderPath);
-          metadata[MetadataTypes.WORKFLOW_ALERT] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW_ALERT, false, folderPath);
-          metadata[MetadataTypes.WORKFLOW_FIELD_UPDATE] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW_FIELD_UPDATE, false, folderPath);
-          metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH, false, folderPath);
-          metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE, false, folderPath);
-          metadata[MetadataTypes.WORKFLOW_RULE] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW_RULE, false, folderPath);
-          //metadata[MetadataTypes.WORKFLOW_SEND] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW, false);
-          metadata[MetadataTypes.WORKFLOW_TASK] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW_TASK, false, folderPath);
-          for (const workflowFile of files) {
-               let filePath = folderPath + '/' + workflowFile;
-               let workflowObject = workflowFile.substring(0, workflowFile.indexOf('.'));
-               metadata[MetadataTypes.WORKFLOW].childs[workflowObject] = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-               let workflow = XMLParser.parseXML(FileReader.readFileSync(filePath));
-               if (workflow.Workflow.alerts) {
-                    let workflowAlerts = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-                    let alerts = Utils.forceArray(workflow.Workflow.alerts);
-                    for (const alert of alerts) {
-                         workflowAlerts.childs[alert.fullName] = MetadataFactory.createMetadataItem(alert.fullName, false, filePath);
-                         metadata[MetadataTypes.WORKFLOW_ALERT].childs[workflowObject] = workflowAlerts;
-                    }
-               }
-               if (workflow.Workflow.fieldUpdates) {
-                    let workflowFieldUpdates = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-                    let fields = Utils.forceArray(workflow.Workflow.fieldUpdates);
-                    for (const fieldUpdate of fields) {
-                         workflowFieldUpdates.childs[fieldUpdate.fullName] = MetadataFactory.createMetadataItem(fieldUpdate.fullName, false, filePath);
-                         metadata[MetadataTypes.WORKFLOW_FIELD_UPDATE].childs[workflowObject] = workflowFieldUpdates;
-                    }
-               }
-               if (workflow.Workflow.knowledgePublishes) {
-                    let workflowPublish = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-                    let publishes = Utils.forceArray(workflow.Workflow.knowledgePublishes);
-                    for (const knowledPublish of publishes) {
-                         workflowPublish.childs[knowledPublish.fullName] = MetadataFactory.createMetadataItem(knowledPublish.fullName, false, filePath);
-                         metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs[workflowObject] = workflowPublish;
-                    }
-               }
-               if (workflow.Workflow.outboundMessages) {
-                    let workflowOutbound = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-                    let outbouds = Utils.forceArray(workflow.Workflow.outboundMessages);
-                    for (const outboundMessage of outbouds) {
-                         workflowOutbound.childs[outboundMessage.fullName] = MetadataFactory.createMetadataItem(outboundMessage.fullName, false, filePath);
-                         metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs[workflowObject] = workflowOutbound;
-                    }
-               }
-               if (workflow.Workflow.rules) {
-                    let workflowRule = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-                    let rules = Utils.forceArray(workflow.Workflow.rules);
-                    for (const rule of rules) {
-                         workflowRule.childs[rule.fullName] = MetadataFactory.createMetadataItem(rule.fullName, false, filePath);
-                         metadata[MetadataTypes.WORKFLOW_RULE].childs[workflowObject] = workflowRule;
-                    }
-               }
-               if (workflow.Workflow.tasks) {
-                    let workflowTask = MetadataFactory.createMetadataObject(workflowObject, false, filePath);
-                    let tasks = Utils.forceArray(workflow.Workflow.tasks);
-                    for (const task of tasks) {
-                         workflowTask.childs[task.fullName] = MetadataFactory.createMetadataItem(task.fullName, false, filePath);
-                         metadata[MetadataTypes.WORKFLOW_TASK].childs[workflowObject] = workflowTask;
-                    }
-               }
-          }
-          return metadata;
-     }
-
      static getCustomObjectsMetadata(metadata, objectsPath) {
           let files = FileReader.readDirSync(objectsPath);
           metadata[MetadataTypes.CUSTOM_OBJECT] = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_OBJECT, false, objectsPath);
@@ -684,13 +577,14 @@ class MetadataFactory {
      }
 
      static getMetadataFromGitDiffs(root, diffs, folderMetadataMap) {
-          let metadataRootFolder = root + 'main/default';
+          let metadataRootFolder = root + '/force-app/main/default';
           let metadataForDeploy = {};
           let metadataForDelete = {};
           for (const diff of diffs) {
-               let baseFolder = Paths.getFolderPath(Paths.getAppPath()[0] + '/' + diff.path);
+               let typeFolder = '';
+               let filePath = '';
+               let baseFolder = StrUtils.replace(Paths.getFolderPath(root + '/' + diff.path), ',', '');
                let fileNameWithExt = Paths.getBasename(diff.path);
-               let fileName = fileNameWithExt.substring(0, fileNameWithExt.indexOf('.'));
                baseFolder = baseFolder.replace(metadataRootFolder + '/', '');
                let baseFolderSplits = baseFolder.split('/');
                let fistPartBaseFolder = baseFolderSplits[0];
@@ -703,29 +597,57 @@ class MetadataFactory {
                } else {
                     metadataType = folderMetadataMap[baseFolder];
                }
-               if (!metadataType)
+               if (!metadataType) {
                     metadataType = folderMetadataMap[fistPartBaseFolder];
+               }
                if (metadataType) {
-                    if (diff.mode === 'new file') {
-                         let metadata = MetadataFactory.createMetadataType(metadataType.xmlName, true);
-                         let childs = MetadataFactory.getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName);
-                         if (!metadataForDeploy[metadata.name])
-                              metadataForDeploy[metadata.name] = metadata;
-                         Object.keys(childs).forEach(function (childKey) {
-                              if (!metadataForDeploy[metadata.name].childs[childKey])
-                                   metadataForDeploy[metadata.name].childs[childKey] = childs[childKey];
-                              if (childs[childKey].childs && Object.keys(childs[childKey].childs).length > 0) {
-                                   Object.keys(childs[childKey].childs).forEach(function (grandChildKey) {
-                                        if (!metadataForDeploy[metadata.name].childs[childKey].childs[grandChildKey])
-                                             metadataForDeploy[metadata.name].childs[childKey].childs[grandChildKey] = childs[childKey].childs[grandChildKey];
-                                   });
+                    typeFolder = metadataRootFolder + '/' + metadataType.directoryName;
+                    filePath = root + '/' + diff.path;
+                    let fileName;
+                    if (metadataType.xmlName !== MetadataTypes.DOCUMENT && fileNameWithExt.indexOf('Folder-meta.xml') === -1) {
+                         fileName = StrUtils.replace(fileNameWithExt, '-meta.xml', '');
+                         fileName = fileName.substring(0, fileName.lastIndexOf('.'));
+                    } else {
+                         fileName = fileNameWithExt;
+                    }
+                    if (diff.mode === 'new file' || diff.mode === 'edit file') {
+                         if (METADATA_XML_RELATION[metadataType.xmlName]) {
+                              let possibleMetadataToAddOnDeploy = MetadataFactory.analizeDiffChanges(diff.addChanges, metadataForDeploy, metadataType, fileName, filePath);
+                              let possibleMetadataToAddOnDelete = MetadataFactory.analizeDiffChanges(diff.removeChanges, metadataForDelete, metadataType, fileName, filePath);
+                              if (possibleMetadataToAddOnDeploy) {
+                                   metadataForDeploy = MetadataFactory.combineMetadata(metadataForDeploy, possibleMetadataToAddOnDeploy);
                               }
-                         });
+                              if (possibleMetadataToAddOnDelete) {
+                                   metadataForDeploy = MetadataFactory.combineMetadata(metadataForDeploy, possibleMetadataToAddOnDelete);
+                              }
+                         } else {
+                              let metadata = MetadataFactory.createMetadataType(metadataType.xmlName, true, typeFolder, metadataType.suffix);
+                              let childs = MetadataFactory.getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName, filePath);
+                              if (!metadataForDeploy[metadata.name])
+                                   metadataForDeploy[metadata.name] = metadata;
+                              Object.keys(childs).forEach(function (childKey) {
+                                   if (!metadataForDeploy[metadata.name].childs[childKey])
+                                        metadataForDeploy[metadata.name].childs[childKey] = childs[childKey];
+                                   if (childs[childKey].childs && Object.keys(childs[childKey].childs).length > 0) {
+                                        Object.keys(childs[childKey].childs).forEach(function (grandChildKey) {
+                                             if (!metadataForDeploy[metadata.name].childs[childKey].childs[grandChildKey])
+                                                  metadataForDeploy[metadata.name].childs[childKey].childs[grandChildKey] = childs[childKey].childs[grandChildKey];
+                                        });
+                                   }
+                              });
+                         }
                     } else if (diff.mode === 'deleted file') {
-                         let metadata = MetadataFactory.createMetadataType(metadataType.xmlName, true);
-                         let childs = MetadataFactory.getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName);
-                         if (metadataType.xmlName !== MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS) {
-                              if ((metadataType.xmlName === MetadataTypes.AURA && !fileNameWithExt.endsWith('.cmp') && !fileNameWithExt.endsWith('.evt') && !fileNameWithExt.endsWith('.app')) || (metadataType.xmlName === MetadataTypes.LWC && !fileNameWithExt.endsWith('.html'))) {
+                         if (METADATA_XML_RELATION[metadataType.xmlName]) {
+                              let possibleMetadataToAddOnDelete = MetadataFactory.analizeDiffChanges(diff.removeChanges, metadataForDelete, metadataType, fileName, filePath);
+                              if (possibleMetadataToAddOnDelete) {
+                                   metadataForDelete = MetadataFactory.combineMetadata(metadataForDelete, possibleMetadataToAddOnDelete);
+                              }
+                         } else {
+                              let metadata = MetadataFactory.createMetadataType(metadataType.xmlName, true, typeFolder, metadataType.suffix);
+                              let childs = MetadataFactory.getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName, filePath);
+                              if ((metadataType.xmlName === MetadataTypes.AURA && !fileNameWithExt.endsWith('.cmp') && !fileNameWithExt.endsWith('.evt') && !fileNameWithExt.endsWith('.app'))
+                                   || (metadataType.xmlName === MetadataTypes.LWC && !fileNameWithExt.endsWith('.html'))
+                                   || metadataType.xmlName === MetadataTypes.STATIC_RESOURCE && !fileNameWithExt.endsWith('.resource-meta.xml')) {
                                    if (!metadataForDeploy[metadata.name])
                                         metadataForDeploy[metadata.name] = metadata;
                                    Object.keys(childs).forEach(function (childKey) {
@@ -744,6 +666,9 @@ class MetadataFactory {
                                    Object.keys(childs).forEach(function (childKey) {
                                         if (!metadataForDelete[metadata.name].childs[childKey])
                                              metadataForDelete[metadata.name].childs[childKey] = childs[childKey];
+                                        else if (childs[childKey].checked) {
+                                             metadataForDelete[metadata.name].childs[childKey].checked = true;
+                                        }
                                         if (childs[childKey].childs && Object.keys(childs[childKey].childs).length > 0) {
                                              Object.keys(childs[childKey].childs).forEach(function (grandChildKey) {
                                                   if (!metadataForDelete[metadata.name].childs[childKey].childs[grandChildKey])
@@ -753,158 +678,170 @@ class MetadataFactory {
                                    });
                               }
                          }
-                    } else if (diff.mode === 'edit file') {
-                         if (baseFolder.toLowerCase() === 'workflows') {
-                              MetadataFactory.getWorkflowsFromDiff(diff, metadataForDeploy, metadataForDelete, fileName)
-                         } if (baseFolder.toLowerCase() === 'assignmentRules') {
-                              MetadataFactory.getAssignmentRulesFromDiff(diff, metadataForDeploy, metadataForDelete, fileName)
-                         } if (baseFolder.toLowerCase() === 'autoResponseRules') {
-                              MetadataFactory.getAutoresponseRulesFromDiff(diff, metadataForDeploy, metadataForDelete, fileName)
-                         } if (baseFolder.toLowerCase() === 'labels') {
-                              MetadataFactory.getCustomLabelsFromDiff(diff, metadataForDeploy, metadataForDelete, fileName)
-                         } if (baseFolder.toLowerCase() === 'sharingRules') {
-                              MetadataFactory.getSharingRulesFromDiff(diff, metadataForDeploy, metadataForDelete, fileName)
-                         } else {
-                              let metadata = MetadataFactory.createMetadataType(metadataType.xmlName, true);
-                              let childs = MetadataFactory.getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName);
-                              if (!metadataForDeploy[metadata.name])
-                                   metadataForDeploy[metadata.name] = metadata;
-                              Object.keys(childs).forEach(function (childKey) {
-                                   if (!metadataForDeploy[metadata.name].childs[childKey])
-                                        metadataForDeploy[metadata.name].childs[childKey] = childs[childKey];
-                                   if (childs[childKey].childs && Object.keys(childs[childKey].childs).length > 0) {
-                                        Object.keys(childs[childKey].childs).forEach(function (grandChildKey) {
-                                             if (!metadataForDeploy[metadata.name].childs[childKey].childs[grandChildKey])
-                                                  metadataForDeploy[metadata.name].childs[childKey].childs[grandChildKey] = childs[childKey].childs[grandChildKey];
-                                        });
-                                   }
-                              });
-                         }
                     }
                }
           }
-          if (metadataForDelete[MetadataTypes.AURA]) {
-               Object.keys(metadataForDelete[MetadataTypes.AURA].childs).forEach(function (childKey) {
-                    if (metadataForDeploy[MetadataTypes.AURA] && metadataForDeploy[MetadataTypes.AURA].childs[childKey])
-                         delete metadataForDeploy[MetadataTypes.AURA].childs[childKey];
-               });
-               if (metadataForDeploy[MetadataTypes.AURA] && Object.keys(metadataForDeploy[MetadataTypes.AURA].childs).length === 0)
-                    delete metadataForDeploy[MetadataTypes.AURA];
-
-          }
-          if (metadataForDelete[MetadataTypes.LWC]) {
-               Object.keys(metadataForDelete[MetadataTypes.LWC].childs).forEach(function (childKey) {
-                    if (metadataForDeploy[MetadataTypes.LWC] && metadataForDeploy[MetadataTypes.LWC].childs[childKey])
-                         delete metadataForDeploy[MetadataTypes.LWC].childs[childKey];
-               });
-               if (metadataForDeploy[MetadataTypes.LWC] && Object.keys(metadataForDeploy[MetadataTypes.LWC].childs).length === 0)
-                    delete metadataForDeploy[MetadataTypes.LWC];
-          }
-          if (metadataForDelete[MetadataTypes.WORKFLOW]) {
-               Object.keys(metadataForDelete[MetadataTypes.WORKFLOW].childs).forEach(function (childKey) {
-                    if (metadataForDeploy[MetadataTypes.WORKFLOW] && metadataForDeploy[MetadataTypes.WORKFLOW].childs[childKey])
-                         delete metadataForDeploy[MetadataTypes.WORKFLOW].childs[childKey];
-               });
-               if (metadataForDeploy[MetadataTypes.WORKFLOW] && Object.keys(metadataForDeploy[MetadataTypes.WORKFLOW].childs).length === 0)
-                    delete metadataForDeploy[MetadataTypes.WORKFLOW];
-          }
-
+          let typesForPriorDelete = [
+               MetadataTypes.LWC,
+               MetadataTypes.WORKFLOW,
+               MetadataTypes.AURA,
+               MetadataTypes.STATIC_RESOURCE,
+               MetadataTypes.APEX_CLASS,
+               MetadataTypes.APEX_PAGE,
+               MetadataTypes.APEX_TRIGGER,
+               MetadataTypes.APEX_COMPONENT,
+               MetadataTypes.EMAIL_TEMPLATE,
+               MetadataTypes.DOCUMENT,
+               MetadataTypes.REPORTS,
+               MetadataTypes.DASHBOARD,
+          ];
+          MetadataFactory.priorMetadataTypes(typesForPriorDelete, metadataForDelete, metadataForDeploy);
+          let typesForPriorDeploy = [];
+          MetadataFactory.priorMetadataTypes(typesForPriorDeploy, metadataForDeploy, metadataForDelete);
           return {
                metadataForDeploy: metadataForDeploy,
                metadataForDelete: metadataForDelete
           }
      }
 
-     static getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName) {
+     static getMetadataObjectsFromGitDiff(metadataType, baseFolderSplits, fileName, filePath) {
           let especialTypes = [MetadataTypes.CUSTOM_METADATA, MetadataTypes.APPROVAL_PROCESSES, MetadataTypes.DUPLICATE_RULE,
           MetadataTypes.QUICK_ACTION, MetadataTypes.LAYOUT, MetadataTypes.AURA, MetadataTypes.LWC, MetadataTypes.ASSIGNMENT_RULES, MetadataTypes.AUTORESPONSE_RULES,
-          MetadataTypes.WORKFLOW, MetadataTypes.CUSTOM_LABELS, MetadataTypes.SHARING_RULE, MetadataTypes.FLOWS];
+          MetadataTypes.WORKFLOW, MetadataTypes.CUSTOM_LABELS, MetadataTypes.SHARING_RULE, MetadataTypes.FLOWS, MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS, MetadataTypes.STATIC_RESOURCE];
           let objects = {};
           let fistPartBaseFolder = baseFolderSplits[0];
+          let folderPath = Paths.getFolderPath(filePath);
           if (baseFolderSplits.length > 1 && !especialTypes.includes(metadataType.xmlName)) {
                let metadataObjectFolderName = baseFolderSplits[1];
-               if (!objects[metadataObjectFolderName])
-                    objects[metadataObjectFolderName] = MetadataFactory.createMetadataObject(metadataObjectFolderName, true);
-               if (fistPartBaseFolder === 'objects' && baseFolderSplits.length > 2) {
-                    objects[metadataObjectFolderName].childs[fileName] = MetadataFactory.createMetadataItem(fileName, true);
-               } else if (baseFolderSplits.length > 1) {
-                    objects[metadataObjectFolderName].childs[fileName] = MetadataFactory.createMetadataItem(fileName, true);
+               if (fileName.indexOf('Folder-meta.xml') === -1) {
+                    if (metadataType.xmlName === MetadataTypes.DOCUMENT) {
+                         if (fileName.indexOf('-meta.xml') === -1) {
+                              if (!objects[metadataObjectFolderName])
+                                   objects[metadataObjectFolderName] = MetadataFactory.createMetadataObject(metadataObjectFolderName, false, filePath);
+                              if (fistPartBaseFolder === 'objects' && baseFolderSplits.length > 2) {
+                                   objects[metadataObjectFolderName].path = folderPath;
+                                   objects[metadataObjectFolderName].childs[fileName] = MetadataFactory.createMetadataItem(fileName, true, filePath);
+                              } else if (baseFolderSplits.length > 1) {
+                                   objects[metadataObjectFolderName].path = folderPath;
+                                   objects[metadataObjectFolderName].childs[fileName] = MetadataFactory.createMetadataItem(fileName, true, filePath);
+                              } else {
+                                   objects[metadataObjectFolderName].checked = true;
+                              }
+                         }
+                    } else {
+                         if (!objects[metadataObjectFolderName])
+                              objects[metadataObjectFolderName] = MetadataFactory.createMetadataObject(metadataObjectFolderName, false, filePath);
+                         if (metadataType.xmlName !== MetadataTypes.CUSTOM_OBJECT) {
+                              if (fistPartBaseFolder === 'objects' && baseFolderSplits.length > 2) {
+                                   objects[metadataObjectFolderName].path = folderPath;
+                                   objects[metadataObjectFolderName].childs[fileName] = MetadataFactory.createMetadataItem(fileName, true, filePath);
+                              } else if (baseFolderSplits.length > 1) {
+                                   objects[metadataObjectFolderName].path = folderPath;
+                                   objects[metadataObjectFolderName].childs[fileName] = MetadataFactory.createMetadataItem(fileName, true, filePath);
+                              } else {
+                                   objects[metadataObjectFolderName].checked = true;
+                              }
+                         } else {
+                              objects[metadataObjectFolderName].checked = true;
+                         }
+                    }
+               } else {
+                    fileName = StrUtils.replace(fileName, '-meta.xml', '');
+                    fileName = fileName.substring(0, fileName.lastIndexOf('.'));
+                    if (!objects[fileName])
+                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true, folderPath);
+                    else
+                         objects[fileName].checked = true;
                }
           } else if (metadataType.xmlName === MetadataTypes.CUSTOM_METADATA || metadataType.xmlName === MetadataTypes.APPROVAL_PROCESSES || metadataType.xmlName === MetadataTypes.DUPLICATE_RULE || metadataType.xmlName === MetadataTypes.QUICK_ACTION) {
                let fileNameParts = fileName.split('.');
                let sobj = fileNameParts[0].trim();
                let item = fileNameParts[1].trim();
                if (!objects[sobj])
-                    objects[sobj] = MetadataFactory.createMetadataObject(sobj, true);
+                    objects[sobj] = MetadataFactory.createMetadataObject(sobj, true, folderPath);
                if (!objects[sobj].childs[item])
-                    objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true);
+                    objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true, filePath);
           } else if (metadataType.xmlName === MetadataTypes.LAYOUT) {
                let sobj = fileName.substring(0, fileName.indexOf('-')).trim();
                let item = fileName.substring(fileName.indexOf('-') + 1).trim();
                if (!objects[sobj])
-                    objects[sobj] = MetadataFactory.createMetadataObject(sobj, true);
+                    objects[sobj] = MetadataFactory.createMetadataObject(sobj, true, folderPath);
                if (!objects[sobj].childs[item])
-                    objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true);
+                    objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true, filePath);
           } else if (metadataType.xmlName === MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS) {
                let folderName = baseFolderSplits[0];
                let sobj = folderName.substring(0, folderName.indexOf('-')).trim();
                let item = folderName.substring(folderName.indexOf('-') + 1).trim();
+               let lastFolder = Paths.getFolderPath(folderPath);
                if (!objects[sobj])
-                    objects[sobj] = MetadataFactory.createMetadataObject(sobj, true);
+                    objects[sobj] = MetadataFactory.createMetadataObject(sobj, true, lastFolder);
                if (!objects[sobj].childs[item])
-                    objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true);
+                    objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true, folderPath);
           } else if (metadataType.xmlName === MetadataTypes.STATIC_RESOURCE) {
+               let resourcePath = filePath.substring(0, filePath.indexOf('/' + metadataType.directoryName));
+               resourcePath = resourcePath + '/' + metadataType.directoryName + '/' + baseFolderSplits[1 + '.' + metadataType.suffix + '-meta.xml'];
                if (baseFolderSplits.length === 1) {
                     if (!objects[fileName])
-                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true);
+                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true, resourcePath);
                } else {
                     if (!objects[baseFolderSplits[1]])
-                         objects[baseFolderSplits[1]] = MetadataFactory.createMetadataObject(baseFolderSplits[1], true);
+                         objects[baseFolderSplits[1]] = MetadataFactory.createMetadataObject(baseFolderSplits[1], true, resourcePath);
                }
           } else if (metadataType.xmlName === MetadataTypes.FLOW) {
                if (fileName.indexOf('-') !== -1) {
                     let sobj = fileName.substring(0, fileName.indexOf('-')).trim();
                     let item = fileName.substring(fileName.indexOf('-') + 1).trim();
                     if (!objects[sobj])
-                         objects[sobj] = MetadataFactory.createMetadataObject(sobj, true);
+                         objects[sobj] = MetadataFactory.createMetadataObject(sobj, true, folderPath);
                     if (!objects[sobj].childs[item])
-                         objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true);
+                         objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true, filePath);
                } else {
                     if (!objects[fileName])
-                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true);
+                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true, filePath);
                }
           } else if (metadataType.xmlName === MetadataTypes.AURA || metadataType.xmlName === MetadataTypes.LWC) {
                if (baseFolderSplits[1] && !objects[baseFolderSplits[1]])
-                    objects[baseFolderSplits[1]] = MetadataFactory.createMetadataObject(baseFolderSplits[1], true);
+                    objects[baseFolderSplits[1]] = MetadataFactory.createMetadataObject(baseFolderSplits[1], true, folderPath);
           } else {
-               if (!objects[fileName])
-                    objects[fileName] = MetadataFactory.createMetadataObject(fileName, true);
+               if (fileName.indexOf('Folder-meta.xml') !== -1) {
+                    fileName = StrUtils.replace(fileName, '-meta.xml', '');
+                    fileName = fileName.substring(0, fileName.lastIndexOf('.'));
+                    if (!objects[fileName])
+                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true, filePath);
+                    else
+                         objects[fileName].checked = true;
+               } else {
+                    if (!objects[fileName])
+                         objects[fileName] = MetadataFactory.createMetadataObject(fileName, true, filePath);
+               }
           }
           return objects;
      }
 
-     static getAssignmentRulesFromDiff(diff, metadataForDeploy, metadataForDelete, fileName) {
-          if (!metadataForDeploy[MetadataTypes.ASSIGNMENT_RULES])
-               metadataForDeploy[MetadataTypes.ASSIGNMENT_RULES] = MetadataFactory.createMetadataType(MetadataTypes.ASSIGNMENT_RULES, true);
-          if (!metadataForDeploy[MetadataTypes.ASSIGNMENT_RULES].childs[fileName])
-               metadataForDeploy[MetadataTypes.ASSIGNMENT_RULES].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-          let nameTag = 'fullName';
-          if (diff.removeChanges.length > 0) {
-               let startSubtipe = false;
+     static analizeDiffChanges(diffChanges, metadata, metadataType, fileName, filePath) {
+          let added = true;
+          let possibleMetadataToAdd;
+          let typePath = filePath.substring(0, filePath.indexOf('/' + metadataType.directoryName));
+          typePath = typePath + '/' + metadataType.directoryName;
+          if (diffChanges.length > 0) {
+               added = false;
+               let startCollectionTag;
+               let endCollectionTag;
                let onMember = false;
                let fullNameContent = '';
-               for (const changedLine of diff.removeChanges) {
-                    let parentTagOpen = MetadataFactory.startXMLTag(changedLine, 'assignmentRule');
-                    let parentTagClose = MetadataFactory.endXMLTag(changedLine, 'assignmentRule');
-                    if (parentTagOpen !== undefined) {
-                         startSubtipe = true;
+               let collectionData;
+               for (let changedLine of diffChanges) {
+                    changedLine = StrUtils.replace(changedLine, ',', '');
+                    if (!startCollectionTag) {
+                         startCollectionTag = MetadataFactory.getChildTypeStartTag(metadataType.xmlName, changedLine);
                     }
-                    if (startSubtipe) {
-                         let startNameTag = MetadataFactory.startXMLTag(changedLine, nameTag);
-                         let endNameTag = MetadataFactory.endXMLTag(changedLine, nameTag);
+                    if (startCollectionTag) {
+                         collectionData = METADATA_XML_RELATION[metadataType.xmlName][startCollectionTag];
+                         let startNameTag = XMLParser.startTag(changedLine, collectionData.fieldKey);
+                         let endNameTag = XMLParser.endTag(changedLine, collectionData.fieldKey);
                          if (startNameTag !== undefined && endNameTag !== undefined) {
-                              let startTagIndex = changedLine.indexOf('<' + nameTag + '>');
-                              let endTagIndex = changedLine.indexOf('</' + nameTag + '>');
+                              let startTagIndex = changedLine.indexOf('<' + startNameTag + '>');
+                              let endTagIndex = changedLine.indexOf('</' + endNameTag + '>');
                               fullNameContent = changedLine.substring(startTagIndex, endTagIndex);
                               fullNameContent = fullNameContent.substring(fullNameContent.indexOf('>') + 1);
                          }
@@ -918,295 +855,136 @@ class MetadataFactory {
                               fullNameContent += changedLine;
                          }
                     }
-                    if (parentTagClose !== undefined) {
-                         startSubtipe = false;
-                         fullNameContent = fullNameContent.trim();
+                    if (startCollectionTag && !endCollectionTag)
+                         endCollectionTag = XMLParser.endTag(changedLine, startCollectionTag);
+                    if (endCollectionTag) {
+                         if (!collectionData)
+                              collectionData = METADATA_XML_RELATION[metadataType.xmlName][endCollectionTag];
+                         fullNameContent = StrUtils.replace(fullNameContent, ',', '').trim();
                          if (fullNameContent.length > 0) {
-                              let type = MetadataTypes.ASSIGNMENT_RULE;
-                              if (!metadataForDelete[type])
-                                   metadataForDelete[type] = MetadataFactory.createMetadataType(type, true);
-                              if (!metadataForDelete[type].childs[fileName])
-                                   metadataForDelete[type].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-                              metadataForDelete[type].childs[fileName].childs[fullNameContent] = MetadataFactory.createMetadataItem(fullNameContent, true);
+                              let type = collectionData.type;
+                              if (!metadata[type])
+                                   metadata[type] = MetadataFactory.createMetadataType(type, true, typePath, metadataType.suffix);
+                              if (metadataType.xmlName === MetadataTypes.CUSTOM_LABELS) {
+                                   if (!metadata[type].childs[fullNameContent])
+                                        metadata[type].childs[fullNameContent] = MetadataFactory.createMetadataObject(fullNameContent, true, filePath);
+                              } else {
+                                   if (!metadata[type].childs[fileName])
+                                        metadata[type].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true, filePath);
+                                   metadata[type].childs[fileName].childs[fullNameContent] = MetadataFactory.createMetadataItem(fullNameContent, true, filePath);
+                              }
+                              added = true;
                               fullNameContent = '';
                          }
+                         startCollectionTag = undefined;
+                         endCollectionTag = undefined;
                     }
+               }
+          }
+          if (!added) {
+               possibleMetadataToAdd = {};
+               possibleMetadataToAdd[metadataType.xmlName] = MetadataFactory.createMetadataType(metadataType.xmlName, true, typePath, metadataType.suffix);
+               if (!possibleMetadataToAdd[metadataType.xmlName].childs[fileName])
+                    possibleMetadataToAdd[metadataType.xmlName].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true, filePath);
+          }
+          return possibleMetadataToAdd;
+     }
+
+     static getChildTypeStartTag(metadataType, content) {
+          let tag;
+          let xmlKeys = Object.keys(METADATA_XML_RELATION[metadataType]);
+          for (const xmlKey of xmlKeys) {
+               tag = XMLParser.startTag(StrUtils.replace(content, ',', ''), xmlKey);
+               if (tag) {
+                    break;
+               }
+          }
+          return tag;
+     }
+
+     static priorMetadataTypes(types, metadataToPrior, metadataToRemove) {
+          for (const type of types) {
+               if (metadataToPrior[type]) {
+                    Object.keys(metadataToPrior[type].childs).forEach(function (childKey) {
+                         if (metadataToPrior[type].childs[childKey].childs && Object.keys(metadataToPrior[type].childs[childKey].childs).length > 0) {
+                              if (metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].checked) {
+                                   metadataToRemove[type].childs[childKey].checked = false;
+                              }
+                              Object.keys(metadataToPrior[type].childs[childKey].childs).forEach(function (grandChildKey) {
+                                   if (metadataToRemove[type] && metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].childs[grandChildKey]) {
+                                        metadataToRemove[type].childs[childKey].childs[grandChildKey].checked = false;
+                                   }
+                              });
+                         } else {
+                              if (metadataToRemove[type] && metadataToRemove[type].childs[childKey]) {
+                                   metadataToRemove[type].childs[childKey].checked = false;
+                              }
+                         }
+                    });
                }
           }
      }
 
-     static getAutoresponseRulesFromDiff(diff, metadataForDeploy, metadataForDelete, fileName) {
-          if (!metadataForDeploy[MetadataTypes.AUTORESPONSE_RULES])
-               metadataForDeploy[MetadataTypes.AUTORESPONSE_RULES] = MetadataFactory.createMetadataType(MetadataTypes.AUTORESPONSE_RULES, true);
-          if (!metadataForDeploy[MetadataTypes.AUTORESPONSE_RULES].childs[fileName])
-               metadataForDeploy[MetadataTypes.AUTORESPONSE_RULES].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-          let nameTag = 'fullName';
-          if (diff.removeChanges.length > 0) {
-               let startSubtipe = false;
-               let onMember = false;
-               let fullNameContent = '';
-               for (const changedLine of diff.removeChanges) {
-                    let parentTagOpen = MetadataFactory.startXMLTag(changedLine, 'autoResponseRule');
-                    let parentTagClose = MetadataFactory.endXMLTag(changedLine, 'autoResponseRule');
-                    if (parentTagOpen !== undefined) {
-                         startSubtipe = true;
+     static combineMetadata(metadataTarget, metadataSource) {
+          Object.keys(metadataSource).forEach(function (key) {
+               const metadataTypeSource = metadataSource[key];
+               const metadataTypeTarget = metadataTarget[key];
+               if (metadataTypeTarget) {
+                    const childKeys = Object.keys(metadataTypeSource.childs);
+                    if (childKeys.length > 0) {
+                         Object.keys(metadataTypeSource.childs).forEach(function (childKey) {
+                              const metadataObjectSource = metadataTypeSource.childs[childKey];
+                              const metadataObjectTarget = metadataTypeTarget.childs[childKey];
+                              if (metadataObjectTarget) {
+                                   const grandChildKeys = Object.keys(metadataObjectSource.childs);
+                                   if (grandChildKeys.length > 0) {
+                                        Object.keys(metadataObjectSource.childs).forEach(function (grandChildKey) {
+                                             const metadataItemSource = metadataObjectSource.childs[grandChildKey];
+                                             const metadataItemTarget = metadataObjectTarget.childs[grandChildKey];
+                                             if (metadataItemTarget && metadataItemSource.checked) {
+                                                  metadataTarget[key].childs[childKey].childs[grandChildKey].checked = true;
+                                             } else {
+                                                  metadataTarget[key].childs[childKey].childs[grandChildKey] = metadataItemSource;
+                                             }
+                                        });
+                                        metadataTarget[key].childs[childKey].checked = Utils.isAllChecked(metadataTarget[key].childs[childKey].childs);
+                                   } else {
+                                        metadataTarget[key].childs[childKey].checked = metadataObjectSource.checked;
+                                   }
+                              } else {
+                                   metadataTarget[key].childs[childKey] = metadataObjectSource;
+                              }
+                         });
+                         metadataTarget[key].checked = Utils.isAllChecked(metadataTarget[key].childs);
+                    } else {
+                         metadataTarget[key].checked = metadataTypeSource.checked;
                     }
-                    if (startSubtipe) {
-                         let startNameTag = MetadataFactory.startXMLTag(changedLine, nameTag);
-                         let endNameTag = MetadataFactory.endXMLTag(changedLine, nameTag);
-                         if (startNameTag !== undefined && endNameTag !== undefined) {
-                              let startTagIndex = changedLine.indexOf('<' + nameTag + '>');
-                              let endTagIndex = changedLine.indexOf('</' + nameTag + '>');
-                              fullNameContent = changedLine.substring(startTagIndex, endTagIndex);
-                              fullNameContent = fullNameContent.substring(fullNameContent.indexOf('>') + 1);
-                         }
-                         else if (startNameTag !== undefined) {
-                              onMember = true;
-                              fullNameContent += changedLine;
-                         } else if (onMember) {
-                              fullNameContent += changedLine;
-                         } else if (endNameTag !== undefined) {
-                              onMember = false;
-                              fullNameContent += changedLine;
-                         }
-                    }
-                    if (parentTagClose !== undefined) {
-                         startSubtipe = false;
-                         fullNameContent = fullNameContent.trim();
-                         if (fullNameContent.length > 0) {
-                              let type = MetadataTypes.AUTORESPONSE_RULE;
-                              if (!metadataForDelete[type])
-                                   metadataForDelete[type] = MetadataFactory.createMetadataType(type, true);
-                              if (!metadataForDelete[type].childs[fileName])
-                                   metadataForDelete[type].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-                              metadataForDelete[type].childs[fileName].childs[fullNameContent] = MetadataFactory.createMetadataItem(fullNameContent, true);
-                              fullNameContent = '';
-                         }
-                    }
+               } else {
+                    metadataTarget[key] = metadataSource[key];
                }
+          });
+          return metadataTarget;
+     }
+
+     static createIgnoreMap(objectsForIgnore) {
+          let objectToIgnoreMap = {};
+          for (let objectToIgnore of objectsForIgnore) {
+              if (objectToIgnore.indexOf(':') !== -1) {
+                  let splits = objectToIgnore.split(':');
+                  if (splits.length === 2) {
+                      if (!objectToIgnoreMap[splits[0]])
+                          objectToIgnoreMap[splits[0]] = [];
+                      objectToIgnoreMap[splits[0]].push(splits[1]);
+                  } else if (splits.length === 3 && splits[0].toLowerCase() === 'userpermission') {
+                      if (!objectToIgnoreMap[splits[1]])
+                          objectToIgnoreMap[splits[1]] = [];
+                      objectToIgnoreMap[splits[1]].push({ permission: splits[2] });
+                  }
+              } else {
+                  objectToIgnoreMap[objectToIgnore] = [objectToIgnore];
+              }
           }
-     }
-
-     static getCustomLabelsFromDiff(diff, metadataForDeploy, metadataForDelete, fileName) {
-          if (!metadataForDeploy[MetadataTypes.CUSTOM_LABELS])
-               metadataForDeploy[MetadataTypes.CUSTOM_LABELS] = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_LABELS, true);
-          if (!metadataForDeploy[MetadataTypes.CUSTOM_LABELS].childs[fileName])
-               metadataForDeploy[MetadataTypes.CUSTOM_LABELS].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-          let nameTag = 'fullName';
-          if (diff.removeChanges.length > 0) {
-               let startSubtipe = false;
-               let onMember = false;
-               let fullNameContent = '';
-               for (const changedLine of diff.removeChanges) {
-                    let parentTagOpen = MetadataFactory.startXMLTag(changedLine, 'labels');
-                    let parentTagClose = MetadataFactory.endXMLTag(changedLine, 'labels');
-                    if (parentTagOpen !== undefined) {
-                         startSubtipe = true;
-                    }
-                    if (startSubtipe) {
-                         let startNameTag = MetadataFactory.startXMLTag(changedLine, nameTag);
-                         let endNameTag = MetadataFactory.endXMLTag(changedLine, nameTag);
-                         if (startNameTag !== undefined && endNameTag !== undefined) {
-                              let startTagIndex = changedLine.indexOf('<' + nameTag + '>');
-                              let endTagIndex = changedLine.indexOf('</' + nameTag + '>');
-                              fullNameContent = changedLine.substring(startTagIndex, endTagIndex);
-                              fullNameContent = fullNameContent.substring(fullNameContent.indexOf('>') + 1);
-                         }
-                         else if (startNameTag !== undefined) {
-                              onMember = true;
-                              fullNameContent += changedLine;
-                         } else if (onMember) {
-                              fullNameContent += changedLine;
-                         } else if (endNameTag !== undefined) {
-                              onMember = false;
-                              fullNameContent += changedLine;
-                         }
-                    }
-                    if (parentTagClose !== undefined) {
-                         startSubtipe = false;
-                         fullNameContent = fullNameContent.trim();
-                         if (fullNameContent.length > 0) {
-                              let type = MetadataTypes.CUSTOM_LABEL;
-                              if (!metadataForDelete[type])
-                                   metadataForDelete[type] = MetadataFactory.createMetadataType(type, true);
-                              if (!metadataForDelete[type].childs[fileName])
-                                   metadataForDelete[type].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-                              metadataForDelete[type].childs[fileName].childs[fullNameContent] = MetadataFactory.createMetadataItem(fullNameContent, true);
-                              fullNameContent = '';
-                         }
-                    }
-               }
-          }
-     }
-
-     static getSharingRulesFromDiff(diff, metadataForDeploy, metadataForDelete, fileName) {
-          if (!metadataForDeploy[MetadataTypes.SHARING_RULE])
-               metadataForDeploy[MetadataTypes.SHARING_RULE] = MetadataFactory.createMetadataType(MetadataTypes.SHARING_RULE, true);
-          if (!metadataForDeploy[MetadataTypes.SHARING_RULE].childs[fileName])
-               metadataForDeploy[MetadataTypes.SHARING_RULE].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-          let nameTag = 'fullName';
-          if (diff.removeChanges.length > 0) {
-               let startSubtipe = false;
-               let onMember = false;
-               let fullNameContent = '';
-               for (const changedLine of diff.removeChanges) {
-                    let parentTagOpen = MetadataFactory.isSharingRuleSubtypeStartTag(changedLine);
-                    let parentTagClose = MetadataFactory.isSharingRuleSubtypeStartTag(changedLine);
-                    if (parentTagOpen !== undefined) {
-                         startSubtipe = true;
-                    }
-                    if (startSubtipe) {
-                         let startNameTag = MetadataFactory.startXMLTag(changedLine, nameTag);
-                         let endNameTag = MetadataFactory.endXMLTag(changedLine, nameTag);
-                         if (startNameTag !== undefined && endNameTag !== undefined) {
-                              let startTagIndex = changedLine.indexOf('<' + nameTag + '>');
-                              let endTagIndex = changedLine.indexOf('</' + nameTag + '>');
-                              fullNameContent = changedLine.substring(startTagIndex, endTagIndex);
-                              fullNameContent = fullNameContent.substring(fullNameContent.indexOf('>') + 1);
-                         }
-                         else if (startNameTag !== undefined) {
-                              onMember = true;
-                              fullNameContent += changedLine;
-                         } else if (onMember) {
-                              fullNameContent += changedLine;
-                         } else if (endNameTag !== undefined) {
-                              onMember = false;
-                              fullNameContent += changedLine;
-                         }
-                    }
-                    if (parentTagClose !== undefined) {
-                         startSubtipe = false;
-                         fullNameContent = fullNameContent.trim();
-                         if (fullNameContent.length > 0) {
-                              let type = MetadataFactory.getSharingRulesChildsByTag()[parentTagClose];
-                              if (!metadataForDelete[type])
-                                   metadataForDelete[type] = MetadataFactory.createMetadataType(type, true);
-                              if (!metadataForDelete[type].childs[fileName])
-                                   metadataForDelete[type].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-                              metadataForDelete[type].childs[fileName].childs[fullNameContent] = MetadataFactory.createMetadataItem(fullNameContent, true);
-                              fullNameContent = '';
-                         }
-                    }
-               }
-          }
-     }
-
-     static getWorkflowsFromDiff(diff, metadataForDeploy, metadataForDelete, fileName) {
-          if (!metadataForDeploy[MetadataTypes.WORKFLOW])
-               metadataForDeploy[MetadataTypes.WORKFLOW] = MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW, true);
-          if (!metadataForDeploy[MetadataTypes.WORKFLOW].childs[fileName])
-               metadataForDeploy[MetadataTypes.WORKFLOW].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-          let nameTag = 'fullName';
-          if (diff.removeChanges.length > 0) {
-               let startSubtipe = false;
-               let onMember = false;
-               let fullNameContent = '';
-               for (const changedLine of diff.removeChanges) {
-                    let parentTagOpen = MetadataFactory.isWorkflowSubtypeStartTag(changedLine);
-                    let parentTagClose = MetadataFactory.isWorkflowSubtypeEndTag(changedLine);
-                    if (parentTagOpen !== undefined) {
-                         startSubtipe = true;
-                    }
-                    if (startSubtipe) {
-                         let startNameTag = MetadataFactory.startXMLTag(changedLine, nameTag);
-                         let endNameTag = MetadataFactory.endXMLTag(changedLine, nameTag);
-                         if (startNameTag !== undefined && endNameTag !== undefined) {
-                              let startTagIndex = changedLine.indexOf('<' + nameTag + '>');
-                              let endTagIndex = changedLine.indexOf('</' + nameTag + '>');
-                              fullNameContent = changedLine.substring(startTagIndex, endTagIndex);
-                              fullNameContent = fullNameContent.substring(fullNameContent.indexOf('>') + 1);
-                         }
-                         else if (startNameTag !== undefined) {
-                              onMember = true;
-                              fullNameContent += changedLine;
-                         } else if (onMember) {
-                              fullNameContent += changedLine;
-                         } else if (endNameTag !== undefined) {
-                              onMember = false;
-                              fullNameContent += changedLine;
-                         }
-                    }
-                    if (parentTagClose !== undefined) {
-                         startSubtipe = false;
-                         fullNameContent = fullNameContent.trim();
-                         if (fullNameContent.length > 0) {
-                              let type = MetadataFactory.getWorkflowChildsByTag()[parentTagClose];
-                              if (!metadataForDelete[type])
-                                   metadataForDelete[type] = MetadataFactory.createMetadataType(type, true);
-                              if (!metadataForDelete[type].childs[fileName])
-                                   metadataForDelete[type].childs[fileName] = MetadataFactory.createMetadataObject(fileName, true);
-                              metadataForDelete[type].childs[fileName].childs[fullNameContent] = MetadataFactory.createMetadataItem(fullNameContent, true);
-                              fullNameContent = '';
-                         }
-                    }
-               }
-          }
-     }
-
-     static getWorkflowChildsByTag() {
-          return {
-               alerts: MetadataTypes.WORKFLOW_ALERT,
-               fieldUpdates: MetadataTypes.WORKFLOW_FIELD_UPDATE,
-               knowledgePublishes: MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH,
-               outboundMessages: MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE,
-               rules: MetadataTypes.WORKFLOW_RULE,
-               tasks: MetadataTypes.WORKFLOW_TASK
-          };
-     }
-
-     static getSharingRulesChildsByTag() {
-          return {
-               sharingCriteriaRules: MetadataTypes.SHARING_CRITERIA_RULE,
-               sharingOwnerRules: MetadataTypes.SHARING_OWNER_RULE,
-          };
-     }
-
-     static startXMLTag(content, tag) {
-          if (content.indexOf('<' + tag + '>') !== -1)
-               return tag;
-          return undefined;
-     }
-
-     static endXMLTag(content, tag) {
-          if (content.indexOf('</' + tag + '>') !== -1)
-               return tag;
-          return undefined;
-     }
-
-     static isWorkflowSubtypeStartTag(changedLine) {
-          for (const subtype of Object.keys(MetadataFactory.getWorkflowChildsByTag())) {
-               let tag = MetadataFactory.startXMLTag(changedLine, subtype);
-               if (tag !== undefined)
-                    return tag;
-          }
-          return undefined;
-     }
-
-     static isWorkflowSubtypeEndTag(changedLine) {
-          for (const subtype of Object.keys(MetadataFactory.getWorkflowChildsByTag())) {
-               let tag = MetadataFactory.endXMLTag(changedLine, subtype);
-               if (tag !== undefined)
-                    return tag;
-          }
-          return undefined;
-     }
-
-     static isSharingRuleSubtypeStartTag(changedLine) {
-          for (const subtype of Object.keys(MetadataFactory.getSharingRulesChildsByTag())) {
-               let tag = MetadataFactory.startXMLTag(changedLine, subtype);
-               if (tag !== undefined)
-                    return tag;
-          }
-          return undefined;
-     }
-
-     static isSharingRuleSubtypeEndTag(changedLine) {
-          for (const subtype of Object.keys(MetadataFactory.getSharingRulesChildsByTag())) {
-               let tag = MetadataFactory.endXMLTag(changedLine, subtype);
-               if (tag !== undefined)
-                    return tag;
-          }
-          return undefined;
-     }
+          return objectToIgnoreMap;
+      }
 }
 module.exports = MetadataFactory;

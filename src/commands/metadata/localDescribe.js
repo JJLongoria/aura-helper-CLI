@@ -4,11 +4,13 @@ const ErrorCodes = require('../errors');
 const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
 const Metadata = require('../../metadata');
+const Utils = require('./utils');
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const MetadataFactory = Metadata.Factory;
 const FileWriter = FileSystem.FileWriter;
 const MetadataConnection = Metadata.Connection;
+
 
 exports.createCommand = function (program) {
     program
@@ -68,24 +70,22 @@ function hasEmptyArgs(args) {
     return args.root === undefined && args.sendTo === undefined && args.all === undefined && args.type === undefined;
 }
 
-function listLocalMetadata(args) {
+function listLocalMetadata(args, types) {
     return new Promise(async function (resolve, reject) {
         try {
             let username = await Config.getAuthUsername(args.root);
-            let metadataTypes = await MetadataConnection.getMetadataTypesFromOrg(username, args.root, { forceDownload: true });
+            let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
             let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
             let metadata = {};
             if (args.all) {
                 metadata = metadataFromFileSystem;
             } else if (args.type) {
-                let types = [args.type];
-                if (args.type.indexOf(' ') !== -1)
-                    types = args.type.split(' ');
-                Object.keys(metadataFromFileSystem).forEach(function (key) {
-                    if (types.includes(key))
-                        metadata[key] = metadataFromFileSystem[key];
-                });
+                let types = Utils.getTypes(args.type);
+                for (let type of types) {
+                    if (metadataFromFileSystem[key])
+                        metadata[key] = metadataFromFileSystem[key]
+                }
             }
             resolve(metadata);
         } catch (error) {

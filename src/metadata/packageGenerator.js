@@ -24,24 +24,59 @@ const MEMBERS_TAG_END = "</members>";
 
 class PackageGenerator {
 
-    static mergePackages(packagePaths) {
+    static transformPackageToMetadataFormat(pkg) {
+        Object.keys(pkg).forEach(function (type) {
+            if (metadata[type]) {
+                if (pkg[type].includes('*')) {
+                    metadata[type].checked = true;
+                    checkAll(metadata[type].childs, type);
+                } else {
+                    for (let member of pkg[type]) {
+                        let separator;
+                        if (type === MetadataTypes.EMAIL_TEMPLATE || type === MetadataTypes.DOCUMENT || type === MetadataTypes.REPORTS || type === MetadataTypes.DASHBOARD) {
+                            separator = '/';
+                        } else if (type === MetadataTypes.LAYOUT || type === MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS || type === MetadataTypes.FLOWS) {
+                            separator = '-';
+                        } else {
+                            separator = '.';
+                        }
+                        if (member.indexOf(separator) != -1) {
+                            let object = member.substring(0, member.indexOf(separator));
+                            let item = member.substring(member.indexOf(separator) + 1);
+                            if (metadata[type].childs[object] && metadata[type].childs[object].childs[item]) {
+                                metadata[type].childs[object].childs[item].checked = true;
+                                metadata[type].childs[object].checked = isAllChecked(metadata[type].childs[object].childs);
+                            }
+                        } else {
+                            if (metadata[type].childs[member])
+                                metadata[type].childs[member].checked = true;
+                        }
+                    }
+                    metadata[type].checked = isAllChecked(metadata[type].childs);
+                }
+            }
+        });
+        return metadata;
+    }
+
+    static mergePackages(packagePaths, apiVersion) {
         let result;
         for (const packagePath of packagePaths) {
             let pkg = XMLParser.parseXML(FileReader.readFileSync(packagePath));
-            let preparedPkg = PackageGenerator.createPackageFromXMLPackage(pkg);
+            let preparedPkg = PackageGenerator.createPackageFromXMLPackage(pkg, apiVersion);
             if (!result)
                 result = preparedPkg;
             else
                 result = PackageGenerator.mergePackage(result, preparedPkg);
         }
-        return PackageGenerator.createPackageFromMerged(result);
+        return PackageGenerator.transformPackageToMetadataFormat(result);
     }
 
-    static createPackageFromXMLPackage(pkg) {
+    static createPackageFromXMLPackage(pkg, apiVersion) {
         let result;
         if (pkg.Package) {
             result = {
-                version: pkg.Package.version
+                version: apiVersion
             };
             let types = [];
             if (Array.isArray(pkg.Package.types))
@@ -74,9 +109,6 @@ class PackageGenerator {
                     }
                 }
                 target[key] = target[key].sort();
-            } else {
-                if (source.version > target.version)
-                    target.version = source.version;
             }
         });
         return target
@@ -269,9 +301,15 @@ class PackageGenerator {
             typesBlockContent.push('\t\t' + MEMBERS_TAG_START + '*' + MEMBERS_TAG_END);
             addBlock = true;
         } else if ((!forRetrieve && metadataType.name !== MetadataTypes.WORKFLOW_ALERT && metadataType.name !== MetadataTypes.WORKFLOW_FIELD_UPDATE && metadataType.name !== MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH && metadataType.name !== MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE && metadataType.name !== MetadataTypes.WORKFLOW_RULE && metadataType.name !== MetadataTypes.WORKFLOW_TASK) || forRetrieve) {
+            let folderAdded = false;
             Object.keys(childs).forEach(function (key) {
                 let mtObject = childs[key];
                 if (mtObject.childs && Object.keys(mtObject.childs).length > 0) {
+                    if (!folderAdded && mtObject.checked && (metadataType.name === MetadataTypes.DOCUMENT || metadataType.name === MetadataTypes.EMAIL_TEMPLATE || metadataType.name === MetadataTypes.REPORTS || metadataType.name === MetadataTypes.DASHBOARD)) {
+                        typesBlockContent.push('\t\t' + MEMBERS_TAG_START + mtObject.name + MEMBERS_TAG_END);
+                        addBlock = true;
+                        folderAdded = true;
+                    }
                     Object.keys(mtObject.childs).forEach(function (key) {
                         let mtItem = mtObject.childs[key];
                         let separator;

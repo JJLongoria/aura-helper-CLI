@@ -12,7 +12,6 @@ Commands.Metadata.LocalDescribe.createCommand(program);
 //Commands.Metadata.LocalCompare.createCommand(program);
 Commands.Metadata.LocalRepair.createCommand(program);
 Commands.Metadata.LocalPackageGenerator.createCommand(program);
-// TODO: Add more types for threat in ignore command
 // TODO: Retrieve full profiles
 // TODO: Retrieve full permission sets
 // TODO: Retrieve full records types

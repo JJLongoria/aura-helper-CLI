@@ -8,7 +8,7 @@ class Paths {
         return path.basename(filePath);
     }
     static getFolderPath(filePath) {
-        return StrUtils.replace(path.dirname(filePath));
+        return StrUtils.replace(path.dirname(filePath), '\\', '/');
     }
     static getBundleHelperPath(filePath) {
         return filePath.replace('.cmp', '').replace('.auradoc', '').replace('.svg', '').replace('.css', '').replace('.design', '').replace('.app', '').replace('.app', 'Renderer.js').replace('.app', 'Controller.js') + 'Helper.js';
