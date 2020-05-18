@@ -239,7 +239,7 @@ function repairCustomApplication(args, typeToProcess, objectToProcess, allTypes)
     }
     if (Object.keys(result).length > 0 && !args.onlyCheck) {
         root.CustomApplication = customApp;
-        if (compress) {
+        if (args.compress) {
             content = MetadataCompressor.compressAsJSON(root);
             if (!content)
                 content = XMLParser.toXML(root);
@@ -454,7 +454,7 @@ function repairProfile(args, typeToProcess, objectToProcess, allTypes) {
     profile.tabVisibilities = tabsToKeep;
     if (Object.keys(result).length > 0 && !args.onlyCheck) {
         root.Profile = profile;
-        if (compress) {
+        if (args.compress) {
             content = MetadataCompressor.compressAsJSON(root);
             if (!content)
                 content = XMLParser.toXML(root);
@@ -628,7 +628,7 @@ function repairPermissionSet(args, typeToProcess, objectToProcess, allTypes) {
     permissionSet.tabSettings = tabsToKeep;
     if (Object.keys(result).length > 0 && !args.onlyCheck) {
         root.PermissionSet = permissionSet;
-        if (compress) {
+        if (args.compress) {
             content = MetadataCompressor.compressAsJSON(root);
             if (!content)
                 content = XMLParser.toXML(root);
