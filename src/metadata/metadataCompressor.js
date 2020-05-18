@@ -77,7 +77,7 @@ class MetadataCompressor {
 
     static compress(filePath) {
         let root = XMLParser.parseXML(FileReader.readFileSync(filePath), true);
-        return compressAsJSON(root);
+        return MetadataCompressor.compressAsJSON(root);
     }
 
     static compressAsJSON(root) {
