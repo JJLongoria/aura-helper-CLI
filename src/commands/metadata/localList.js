@@ -76,7 +76,7 @@ function listLocalMetadata(args) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Gettin All Available Metadata Types', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
             let metadata = [];
             let username = await Config.getAuthUsername(args.root);
             let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: false });

@@ -61,7 +61,7 @@ async function run(args) {
         return;
     }
     if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, 'Gettin All Available Metadata Types', args.progress));
+        Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
     let username = await Config.getAuthUsername(args.root);
     let types = [];
     if (args.all) {

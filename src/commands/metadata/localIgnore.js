@@ -183,7 +183,7 @@ function ignoreMetadata(args, typesForIgnore) {
                 Output.Printer.printProgress(Response.progress(undefined, 'Reading ignore File', args.progress));
             let ignoredMetadata = JSON.parse(FileReader.readFileSync(args.ignoreFile));
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Gettin All Available Metadata Types', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
             let username = await Config.getAuthUsername(args.root);
             let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: false });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
