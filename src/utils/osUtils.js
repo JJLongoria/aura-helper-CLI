@@ -11,7 +11,10 @@ class OSUtils {
     }
 
     static getAvailableCPUs(){
-        return os.cpus().length;
+        let cpus = os.cpus().length;
+        if(cpus > 2)
+            cpus -= 1;
+        return cpus;
     }
 
 }
