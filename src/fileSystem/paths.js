@@ -22,6 +22,9 @@ class Paths {
     static getAbsolutePath(fileOrFolder) {
         return StrUtils.replace(path.resolve(fileOrFolder), '\\', '/');
     }
+    static getAuraHelperCLITempFilesPath(){
+        return os.homedir() + '/AuraHelperCLI/TempFiles';
+    }
     static getAppPath() {
         let result = [];
         let systemPaths = process.env.PATH.split(';');

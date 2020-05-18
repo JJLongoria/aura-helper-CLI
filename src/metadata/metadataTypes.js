@@ -48,7 +48,7 @@ const SHARING_OWNER_RULE = 'SharingOwnerRule';
 const SHARING_GUEST_RULE = 'SharingGuestRule';
 const SHARING_TERRITORY_RULE = 'SharingTerritoryRule';
 const STATIC_RESOURCE = 'StaticResource';
-const TANSLATION = 'Translations';
+const TRANSLATION = 'Translations';
 const VALIDATION_RULE = 'ValidationRule';
 const BUTTON_OR_LINK = 'WebLink';
 const WORKFLOW = 'Workflow';
@@ -123,7 +123,7 @@ module.exports = {
   SHARING_OWNER_RULE,
   SHARING_CRITERIA_RULE,
   STATIC_RESOURCE,
-  TANSLATION,
+  TRANSLATION,
   VALIDATION_RULE,
   BUTTON_OR_LINK,
   WORKFLOW,

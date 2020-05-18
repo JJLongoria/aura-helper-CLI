@@ -12,18 +12,19 @@ Commands.Metadata.LocalDescribe.createCommand(program);
 //Commands.Metadata.LocalCompare.createCommand(program);
 Commands.Metadata.LocalRepair.createCommand(program);
 Commands.Metadata.LocalPackageGenerator.createCommand(program);
+Commands.Metadata.LocalRetrieveSpecial.createCommand(program);
 // TODO: Retrieve full profiles
 // TODO: Retrieve full permission sets
 // TODO: Retrieve full records types
 // TODO: Add more runtime generated medatada for retrieve
 // TODO: Get queriable objects (refresh metadata index) (all and specifics)
-// TODO: Send progress for commands that support it <--
 
 
 // OrgCommands
 Commands.Metadata.OrgList.createCommand(program);
 Commands.Metadata.OrgDescribe.createCommand(program);
 Commands.Metadata.OrgCompare.createCommand(program);
+Commands.Metadata.OrgRetrieveSpecial.createCommand(program);
 
 
 // Core Commands

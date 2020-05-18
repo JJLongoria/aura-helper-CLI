@@ -56,11 +56,6 @@ const TYPES_FOR_REPAIR_DATA = {
     }
 };
 
-const progressAvailableFormats = [
-    'plaintext',
-    'json'
-];
-
 exports.createCommand = function (program) {
     program
         .command('metadata:local:repair')
@@ -69,14 +64,16 @@ exports.createCommand = function (program) {
         .option('-a, --all', 'Repair al metadata types')
         .option('-t, --type <MetadataTypeNames>', 'Repair specified metadata types. You can choose single type or a list separated by commas,  also you can choose to repair a specified objects like "MetadataTypeAPIName:MetadataObjectAPIName". For example, "CustomApplication:AppName1" for repair only AppName1 Custom App. This option does not take effet if select repair all')
         .option('-o, --only-check', 'If you select this options, the command not repair dependencies, instead return the errors on the files for repair manually', false)
-        .option('-p, --progress [format]', 'Option for report the progress in the specified format. Available formats are ' + progressAvailableFormats.join(', '))
+        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-c, --compress', 'Add this option for compress modifieds files for repair operation.', false)
+        .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
         });
 }
 
 function run(args) {
+    Output.Printer.setColorized(args.beautify);
     if (hasEmptyArgs(args)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
@@ -96,23 +93,19 @@ function run(args) {
         return;
     }
     if (args.progress) {
-        if (!progressAvailableFormats.includes(args.progress)) {
-
+        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+            return;
         }
     }
     let types = {};
     if (args.all) {
         Object.keys(TYPES_FOR_REPAIR_DATA).forEach(function (key) {
-            types[key] = ['*'];
+            types[key] = {};
+            types[key]['*'] = ['*'];
         });
     } else if (args.type) {
         types = Utils.getAdvanceTypes(args.type);
-        Object.keys().forEach(function (key) {
-            if (!TYPES_FOR_REPAIR_DATA[key]) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --type selected for repair (' + key + '). Select an available type for repair'));
-                return;
-            }
-        });
     }
     repairDependencies(args, types).then(function (result) {
         if (args.onlyCheck) {
@@ -126,7 +119,7 @@ function run(args) {
 }
 
 function hasEmptyArgs(args) {
-    return args.root === undefined && args.all === undefined && args.type === undefined && args.compress === undefined && args.onlyCheck === undefined;
+    return args.root === undefined && args.all === undefined && args.type === undefined && args.compress === undefined && args.onlyCheck === undefined && args.progress === undefined && args.beautify === undefined;
 }
 
 function repairDependencies(args, types) {
@@ -137,12 +130,12 @@ function repairDependencies(args, types) {
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
             let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
             let results = {};
-            Object.keys(metadataFromFileSystem).forEach(function (key) {
+            Object.keys(types).forEach(function (key) {
                 let typeToProcess = metadataFromFileSystem[key];
-                if (types[key]) {
+                if (typeToProcess) {
                     Object.keys(typeToProcess.childs).forEach(function (childKey) {
                         let objectToProcess = typeToProcess.childs[childKey];
-                        if (types[key].includes(childKey) || types[key].includes('*')) {
+                        if (types[key][childKey] || types[key]['*']) {
                             let result = repairTypeDependencies(args, typeToProcess, objectToProcess, metadataFromFileSystem);
                             if (result && Object.keys(result).length > 0) {
                                 if (!results[key])

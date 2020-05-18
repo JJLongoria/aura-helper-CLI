@@ -16,16 +16,18 @@ exports.createCommand = function (program) {
         .description('Command for describe the metadata types from the auth org')
         .option('-r, --root <path/to/project/root>', 'Path to project root', './')
         .option('-a, --all', 'Describe all metadata types')
-        .option('-o, --only-ns', 'Describe only metadatatypes for your org namespace', true)
+        .option('-o, --org-namespace', 'Describe only metadatatypes for your org namespace')
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
-        .option('-p, --progress [format]', 'Option for report the download progress. Available formats: json, plaintext', 'json')
+        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
+        .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
         });
 }
 
 async function run(args) {
+    Output.Printer.setColorized(args.beautify);
     if (hasEmptyArgs(args)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
@@ -48,10 +50,18 @@ async function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select describe all or describe specific types"));
         return;
     }
+    if (args.progress) {
+        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+            return;
+        }
+    }
     if (!FileChecker.isSFDXRootPath(args.root)) {
         Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
         return;
     }
+    if (args.progress)
+        Output.Printer.printProgress(Response.progress(undefined, 'Gettin All Available Metadata Types', args.progress));
     let username = await Config.getAuthUsername(args.root);
     let types = [];
     if (args.all) {
@@ -79,16 +89,18 @@ async function run(args) {
 }
 
 function hasEmptyArgs(args) {
-    return args.root === undefined && args.all === undefined && args.type === undefined && args.progress === undefined && args.onlyNs === undefined && args.sendTo === undefined;
+    return args.root === undefined && args.all === undefined && args.type === undefined && args.progress === undefined && args.orgNamespace === undefined && args.sendTo === undefined;
 }
 
 function describeMetadata(args, username, types) {
     return new Promise(async function (resolve, reject) {
         try {
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Describing Org Metadata Types', args.progress));
             let projectConfig = Config.getProjectConfig(args.root);
             let options = {
                 orgNamespace: projectConfig.namespace,
-                downloadAll: !args.onlyNs,
+                downloadAll: !args.orgNamespace,
                 progressReport: args.progress
             }
             let metadata = await MetadataConnection.getSpecificMetadataFromOrg(username, types, options, Output);
