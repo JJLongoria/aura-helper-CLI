@@ -257,7 +257,7 @@ function runProcess(process) {
                     stdOut = stdOut.concat(data);
                     break;
                 case ProcessEvent.ERR_OUT:
-                    if(data.toString().indexOf('(node:3063) [EACCES]') !== -1){
+                    if(data.toString().indexOf('[EACCES]') !== -1){
                         permissionError = true;
                     } else {
                         stdErr = stdErr.concat(data);
