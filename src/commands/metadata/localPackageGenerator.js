@@ -351,8 +351,8 @@ function createFromGit(args) {
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Processing Git Diff output', args.progress));
                 let gitDiffs = processDiffOut(diffsOut.stdOut);
-                FileWriter.createFileSync('./diffsOut.txt', diffsOut.stdOut);
-                FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
+                //FileWriter.createFileSync('./diffsOut.txt', diffsOut.stdOut);
+                //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
                 let username = await Config.getAuthUsername(args.root);
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
