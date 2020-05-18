@@ -1,4 +1,4 @@
-#!/usr/bin/env node --harmony
+#!/usr/bin/env node
 const Commands = require('./commands');
 const program = require('commander');
 const inquirer = require("inquirer");
