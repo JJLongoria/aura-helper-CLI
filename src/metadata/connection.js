@@ -10,6 +10,7 @@ const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const Response = require('../commands/response');
 const MathUtils = require('../utils/MathUtils');
+const OSUtils = require('../utils/osUtils');
 
 const suffixByMetadataType = {
     CustomField: 'field',
@@ -51,7 +52,7 @@ class Connection {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
                 increment = MathUtils.round(100 / objects.length, 2);
-                let nBatches = 4;
+                let nBatches = OSUtils.getAvailableCPUs();
                 let recordsPerBatch = Math.ceil(objects.length / nBatches);
                 batches = [];
                 let counter = 0;
