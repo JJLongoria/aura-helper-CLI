@@ -351,7 +351,8 @@ function createFromGit(args) {
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Processing Git Diff output', args.progress));
                 let gitDiffs = processDiffOut(diffsOut.stdOut);
-                //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
+                FileWriter.createFileSync('./diffsOut.txt', diffsOut.stdOut);
+                FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
                 let username = await Config.getAuthUsername(args.root);
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
@@ -430,7 +431,8 @@ function processDiffOut(stdOut) {
     let removeChangesAdded = false;
     let extraDiff;
     for (const diffLine of lines) {
-        if (diffLine.indexOf('diff') !== -1 && diffLine.indexOf('--git') !== -1) {
+        let tmpLine = StrUtils.replace(diffLine, ',', '');
+        if (tmpLine.indexOf('diff') !== -1 && tmpLine.indexOf('--git') !== -1) {
             startChanges = false;
             if (diff && diff.path && diff.path.indexOf('force-app') !== -1) {
                 if (extraDiff)
@@ -461,16 +463,16 @@ function processDiffOut(stdOut) {
             };
             changesAdded = false;
             removeChangesAdded = false;
-        } else if (diffLine.startsWith(aPathStart)) {
-            let pathTmp = diffLine.substring(aPathStart.length).trim();
+        } else if (tmpLine.startsWith(aPathStart)) {
+            let pathTmp = tmpLine.substring(aPathStart.length).trim();
             if (pathTmp !== '/dev/null' && pathTmp.length > 0)
                 diff.path = StrUtils.replace(pathTmp, ',', '');
-        } else if (diffLine.startsWith(adevnull)) {
-            let pathTmp = diffLine.substring(adevnull.length).trim();
+        } else if (tmpLine.startsWith(adevnull)) {
+            let pathTmp = tmpLine.substring(adevnull.length).trim();
             if (pathTmp !== '/dev/null' && pathTmp.length > 0)
                 diff.path = StrUtils.replace(pathTmp, ',', '');
-        } else if (diffLine.startsWith(bPathStart)) {
-            let pathTmp = diffLine.substring(bPathStart.length).trim();
+        } else if (tmpLine.startsWith(bPathStart)) {
+            let pathTmp = tmpLine.substring(bPathStart.length).trim();
             startChanges = true;
             if (diff.path && diff.path !== pathTmp && pathTmp !== '/dev/null' && pathTmp.length > 0) {
                 extraDiff = {
@@ -484,13 +486,13 @@ function processDiffOut(stdOut) {
             } else if (pathTmp === '/dev/null' || pathTmp.length == 0) {
                 diff.mode = 'deleted file';
             }
-        } else if (diffLine.startsWith(bdevnull)) {
+        } else if (tmpLine.startsWith(bdevnull)) {
             startChanges = true;
-            let pathTmp = diffLine.substring(bdevnull.length).trim();
+            let pathTmp = tmpLine.substring(bdevnull.length).trim();
             if (pathTmp !== '/dev/null' && pathTmp.length > 0)
                 diff.path = StrUtils.replace(pathTmp, ',', '');
-        } else if (diffLine.startsWith(binaryFile)) {
-            let pathTmp = diffLine.substring(binaryFile.length).trim();
+        } else if (tmpLine.startsWith(binaryFile)) {
+            let pathTmp = tmpLine.substring(binaryFile.length).trim();
             let splits = pathTmp.split(' and ');
             if (splits.length > 1) {
                 if (splits[0].indexOf('/dev/null') === -1) {
@@ -502,17 +504,17 @@ function processDiffOut(stdOut) {
                     diff.path = pathTmp;
                 }
             }
-        } else if (diffLine.startsWith('new file mode')) {
+        } else if (tmpLine.startsWith('new file mode')) {
             diff.mode = 'new file';
-        } else if (diffLine.startsWith('deleted file mode')) {
+        } else if (tmpLine.startsWith('deleted file mode')) {
             diff.mode = 'deleted file';
         } else if (startChanges) {
-            if (diffLine.startsWith('-')) {
+            if (tmpLine.startsWith('-')) {
                 diff.removeChanges.push(diffLine.substring(1));
                 if (extraDiff)
                     extraDiff.removeChanges.push(diffLine.substring(1));
                 removeChangesAdded = true;
-            } else if (diffLine.startsWith('+')) {
+            } else if (tmpLine.startsWith('+')) {
                 changesAdded = true;
                 if (extraDiff)
                     extraDiff.addChanges.push(diffLine.substring(1));
