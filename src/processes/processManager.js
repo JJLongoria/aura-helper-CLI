@@ -2,13 +2,26 @@ const Process = require('./process');
 const fileSystem = require('../fileSystem');
 const Paths = fileSystem.Paths;
 const ProcessEvent = require('./processEvent');
-
 const BUFFER_SIZE = 1024 * 500000;
+const OSUtils = require('../utils/osUtils');
 
 class ProcessManager {
 
     static listAuthOurgs() {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:auth:list', '--json'], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+        } else if (OSUtils.isLinux()) {
+            command = 'sh';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('sfdx');
+        commandArgs.push('force:auth:list');
+        commandArgs.push('--json');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
