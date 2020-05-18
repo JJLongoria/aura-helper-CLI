@@ -10,5 +10,9 @@ class OSUtils {
         return os.platform() === 'win32';
     }
 
+    static getAvailableCPUs(){
+        return os.cpus().length;
+    }
+
 }
 module.exports = OSUtils;
