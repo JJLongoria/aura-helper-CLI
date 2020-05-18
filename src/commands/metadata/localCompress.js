@@ -97,14 +97,13 @@ function compressDirectory(directory, progress) {
                 }
                 let filesToProcess = xmlFiles.length;
                 for (const filePath of xmlFiles) {
-                    let path = directory + '/' + filePath;
-                    compressFile(path).then(function () {
+                    compressFile(filePath, progress).then(function () {
                         filesToProcess--;
                         if (filesToProcess === 0)
                             resolve();
                     }).catch(function (error) {
                         if (progress)
-                            Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + path + ' does not support XML compression', progress));
+                            Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + filePath + ' does not support XML compression', progress));
                         filesToProcess--;
                     });
                 }
@@ -122,11 +121,11 @@ function compressDirectory(directory, progress) {
 function compressFile(file, progress) {
     return new Promise(function (resolve, reject) {
         try {
-            let content = MetadataCompressor.compress(args.file);
+            let content = MetadataCompressor.compress(file);
             if (content) {
                 if (progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Compresing ' + file + ' XML file', progress));
-                FileWriter.createFile(args.file, content, function () {
+                FileWriter.createFile(file, content, function () {
                     resolve();
                 });
             } else {

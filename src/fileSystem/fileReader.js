@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const StrUtils = require('../utils/strUtils');;
 
 class FileReader {
     static readDocument(document) {
@@ -64,13 +65,13 @@ class FileReader {
                     file = path.resolve(dir, file);
                     fs.stat(file, async function (err, stat) {
                         if (stat && stat.isDirectory()) {
-                            results.push(file);
+                            results.push(StrUtils.replace(file, '\\', '/'));
                             let res = await FileReader.getAllFiles(file);
                             results = results.concat(res);
                             if (!--pending)
                                 resolve(results);
                         } else {
-                            results.push(file);
+                            results.push(StrUtils.replace(file, '\\', '/'));
                             if (!--pending)
                                 resolve(results);
                         }
