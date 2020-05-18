@@ -696,7 +696,19 @@ class MetadataFactory {
                MetadataTypes.DASHBOARD,
           ];
           MetadataFactory.priorMetadataTypes(typesForPriorDelete, metadataForDelete, metadataForDeploy);
-          let typesForPriorDeploy = [];
+          let typesForPriorDeploy = [
+               MetadataTypes.CUSTOM_LABEL,
+               MetadataTypes.CUSTOM_LABELS,
+               MetadataTypes.WORKFLOW_FIELD_UPDATE,
+               MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE,
+               MetadataTypes.WORKFLOW_TASK,
+               MetadataTypes.WORKFLOW_RULE,
+               MetadataTypes.WORKFLOW_ALERT,
+               MetadataTypes.SHARING_CRITERIA_RULE,
+               MetadataTypes.SHARING_OWNER_RULE,
+               MetadataTypes.SHARING_GUEST_RULE,
+               MetadataTypes.SHARING_TERRITORY_RULE
+          ];
           MetadataFactory.priorMetadataTypes(typesForPriorDeploy, metadataForDeploy, metadataForDelete);
           return {
                metadataForDeploy: metadataForDeploy,
