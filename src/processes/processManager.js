@@ -32,7 +32,22 @@ class ProcessManager {
     }
 
     static listMetadataTypes(user) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:describemetadata', '--json', '-u', user], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:mdapi:describemetadata');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -43,22 +58,24 @@ class ProcessManager {
     }
 
     static describeSchemaMetadata(user, metadataType) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:schema:sobject:describe', '--json', '-u', user, '-s', metadataType], { maxBuffer: BUFFER_SIZE });
-        return new Promise(function (resolve) {
-            runProcess(process).then(function (stdOut) {
-                resolve({ stdOut: stdOut, stdErr: undefined });
-            }).catch(function (stdErr) {
-                resolve({ stdOut: undefined, stdErr: stdErr });
-            });
-        });
-    }
-
-    static mdApiDescribeMetadata(user, metadata, folderName) {
-        let process;
-        if (folderName)
-            process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:listmetadata', '--json', '-u', user, '-m', metadata, '--folder', folderName], { maxBuffer: BUFFER_SIZE });
-        else
-            process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:listmetadata', '--json', '-u', user, '-m', metadata], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:schema:sobject:describe');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-s');
+        commandArgs.push(metadataType);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -69,22 +86,28 @@ class ProcessManager {
     }
 
     static describeMetadata(user, metadata, folderName) {
-        let process;
-        if (folderName)
-            process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:listmetadata', '--json', '-u', user, '-m', metadata, '--folder', folderName], { maxBuffer: BUFFER_SIZE });
-        else
-            process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:listmetadata', '--json', '-u', user, '-m', metadata], { maxBuffer: BUFFER_SIZE });
-        return new Promise(function (resolve) {
-            runProcess(process).then(function (stdOut) {
-                resolve({ stdOut: stdOut, stdErr: undefined });
-            }).catch(function (stdErr) {
-                resolve({ stdOut: undefined, stdErr: stdErr });
-            });
-        });
-    }
-
-    static retrieve(user, packageFolder, packageFile) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:retrieve', '--json', '-u', user, '-s', '-r', '' + packageFolder + '', '-k', '' + packageFile + ''], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:mdapi:listmetadata');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-m');
+        commandArgs.push(metadata);
+        if (folderName) {
+            commandArgs.push('--folder');
+            commandArgs.push(folderName);
+        }
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -95,7 +118,24 @@ class ProcessManager {
     }
 
     static retrieveSFDX(user, packageFile, projectFolder) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:source:retrieve', '--json', '-u', user, '-x', '' + packageFile + ''], { maxBuffer: BUFFER_SIZE, cwd: projectFolder });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:source:retrieve');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-x');
+        commandArgs.push(packageFile);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: projectFolder });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -107,6 +147,25 @@ class ProcessManager {
 
 
     static destructiveChanges(user, destructiveFolder) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:mdapi:deploy');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-d');
+        commandArgs.push(destructiveFolder);
+        commandArgs.push('-w');
+        commandArgs.push('-1');
         let process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:deploy', '--json', '-u', user, '-d', '' + destructiveFolder + '', '-w', '-1'], { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
@@ -118,7 +177,24 @@ class ProcessManager {
     }
 
     static deployReport(user, jobId) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:deploy:report', '--json', '-u', user, '-i', jobId], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:mdapi:deploy:report');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-i');
+        commandArgs.push(jobId);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -129,7 +205,24 @@ class ProcessManager {
     }
 
     static cancelDeploy(user, jobId) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'mdapi:deploy:cancel', '--json', '-u', user, '-i', jobId], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('mdapi:deploy:cancel');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-i');
+        commandArgs.push(jobId);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -140,7 +233,24 @@ class ProcessManager {
     }
 
     static query(user, query) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:data:soql:query', '--json', '-u', user, '-q', query], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:data:soql:query');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-q');
+        commandArgs.push(query);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -151,7 +261,25 @@ class ProcessManager {
     }
 
     static queryToolingAPI(user, query) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:data:soql:query', '--json', '-u', user, '-q', query, '-t'], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:data:soql:query');
+        commandArgs.push('--json');
+        commandArgs.push('-u');
+        commandArgs.push(user);
+        commandArgs.push('-q');
+        commandArgs.push(query);
+        commandArgs.push('-t');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -161,8 +289,21 @@ class ProcessManager {
         });
     }
 
-    static gitLog() {
-        let process = new Process('cmd', ['/c', 'git', 'log', '--pretty=medium'], { maxBuffer: BUFFER_SIZE, cwd: Paths.getWorkspaceFolder() });
+    static gitLog(root) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('git');
+        } else if (OSUtils.isLinux()) {
+            command = 'git';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('log');
+        commandArgs.push('--pretty=medium');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -172,8 +313,21 @@ class ProcessManager {
         });
     }
 
-    static gitGetBranches() {
-        let process = new Process('cmd', ['/c', 'git', 'branch', '-a'], { maxBuffer: BUFFER_SIZE, cwd: Paths.getWorkspaceFolder() });
+    static gitGetBranches(root) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('git');
+        } else if (OSUtils.isLinux()) {
+            command = 'git';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('branch');
+        commandArgs.push('-a');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -183,12 +337,24 @@ class ProcessManager {
         });
     }
 
-    static gitDiff(projectRoot, source, target) {
-        let process;
-        if (target)
-            process = new Process('cmd', ['/c', 'git', 'diff', source, target], { maxBuffer: BUFFER_SIZE, cwd: projectRoot });
-        else
-            process = new Process('cmd', ['/c', 'git', 'diff', source], { maxBuffer: BUFFER_SIZE, cwd: projectRoot });
+    static gitDiff(root, source, target) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('git');
+        } else if (OSUtils.isLinux()) {
+            command = 'git';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('diff');
+        commandArgs.push(source);
+        if(target){
+            commandArgs.push(target);
+        }
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -198,8 +364,20 @@ class ProcessManager {
         });
     }
 
-    static gitFetch() {
-        let process = new Process('cmd', ['/c', 'git', 'fetch'], { maxBuffer: BUFFER_SIZE, cwd: Paths.getWorkspaceFolder() });
+    static gitFetch(root) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('git');
+        } else if (OSUtils.isLinux()) {
+            command = 'git';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('fetch');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -210,7 +388,25 @@ class ProcessManager {
     }
 
     static convertToSFDX(packageFolder, packageFile, targetFolder) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:mdapi:convert', '-r', '' + packageFolder + '', '--manifest', '' + packageFile + '', '-d', '' + targetFolder + ''], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:mdapi:convert');
+        commandArgs.push('-r');
+        commandArgs.push(packageFolder);
+        commandArgs.push('--manifest');
+        commandArgs.push(packageFile);
+        commandArgs.push('-d');
+        commandArgs.push(targetFolder);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -221,7 +417,26 @@ class ProcessManager {
     }
 
     static createSFDXProject(projectName, projectFolder) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:project:create', '-n', projectName, '-d', '' + projectFolder + '', '--manifest', '--template', 'empty'], { maxBuffer: BUFFER_SIZE });
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:project:create');
+        commandArgs.push('-n');
+        commandArgs.push(projectName);
+        commandArgs.push('-d');
+        commandArgs.push(projectFolder);
+        commandArgs.push('--manifest');
+        commandArgs.push('--template');
+        commandArgs.push('empty');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -231,8 +446,22 @@ class ProcessManager {
         });
     }
 
-    static setDefaultOrg(orgAlias, cwd) {
-        let process = new Process('cmd', ['/c', 'sfdx', 'force:config:set', '--json', 'defaultusername=' + orgAlias], { maxBuffer: BUFFER_SIZE, cwd: cwd });
+    static setDefaultOrg(orgAlias, root) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:config:set');
+        commandArgs.push('--json');
+        commandArgs.push('defaultusername=' + orgAlias);
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
         return new Promise(function (resolve) {
             runProcess(process).then(function (stdOut) {
                 resolve({ stdOut: stdOut, stdErr: undefined });
@@ -248,18 +477,18 @@ module.exports = ProcessManager;
 function runProcess(process) {
     let stdOut = [];
     let stdErr = [];
-    let permissionError = false;
+    let excludeError = false;
     return new Promise(function (resolve, rejected) {
         process.run(function (event, data) {
             switch (event) {
                 case ProcessEvent.STD_OUT:
-                    permissionError = false;
+                    excludeError = false;
                     stdOut = stdOut.concat(data);
                     break;
                 case ProcessEvent.ERR_OUT:
-                    if(data.toString().indexOf('[EACCES]') !== -1){
-                        permissionError = true;
-                    } else {
+                    if (data.toString().indexOf('[EACCES]') !== -1) {
+                        excludeError = true;
+                    } else if (!excludeError) {
                         stdErr = stdErr.concat(data);
                     }
                     break;
