@@ -54,7 +54,7 @@ async function run(args) {
             Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
             return;
         }
-        listLocalMetadata(args).then(function (result) {
+        listOrgMetadata(args).then(function (result) {
             if (args.sendTo) {
                 args.sendTo = Paths.getAbsolutePath(args.sendTo);
                 let baseDir = Paths.getFolderPath(args.sendTo);
