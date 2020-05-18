@@ -248,14 +248,20 @@ module.exports = ProcessManager;
 function runProcess(process) {
     let stdOut = [];
     let stdErr = [];
+    let permissionError = false;
     return new Promise(function (resolve, rejected) {
         process.run(function (event, data) {
             switch (event) {
                 case ProcessEvent.STD_OUT:
+                    permissionError = false;
                     stdOut = stdOut.concat(data);
                     break;
                 case ProcessEvent.ERR_OUT:
-                    stdErr = stdErr.concat(data);
+                    if(data.toString().indexOf('(node:3063) [EACCES]') !== -1){
+                        permissionError = true;
+                    } else {
+                        stdErr = stdErr.concat(data);
+                    }
                     break;
                 case ProcessEvent.KILLED:
                     resolve();
