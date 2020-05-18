@@ -108,12 +108,15 @@ exports.createCommand = function (program) {
         .option('-t, --type <MetadataTypeNames>', 'Ignore the specified metadata types according to the ignore file. You can select a sigle or a list separated by commas. This options does not take effect if you choose ignore all')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
         .option('-c, --compress', 'Add this option for compress modifieds files for ignore operation.')
+        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
         });
 }
 
 function run(args) {
+    Output.Printer.setColorized(args.beautify);
     if (hasEmptyArgs(args)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
@@ -150,6 +153,12 @@ function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select ignore all or repair specific types"));
         return;
     }
+    if (args.progress) {
+        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+            return;
+        }
+    }
     let types;
     if (args.type) {
         types = Utils.getTypes(args.type);
@@ -170,14 +179,22 @@ function ignoreMetadata(args, typesForIgnore) {
     return new Promise(async function (resolve, reject) {
         try {
             let typesProcessed = {};
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Reading ignore File', args.progress));
             let ignoredMetadata = JSON.parse(FileReader.readFileSync(args.ignoreFile));
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Gettin All Available Metadata Types', args.progress));
             let username = await Config.getAuthUsername(args.root);
             let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: false });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Describing Local Metadata Types', args.progress));
             let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
             Object.keys(ignoredMetadata).forEach(function (metadataTypeKey) {
                 let typeData = TYPES_XML_RELATION[metadataTypeKey];
                 if ((metadataFromFileSystem[metadataTypeKey] || (typeData && typeData.singularName)) && (!typesForIgnore || typesForIgnore.includes(metadataTypeKey))) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Processing ' + metadataTypeKey + ' Metadata Type', args.progress));
                     switch (metadataTypeKey) {
                         case MetadataTypes.CUSTOM_LABELS:
                             ignoreCustomLabels(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey], typeData);
@@ -445,7 +462,7 @@ function ignoreMetadataFromFiles(args, metadataType, ignoredMetadata) {
                 if (xmlRoot[typeData.parentName] && xmlRoot[typeData.parentName][typeData.collection]) {
                     if ((ignoredFromTypeMap[objectKey] && ignoredFromTypeMap[objectKey].includes('*')) || ignoredMetadata.includes('*')) {
                         xmlRoot[typeData.parentName][typeData.collection] = [];
-                    } else if(ignoredFromTypeMap[objectKey]){
+                    } else if (ignoredFromTypeMap[objectKey]) {
                         xmlRoot[typeData.parentName][typeData.collection] = MetadataUtils.forceArray(xmlRoot[typeData.parentName][typeData.collection]);
                         let dataToRemove = [];
                         let dataToKeep = [];

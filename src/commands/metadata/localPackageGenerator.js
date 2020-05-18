@@ -6,6 +6,7 @@ const Process = require('../../processes');
 const Config = require('../../main/config');
 const Metadata = require('../../metadata');
 const StrUtils = require('../../utils/strUtils');
+const Utils = require('./utils');
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const MetadataFactory = Metadata.Factory;
@@ -163,12 +164,15 @@ exports.createCommand = function (program) {
         .option('-u, --use-ignore', 'Option for ignore the metadata included in ignore file from the package and destructive files')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
         .option('-e, --excplicit', 'If you select explicit option, the package will contains all object names explicit on the file, in otherwise, the package generator will be use a wildcard (*) when is necessary (All Childs from a metadata type are selected for deploy). Explicit option are fully recomended for retrieve metadata. This option only works if you select --create-from json', false)
+        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
         });
 }
 
 function run(args) {
+    Output.Printer.setColorized(args.beautify);
     if (hasEmptyArgs(args)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
@@ -208,7 +212,7 @@ function run(args) {
         }
     }
     if (args.useIgnore && !FileChecker.isExists(args.ignoreFile)) {
-        Output.Printer.print('WARNING. --use-ignore option selected but not exists the ignore file in (' + args.ignoreFile + '). The selected files will be created but metadata not will be ignored');
+        Output.Printer.printWarning('WARNING. --use-ignore option selected but not exists the ignore file in (' + args.ignoreFile + '). The selected files will be created but metadata not will be ignored');
     }
     if (args.apiVersion) {
         if (args.apiVersion.match(/^\d+\.\d+$/)) {
@@ -223,6 +227,12 @@ function run(args) {
     } else {
         let projectConfig = Config.getProjectConfig(args.root);
         args.apiVersion = projectConfig.sourceApiVersion;
+    }
+    if (args.progress) {
+        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+            return;
+        }
     }
     switch (args.createFrom) {
         case 'git':
@@ -334,39 +344,51 @@ function createFromGit(args) {
                 args.source = args.target;
                 args.target = undefined;
             }
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Running Git Diff', args.progress));
             let diffsOut = await ProcessManager.gitDiff(args.root, args.source, args.target);
             if (diffsOut.stdOut) {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Processing Git Diff output', args.progress));
                 let gitDiffs = processDiffOut(diffsOut.stdOut);
                 //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
                 let username = await Config.getAuthUsername(args.root);
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
                 let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
                 let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Analyzing Process Diffs for get Metadata changes', args.progress));
                 let metadataFromGitDiffs = MetadataFactory.getMetadataFromGitDiffs(args.root, gitDiffs, folderMetadataMap);
                 if (args.useIgnore) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
                     ignoreMetadata(args, metadataFromGitDiffs.metadataForDeploy);
                     ignoreMetadata(args, metadataFromGitDiffs.metadataForDelete);
                 }
                 if (args.raw) {
                     resolve(metadataFromGitDiffs);
                 } else if (args.createType === 'package') {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
                     let packageContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDeploy, args.apiVersion, true);
                     let packagePath = args.outputPath + '/' + PACKAGE_FILENAME;
                     FileWriter.createFileSync(packagePath, packageContent);
                     resolve(PACKAGE_FILENAME + ' file created succesfully on ' + args.outputPath);
                 } else if (args.createType === 'destructive') {
-                    let destructiveContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDelete, args.apiVersion, true);
                     let destructiveName;
                     if (args.deployOrder === 'before') {
                         destructiveName = DESTRUCT_BEFORE_FILENAME;
                     } else {
                         destructiveName = DESTRUCT_AFTER_FILENAME;
                     }
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + destructiveName, args.progress));
+                    let destructiveContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDelete, args.apiVersion, true);
                     let destructivePath = args.outputPath + '/' + destructiveName;
                     FileWriter.createFileSync(destructivePath, destructiveContent);
                     resolve(destructiveName + ' file created succesfully on ' + args.outputPath);
                 } else {
-                    let packageContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDeploy, args.apiVersion, true);
-                    let destructiveContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDelete, args.apiVersion, true);
                     let packagePath = args.outputPath + '/' + PACKAGE_FILENAME;
                     let destructiveName;
                     if (args.deployOrder === 'before') {
@@ -375,7 +397,13 @@ function createFromGit(args) {
                         destructiveName = DESTRUCT_AFTER_FILENAME;
                     }
                     let destructivePath = args.outputPath + '/' + destructiveName;
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
+                    let packageContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDeploy, args.apiVersion, true);
                     FileWriter.createFileSync(packagePath, packageContent);
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + destructiveName, args.progress));
+                    let destructiveContent = PackageGenerator.createPackage(metadataFromGitDiffs.metadataForDelete, args.apiVersion, true);
                     FileWriter.createFileSync(destructivePath, destructiveContent);
                     resolve(PACKAGE_FILENAME + ' and ' + destructiveName + ' files created succesfully on ' + args.outputPath);
                 }
@@ -514,12 +542,20 @@ function createFromCSV(args) {
 function createFromJSON(args) {
     return new Promise(function (resolve, reject) {
         try {
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Reading ' + args.source + ' JSON File', args.progress));
             let metadataTypes = JSON.parse(FileReader.readFileSync(args.source));
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Validating JSON Format', args.progress));
+            PackageGenerator.validateJSON(metadataTypes);
             if (args.useIgnore) {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
                 ignoreMetadata(args, metadataTypes);
             }
-            PackageGenerator.validateJSON(metadataTypes);
             if (args.createType === 'package') {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
                 let packagePath = args.outputPath + '/' + PACKAGE_FILENAME;
                 let packageContent = PackageGenerator.createPackage(metadataTypes, args.apiVersion, true);
                 FileWriter.createFileSync(packagePath, packageContent);
@@ -532,6 +568,8 @@ function createFromJSON(args) {
                     destructiveName = DESTRUCT_AFTER_FILENAME;
                 }
                 let destructivePath = args.outputPath + '/' + destructiveName;
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + destructiveName, args.progress));
                 let destructiveContent = PackageGenerator.createPackage(metadataTypes, args.apiVersion, true);
                 FileWriter.createFileSync(destructivePath, destructiveContent);
                 resolve(destructiveName + ' file created succesfully on ' + args.outputPath);
@@ -547,6 +585,8 @@ function createFromPackage(args, packages) {
         try {
             let pkgs = [];
             let destrucPkgs = [];
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Processing selected files', args.progress));
             for (const file of packages) {
                 if (file.endsWith(PACKAGE_FILENAME)) {
                     pkgs.push(file);
@@ -556,10 +596,16 @@ function createFromPackage(args, packages) {
             }
             if (args.createType === 'package') {
                 let packagePath = args.outputPath + '/' + PACKAGE_FILENAME;
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Mergin Package Files', args.progress));
                 let metadataToDeploy = PackageGenerator.mergePackages(pkgs, args.apiVersion);
                 if (args.useIgnore) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
                     ignoreMetadata(args, metadataToDeploy);
                 }
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
                 let packageContent = PackageGenerator.createPackage(metadataToDeploy, args.apiVersion, true);
                 FileWriter.createFileSync(packagePath, packageContent);
                 resolve(PACKAGE_FILENAME + ' file created succesfully on ' + args.outputPath);
@@ -571,8 +617,12 @@ function createFromPackage(args, packages) {
                     destructiveName = DESTRUCT_AFTER_FILENAME;
                 }
                 let destructivePath = args.outputPath + '/' + destructiveName;
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Mergin Destructive Files', args.progress));
                 let metadataToDelete = PackageGenerator.mergePackages(destrucPkgs, args.apiVersion);
                 if (args.useIgnore) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
                     ignoreMetadata(args, metadataToDelete);
                 }
                 let destructiveContent = PackageGenerator.createPackage(metadataToDelete, args.apiVersion, true);
@@ -587,13 +637,23 @@ function createFromPackage(args, packages) {
                     destructiveName = DESTRUCT_AFTER_FILENAME;
                 }
                 let destructivePath = args.outputPath + '/' + destructiveName;
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Mergin Package Files', args.progress));
                 let metadataToDeploy = PackageGenerator.mergePackages(pkgs, args.apiVersion);
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Mergin Destructive Files', args.progress));
                 let metadataToDelete = PackageGenerator.mergePackages(destrucPkgs, args.apiVersion);
                 if (args.useIgnore) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
                     ignoreMetadata(args, metadataToDeploy);
                     ignoreMetadata(args, metadataToDelete);
                 }
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
                 let packageContent = PackageGenerator.createPackage(metadataToDeploy, args.apiVersion, true);
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + destructiveName, args.progress));
                 let destructiveContent = PackageGenerator.createPackage(metadataToDelete, args.apiVersion, true);
                 FileWriter.createFileSync(packagePath, packageContent);
                 FileWriter.createFileSync(destructivePath, destructiveContent);

@@ -19,13 +19,16 @@ exports.createCommand = function (program) {
         .option('-r, --root <path/to/project/root>', 'Path to project root', './')
         .option('-a, --all', 'Describe all metadata types')
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
+        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
+        .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
         });
 }
 
 async function run(args) {
+    Output.Printer.setColorized(args.beautify);
     if (hasEmptyArgs(args)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
@@ -48,11 +51,17 @@ async function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select describe all or describe specific types"));
         return;
     }
+    if (args.progress) {
+        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+            return;
+        }
+    }
     if (!FileChecker.isSFDXRootPath(args.root)) {
         Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
         return;
     }
-    listLocalMetadata(args).then(function (result) {
+    describeLocalMetadata(args).then(function (result) {
         if (args.sendTo) {
             let baseDir = Paths.getFolderPath(args.sendTo);
             if (!FileChecker.isExists(baseDir))
@@ -70,12 +79,16 @@ function hasEmptyArgs(args) {
     return args.root === undefined && args.sendTo === undefined && args.all === undefined && args.type === undefined;
 }
 
-function listLocalMetadata(args, types) {
+function describeLocalMetadata(args) {
     return new Promise(async function (resolve, reject) {
         try {
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Gettin All Available Metadata Types', args.progress));
             let username = await Config.getAuthUsername(args.root);
             let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Describing Local Metadata Types', args.progress));
             let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
             let metadata = {};
             if (args.all) {
@@ -83,8 +96,8 @@ function listLocalMetadata(args, types) {
             } else if (args.type) {
                 let types = Utils.getTypes(args.type);
                 for (let type of types) {
-                    if (metadataFromFileSystem[key])
-                        metadata[key] = metadataFromFileSystem[key]
+                    if (metadataFromFileSystem[type])
+                        metadata[type] = metadataFromFileSystem[type];
                 }
             }
             resolve(metadata);

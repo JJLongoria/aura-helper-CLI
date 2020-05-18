@@ -33,6 +33,8 @@ class Response {
     }
 
     static progress(percentage, message, format) {
+        if (percentage > 100)
+            percentage = 100;
         if (!format || format === 'json') {
             let body = getResponseBody();
             body.status = 0;
@@ -44,7 +46,7 @@ class Response {
             };
             return JSON.stringify(body, null, 2);
         } else if (format === 'plaintext') {
-            if(percentage)
+            if (percentage)
                 return message + ' (' + percentage + '%)';
             else
                 return message;
