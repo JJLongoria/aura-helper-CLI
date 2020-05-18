@@ -106,7 +106,8 @@ function retrieve(args, types) {
             let folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataTypes);
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describing Local Metadata Types', args.progress));
-            let metadata = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
+            let metadataFromFileSystem = MetadataFactory.getMetadataObjectsFromFileSystem(folderMetadataMap, args.root);
+            let metadata = JSON.parse(JSON.stringify(metadataFromFileSystem));
             if (args.includeOrg) {
                 let projectConfig = Config.getProjectConfig(args.root);
                 let options = {
@@ -151,10 +152,10 @@ function retrieve(args, types) {
                                 if (retrieveOut.stdOut) {
                                     Object.keys(folderMetadataMap).forEach(function (folder) {
                                         let metadataType = folderMetadataMap[folder];
-                                        if ((!types || types[metadataType.xmlName]) && metadata[metadataType.xmlName] && Utils.getSpecialMetadata()[metadataType.xmlName]) {
-                                            Object.keys(metadata[metadataType.xmlName].childs).forEach(function (childKey) {
-                                                if (metadata[metadataType.xmlName].childs[childKey].childs && Object.keys(metadata[metadataType.xmlName].childs[childKey].childs).length > 0) {
-                                                    Object.keys(metadata[metadataType.xmlName].childs[childKey].childs).forEach(function (itemKey) {
+                                        if ((!types || types[metadataType.xmlName]) && metadataFromFileSystem[metadataType.xmlName] && Utils.getSpecialMetadata()[metadataType.xmlName]) {
+                                            Object.keys(metadataFromFileSystem[metadataType.xmlName].childs).forEach(function (childKey) {
+                                                if (metadataFromFileSystem[metadataType.xmlName].childs[childKey].childs && Object.keys(metadataFromFileSystem[metadataType.xmlName].childs[childKey].childs).length > 0) {
+                                                    Object.keys(metadataFromFileSystem[metadataType.xmlName].childs[childKey].childs).forEach(function (itemKey) {
                                                         if (copyType(types, metadataType.xmlName, childKey, itemKey)) {
                                                             let subPath;
                                                             let fileName = itemKey + '.' + metadataType.suffix + '-meta.xml';
