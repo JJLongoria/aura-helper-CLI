@@ -13,12 +13,12 @@ class ProcessManager {
         if (OSUtils.isWindows()) {
             command = 'cmd';
             commandArgs.push('/c');
+            commandArgs.push('sfdx');
         } else if (OSUtils.isLinux()) {
-            command = 'sh';
+            command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
         }
-        commandArgs.push('sfdx');
         commandArgs.push('force:auth:list');
         commandArgs.push('--json');
         let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
