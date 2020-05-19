@@ -60,12 +60,13 @@ exports.createCommand = function (program) {
     program
         .command('metadata:local:repair')
         .description('Repair local project such as dependencies on files and metadata types.')
-        .option('-r, --root <path/to/project/root>', 'Path to project root', './')
-        .option('-a, --all', 'Repair al metadata types')
+        .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
+        .option('-a, --all', 'Repair all supported metadata types. ' + Object.keys(TYPES_FOR_REPAIR_DATA).join(', '))
         .option('-t, --type <MetadataTypeNames>', 'Repair specified metadata types. You can choose single type or a list separated by commas,  also you can choose to repair a specified objects like "MetadataTypeAPIName:MetadataObjectAPIName". For example, "CustomApplication:AppName1" for repair only AppName1 Custom App. This option does not take effet if select repair all')
         .option('-o, --only-check', 'If you select this options, the command not repair dependencies, instead return the errors on the files for repair manually', false)
-        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-c, --compress', 'Add this option for compress modifieds files for repair operation.', false)
+        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-s, --send-to <path/to/output/file>', 'If you choose --only-check, you can redirect the output to a file')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
@@ -107,9 +108,25 @@ function run(args) {
     } else if (args.type) {
         types = Utils.getAdvanceTypes(args.type);
     }
+    if (args.onlyCheck && args.sendTo) {
+        try {
+            args.sendTo = Paths.getAbsolutePath(args.sendTo);
+        } catch (error) {
+            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --send-to path. Select a valid path'));
+            return;
+        }
+    }
     repairDependencies(args, types).then(function (result) {
         if (args.onlyCheck) {
-            Output.Printer.printSuccess(Response.success("The next metadata types has dependencies errors", result));
+            if (args.sendTo) {
+                let baseDir = Paths.getFolderPath(args.sendTo);
+                if (!FileChecker.isExists(baseDir))
+                    FileWriter.createFolderSync(baseDir);
+                FileWriter.createFileSync(args.sendTo, JSON.stringify(result, null, 2));
+                Output.Printer.printSuccess(Response.success("Output saved in: " + args.sendTo));
+            } else {
+                Output.Printer.printSuccess(Response.success("The next metadata types has dependencies errors", result));
+            }
         } else {
             Output.Printer.printSuccess(Response.success("Repair metadata finished successfully"));
         }
@@ -119,7 +136,7 @@ function run(args) {
 }
 
 function hasEmptyArgs(args) {
-    return args.root === undefined && args.all === undefined && args.type === undefined && args.compress === undefined && args.onlyCheck === undefined && args.progress === undefined && args.beautify === undefined;
+    return args.root === undefined && args.all === undefined && args.sendTo === undefined && args.type === undefined && args.compress === undefined && args.onlyCheck === undefined && args.progress === undefined && args.beautify === undefined;
 }
 
 function repairDependencies(args, types) {

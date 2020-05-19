@@ -1,18 +1,27 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [1.0.0 - 2020-XX-XX]
+## [1.0.0 - 2020-20-05]
 ### Added
 #### Metadata Commands
-- metadata:local:compress -> Compress XML Metadata Files for best conflict handling with SVC systems. Works with relative or absolute paths
-- metadata:local:ignore -> Command for ignore metadata from your project. Use .ahignore.json file for perform this operation. This command will be delete the ignored metadata from your project folder
-- metadata:local:list -> Command for list all metadata from the local project
-- metadata:local:describe -> Command for describe all metadata from the local project
-- metadata:local:repair -> Repair local project such as dependencies on files and metadata types.
+- metadata:local:compress - Command for compress XML files for ocuppy less data storage, and make more usefull with SVC systems like Git. With XML Files compressed, the file confilcts on merges are to much easy to resolve.
 
-- metadata:org:list -> Command for list all metadata from the auth org
-- metadata:org:describe -> Command for describe the metadata types from the auth org
-- metadata:org.compare -> Command to compare the organization's metadata with local metadata. Returns metadata that does not exist in local but exists in the auth org.
+- metadata:local:ignore - Command for ignore some metadata types. If you use git or other SVC systems, you can construct a .gitignore file or similar for ignore some files from your SVC. But salesforce have some metadata that can't be ignored with git because have into other files, like custom labels, workflows or user permissios for example. This command allow to you to ignore this types of metadata. This command support all metadata types to ignore. (Can delete entire files and folders)
 
-#### Core Commands
-- update -> Command for update Aura Helper CLI to the latest version
+- metadata:local:list - Command for list all Metadata Types stored in your local project. 
+
+- metadata:local:describe - Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
+
+- metadata:local:repair - Command for repair your project local dependencies. With this command you cand repair automatically or check if have dependencies errors for repair it (or not, because is possible to detect errors because you don't have all metadata into your local project).
+
+- metadata:local:package:create - Command for repair create the package files. You can create the package and destructive files for deploy and delete (before and after deploy) automatically from different sources. You can chose to create from other package files for merge all packages into only one. Also you can create the package files based on a JSON file (See Metadata JSON Format section) or better, you can create the files from a git differences. You can compare two branches, commits, tags... for detect modifies, new files and deleted metadata for create the package and destructive files with a simple command. Also you can ignore metadata types for not include in package according .ahignore.json file.
+
+- metadata:local:retrieve:special - Command for retrieve the special metadata types stored in your local project. The special types are the types generated at runtime when retrieving data from org according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
+
+- metadata:org:list - Command for list all Metadata Types stored in your auth org
+
+- metadata:org:describe - Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
+
+- metadata:org:compare - Command for compare your local project with your auth org for get the differences. The result are the metadata types and objects that you have in your org, but don't have in your local project.
+
+- metadata:org:retrieve:special - Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.

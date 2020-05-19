@@ -30,9 +30,9 @@ let retrievedFinished = false;
 exports.createCommand = function (program) {
     program
         .command('metadata:org:retrieve:special')
-        .description('Commannd for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.')
-        .option('-r, --root <path/to/project/root>', 'Path to project root', './')
-        .option('-a, --all', 'Retrieve all supported metadata types ' + Object.keys(Utils.getSpecialMetadata()).join(','))
+        .description('Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.')
+        .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
+        .option('-a, --all', 'Retrieve all supported metadata types (' + Object.keys(Utils.getSpecialMetadata()).join(',') + ')')
         .option('-t, --type <MetadataTypeNames>', 'Retrieve specifics metadata types. You can choose one or a comma separated list of elements. Also you can choose retrieve a specific profile, object o record type. Schema -> "Type1" or "Type1,Type2" or "Type1:Object1, Type1:Object2" or "Type1:Object1:Item1" for example:  "Profile, PermissinSet" for retrieve all profiles and permission sets. "Profile:Admin" for retrieve the admin profile. "RecordType:Account:RecordType1" for  retrieve the RecordType1 for the object Account or "RecordType:Account" for retrieve all Record Types for Account')
         .option('-o, --org-namespace', 'Option for retrieve only the data from your org namespace or retrieve all data')
         .option('-c, --compress', 'Compress the retrieved files.')

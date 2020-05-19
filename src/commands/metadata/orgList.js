@@ -14,7 +14,7 @@ exports.createCommand = function (program) {
     program
         .command('metadata:org:list')
         .description('Command for list all metadata from the auth org')
-        .option('-r, --root <path/to/project/root>', 'Path to project root', './')
+        .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')

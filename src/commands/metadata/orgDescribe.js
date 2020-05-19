@@ -13,11 +13,11 @@ const MetadataConnection = Metadata.Connection;
 exports.createCommand = function (program) {
     program
         .command('metadata:org:describe')
-        .description('Command for describe the metadata types from the auth org')
-        .option('-r, --root <path/to/project/root>', 'Path to project root', './')
+        .description('Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org')
+        .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-a, --all', 'Describe all metadata types')
-        .option('-o, --org-namespace', 'Describe only metadatatypes for your org namespace')
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
+        .option('-o, --org-namespace', 'Describe only metadata types from your org namespace')
         .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')

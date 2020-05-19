@@ -140,15 +140,15 @@ class PackageGenerator {
             throw new Error("Wrong JSON Format file. The main object must be a JSON Object not a " + typeof metadata);
         Object.keys(metadata).forEach(function (key) {
             let metadataType = metadata[key];
-            validateMetadataType(metadataType, key);
-            if (metadataType.childs && Object.keys(metadata.childs).length > 0) {
+            PackageGenerator.validateMetadataType(metadataType, key);
+            if (metadataType.childs && Object.keys(metadataType.childs).length > 0) {
                 Object.keys(metadataType.childs).forEach(function (childKey) {
                     let metadataObject = metadataType.childs[childKey];
-                    validateMetadataObject(metadataObject, childKey);
+                    PackageGenerator.validateMetadataObject(metadataObject, childKey);
                     if (metadataObject.childs && Object.keys(metadataObject.childs).length > 0) {
                         Object.keys(metadataObject.childs).forEach(function (grandChildKey) {
                             let metadataItem = metadataObject.childs[grandChildKey];
-                            validateMetadataItem(metadataItem, grandChildKey);
+                            PackageGenerator.validateMetadataItem(metadataItem, grandChildKey);
                         });
                     }
                 });
