@@ -13,10 +13,6 @@ Commands.Metadata.LocalDescribe.createCommand(program);
 Commands.Metadata.LocalRepair.createCommand(program);
 Commands.Metadata.LocalPackageGenerator.createCommand(program);
 Commands.Metadata.LocalRetrieveSpecial.createCommand(program);
-// TODO: Retrieve full profiles
-// TODO: Retrieve full permission sets
-// TODO: Retrieve full records types
-// TODO: Add more runtime generated medatada for retrieve
 // TODO: Get queriable objects (refresh metadata index) (all and specifics)
 
 

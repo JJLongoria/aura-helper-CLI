@@ -1,45 +1,64 @@
-# Aura Helper CLI
-Command Line Interface for work with Salesforce Projects and Support Aura Helper Plugin for VSCode. Have powerfull commands for manage and work on your projects. Aura Helper CLI requires [SFDX CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) for work.
+# **Aura Helper CLI**
+### **Specially Designed for DevOps Workflows**
+Command Line Interface for work with Salesforce Projects and Support Aura Helper Plugin for VSCode. Have powerfull commands for work and manage your projects. Aura Helper CLI requires [SFDX CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) for work properly. 
 
+Supported Operative Systems:
+- Windows
+- Linux
+
+## Features
+
+- Simplify your work with Salesforce and Git with the command for create packages (for deploy and delete) from git changes. Compare 2 branches, commits or tags for create the files for deploy your package.
+- Compress your XML Files structure for make easy identify changes and resolve git conflicts. Also need less storage and work faster.
+- Retrieve special Metadata Types like profiles or permissions sets (and others) with all data without retrieve any file more with a simple command.
+- Compare your local data with your authorized organization for get the differences for delete, retrieve or anything you want.
+- Merge diferent package or destructive files into one file with only one command. 
+- Ignore any metadata type from your local project or from the package files for maintance different configuration into your sandbox and production enviroments with simple file and command.
+- Specially designed for DevOps workflows.
+- And much more
 ---
 
-## [**Installation Guide**](#installation-guide)
+# [**Installation Guide**](#installation-guide)
 ### [NPM Installation (Recommended)](#windows-installation)
-If you have installed NodeJS on yort system and NPM, run:
 
-    npm install -g aura-helper
+At the moment, Aura Helper CLI only support installation with NPM manager. This means that you need install Node JS on your computer for install Aura Helper CLI.
 
-This method is recommended because you don't need root permissions and have better support for maintance updated Aura Helper CLI because have the NPM support.
+For install NodeJS on Windows systems go to [Node JS Webpage](https://nodejs.org/) and download the latest version for Windows.
 
-### [Windows Installation](#windows-installation)
-For install Aura Helper CLI on Windows systems without NPM, [click here]() for download a simple cmd installer (Installer will be install Aura Helper CLI on: `%HOME%/%USER_FOLDER%/.aura-helper`). If you want to install on a custom folder, [click here]() for downdload the binary and add it to your Windows path.
+For install NodeJS on Linux systems go to ["Installing Node.js via package manager"](https://nodejs.org/en/download/package-manager/) and choose the correct option according your linux system.
 
-### [Linux Installation](#linux-installation)
-For install Aura Helper CLI on Linux systems without NPM, [click here]() for download the linux Aura Helper CLI binary, and copy it on `/usr/local/bin`. It's possible that you should to change the file attributes for make it executable. For it run: 
+With NodeJS installed on your system, now open a terminal (CMD, Bash, Power Shell...) and run the next command:
 
-    chmod +x aura-helper
+    npm install -g aura-helper-cli
 
 ---
 
-## [**Usage**](#usage)
-Aura Helper commands have the next structure: `aura-helper <command:name> [command:input] [options]`
+# [**Usage**](#usage)
+All commands from Aura Helper CLI have the next structure: 
 
-### [Help](#help)
+    aura-helper <command:name> [command:input] [options]
+
+## [Help](#help)
 If you need help with Aura Helper CLI, you can run:
 
     aura-helper --help or aura-helper -h
 
-### [Metadata Commands](#metadata-commands)
-Metadata commands are the commands for work with your metadata files. You can compress xml files, list or describe metadata types that you have on your org or in your local project. Can compare local and org metadata or ignore some metadata types according ahignore.json file (see [Ignore File](#ignore-file) section). Also you can repair project metadata dependencies.
+## [Metadata Commands](#metadata-commands)
+Metadata commands are the commands for work with your metadata files. You can compress xml files, list or describe metadata types that you have on your org or in your local project. Can compare local and org metadata or ignore some metadata types according .ahignore.json file (see [Ignore File](#ignore-file) section). Also you can repair project metadata dependencies and much more. These commands are bellow two big groups. Local and Org commands. The Local commands work only with the metadata types that you have in your local project. The Org commands are commands for work with the data in your auth org.
+
+### **Local Metadata Commands**
 
 - **metadata:local:compress** - Command for compress XML files for ocuppy less data storage, and make more usefull with SVC systems like Git. With XML Files compressed, the file confilcts on merges are to much easy to resolve.
 
     *Options*:
 
-        -r | --root <path/to/project/root>      Path to project root. By default is your current folder.
-        -a | --all                              Compress all XML files with support compression in your project.
-        -d | --directory <path/to/directory>    Compress XML Files from specific directory. This options does not take effect if you choose compress all.
-        -f | --file <path/to/file>              Compress the specified XML file. This options does not take effect if you choose compress directory or all.ç
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Compress all XML files with support compression in your project.
+        -d | --directory <path/to/directory>            Compress XML Files from specific directory. This options does not take effect if you choose compress all.
+        -f | --file <path/to/file>                      Compress the specified XML file. This options does not take effect if you choose compress directory or all.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
     
     *Examples*:
 
@@ -47,39 +66,474 @@ Metadata commands are the commands for work with your metadata files. You can co
 
         aura-helper metadata:local:compress -a
 
-    Compress All XML Files for objects folder (and subfolders):
+    Compress All XML Files for objects folder (and subfolders) with progress report and showing output with colors:
 
-        aura-helper metadata:local:compress -d force-app/main/default/objects
+        aura-helper metadata:local:compress -d force-app/main/default/objects -p plaintext -b
 
     Compress Account XML File:
 
         aura-helper metadata:local:compress -f force-app/main/default/objects/Account/Account.object-meta-xml
 
-- **metadata:local:ignore** - Command for ignore some metadata types. If you use git or other SVC systems, you can construct a .gitignore file or similar for ignore some files from your SVC. But salesforce have some metadata that can't ignore with git because have into other files, like custom labels, workflows or user permissios for example. This command allow to you to ignore this types of metadata.
+- **metadata:local:ignore** - Command for ignore some metadata types. If you use git or other SVC systems, you can construct a .gitignore file or similar for ignore some files from your SVC. But salesforce have some metadata that can't be ignored with git because have into other files, like custom labels, workflows or user permissios for example. This command allow to you to ignore this types of metadata. This command support all metadata types to ignore. (Can delete entire files and folders)
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Ignore all metadata types according to the ignore file.
+        -t | --type <MetadataTypeNames>                 Ignore the specified metadata types according to the ignore file. You can select a sigle or a list separated by 
+                                                        commas. 
+                                                        This options does not take effect if you choose ignore all.
+        -i | --ignore-file <path/to/ignore/file>        Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By 
+                                                        default use .ahignore.json file from your project root.
+        -c | --compress                                 Add this option for compress modified files for ignore operation.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+    
+    *Examples*:
+
+    Ignore All metadata types specified in .ahignore.json file with progress report, colors and compressing files
+
+        aura-helper metadata:local:ignore -a -p plaintext -b -c
+
+    Ignore only Custom Application, Custom Labels and Profiles specified in .ahignore.json file with another .ahignore.json
+
+        aura-helper metadata:local:ignore -t "CustomApplication, Profile, CustomLabels" -i "Path/to/the/file/.myignoreFile.json"
+
 
 - **metadata:local:list** - Command for list all Metadata Types stored in your local project. 
 
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    List all types with progress report and colorized output
+
+        aura-helper metadata:local:list -p plaintext -b
+
+    List all types from different project and save the output into a file
+
+        aura-helper metadata:local:list -r "path/to/other/project/root" -s "path/to/the/output/file.txt"
+
+
 - **metadata:local:describe** - Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
-- **metadata:local:repair** - Command for repair your local project like Metadata Files and Metadata Types dependencies.
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Describe all metadata types stored in your local project.
+        -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
+                                                        option does not take effect if you choose describe all.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    Describe all metadata types stored in your local project with progress report and save the response into a file
+
+        aura-helper metadata:local:describe -a -p plaintext -s "path/to/the/output/file.txt"
+
+    Describe Custom Objects, Custom Fields, Profiles and ValidationRules from your local project with colorized output.
+
+        aura-helper metadata:local:describe -t "CustomObject, CustomField, Profile, ValidatiionRule" -b                      
+
+
+- **metadata:local:repair** - Command for repair your project local dependencies. With this command you cand repair automatically or check if have dependencies errors for repair it (or not, because is possible to detect errors because you don't have all metadata into your local project).
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Repair all supported metadata types. Custom Applications, Profiles and Permission Sets.
+        -t | --type <MetadataTypeNames>                 Repair specified metadata types. You can choose single type or a list separated by commas, also you can choose 
+                                                        to  repair a specified objects like "MetadataTypeAPIName:MetadataObjectAPIName". For example 
+                                                        "CustomApplication:AppName1" for repair only AppName1 Custom App. This option does not take effet if select 
+                                                        repair all.
+        -o | --only-check                               If you select this options, the command not repair dependencies, instead return the errors on the files for 
+                                                        repair manually.
+        -c | --compress                                 Add this option for compress modifieds files for repair operation.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -s | --send-to <path/to/output/file>            If you choose --only-check, you can redirect the output to a file.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    Repair all supported types with progress report and compress repaired files
+
+        aura-helper metadata:local:repair -a -c -p plaintext
+
+    Repair Custom Aplication named App1, All profiles and Two permission sets named Perm1 and Perm2 with colorized output
+
+        aura-helper metadata:local:repair -t "CustomApplication:App1,Profile,PermissionSet:Perm1,PermissionSet:Perm2" -b
+
+    Check only the errors on profiles and save the output on a file
+
+        aura-helper metadata:local:repair -t "Profile" -o -s ""path/to/the/output/errors.txt""
+
+- **metadata:local:package:create** - Command for repair create the package files. You can create the package and destructive files for deploy and delete (before and after deploy) automatically from different sources. You can chose to create from other package files for merge all packages into only one. Also you can create the package files based on a JSON file (See [Metadata JSON Format](#metadata-file) section) or better, you can create the files from a git differences. You can compare two branches, commits, tags... for detect modifies, new files and deleted metadata for create the package and destructive files with a simple command. Also you can ignore metadata types for not include in package according .ahignore.json file.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -o | --output-path <target/files/path>          Path for save the generated files. By default is your manifest folder.
+        -c | --create-type <createType>                 Option for select the generated type file. You can choose between package, destructive or both. Package by default
+        -f | --create-from <createFrom>                 Option for select the source for generate the package. You can choose between git, json or package.
+        -d | --delete-order <beforeOrAfter>             This option allow to the user for select the order for delete metadata. Available values are before or after 
+                                                        (after by  default). If you select before, destructiveChanges will be deployed before the package, after option 
+                                                        deploy destructive changes after the package file.
+        -s | --source <source>                          Option for select a source for compare. If you select create-from git, available values are a branch name, tag 
+                                                        name or commit reference (or use "this" for select the active branch). If you select create-from json, the value 
+                                                        are the path to the file. If you select create-from package, the values are a comma-separated list of the package 
+                                                        paths, the package.xml files will be merge on one package, and same with destructiveChanges.xml files.
+        -t | --target <target>                          Option for select a target for compare. If you select create-from git, available values are a branch name, tag 
+                                                        name or commit reference. This options is only available for create-from git.
+        -r | --raw                                      Option for return the data for crate the pacakge. With this options, the package and destructive files don\'t 
+                                                        will be create, instead the output are the json file for create a package or use for another pourpose. This 
+                                                        options only works for if you select --create-from git.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from 
+                                                        the sfdx-project.json file.
+        -u | --use-ignore                               Option for ignore the metadata included in ignore file from the package and destructive files.
+        -i | --ignore-file <path/to/ignore/file>        Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By 
+                                                        default use .ahignore.json file from your project root.
+        -e | --explicit                                 If you select explicit option, the package will contains all object names explicit on the file, in otherwise, the 
+                                                        package generator will be use a wildcard (*) when is necessary (All Childs from a metadata type are selected for 
+                                                        deploy). Explicit option are fully recomended for retrieve metadata. This option only works if you select 
+                                                        --create-from json.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+
+    *Examples*:
+
+    Create the package and destructive files from differences from the active branch and master with ignored metadata and custom api version with progress report
+
+        aura-helper metadata:local:package:create -c both -f git -s this -t origin/master -u -p -v 45
+
+    Create the package from a JSON file and explicit metadata
+
+        aura-helper metadata:local:package:crate -c package -f json -s "path/to/json/package.json" -e
+
+    Merging other packages and destructive files for create only both files.
+
+        aura-helper metadata:local:package:create -c both -f package -s "path/to/package1/package.xml, path/to/package2/package.xml, path/to/destructive1/destructiveChanges.xml, path/to/destructive2/destructiveChangesPost.xml"
+
+- **metadata:local:retrieve:special** - Command for retrieve the special metadata types stored in your local project. The special types are the types generated at runtime when retrieving data from org according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Retrieve all supported metadata types (Profile, PermissionSet, Translation, RecordType, CustomObject).
+        -t | --type <MetadataTypeNames>                 Retrieve specifics metadata types. You can choose one or a comma separated list of elements. Also you can choose 
+                                                        retrieve a specific profile, object o record type. Schema -> "Type1" or "Type1,Type2" or "Type1:Object1, 
+                                                        Type1:Object2" or "Type1:Object1:Item1" for example:  "Profile, PermissinSet" for retrieve all profiles and 
+                                                        permission sets. "Profile:Admin" for retrieve the admin profile. "RecordType:Account:RecordType1" for  retrieve 
+                                                        the RecordType1 for the object Account or "RecordType:Account" for retrieve all Record Types for Account.
+        -i | --include-org                              With this option, you can retrieve the with the data from org and not only for local, but only retrieve the types 
+                                                        that you have in your local.
+        -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
+                                                        your org namespace.
+        -c | --compress                                 Compress the retrieved files.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+    
+    Retrieve all supported types only including org data and only org namespace data, progress report and file compression
+
+        aura-helper metadata:local:retrieve:special -a -c -i -o -p plaintext
+
+    Retrieve All Profiles, Perm1 and Perm2 Permission Sets, all Case RecordTypes and RtName Account Recordtype with colorized output and progress report
+
+        aura-helper metadata:local:retrieve:special -t "Profile, PermissionSet:Perm1, PermissionSet:Perm2, RecordType:Case, RecordType:Account:RtName" -p plaintext -b
+
+### **Org Metadata Commands**
 
 - **metadata:org:list** - Command for list all Metadata Types stored in your auth org
 
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    List all types with progress report and colorized output
+
+        aura-helper metadata:org:list -p plaintext -b
+
+    List all types from different project and save the output into a file
+
+        aura-helper metadata:org:list -r "path/to/other/project/root" -s "path/to/the/output/file.txt"
+
 - **metadata:org:describe** - Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
 
-- **metadata:org:compare** - Command for compare your local project with yout auth org for get the differences. The result are the metadata types and objects that you have in your org, but don't have in your local project.
+    *Options*:
 
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Describe all metadata types stored in your local project.
+        -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
+                                                        option does not take effect if you choose describe all.
+        -o | --org-namespace                            Describe only metadata types from your org namespace.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
 
-### [Core Commands](#core-commands)
+    *Examples*:
 
-- **update** - Command for update Aura Helper CLI to the latest version if are installed without NPM. With npm run:
+    Describe all metadata types only stored in your org, only from the org namespace, with progress report and save the response into a file
+
+        aura-helper metadata:org:describe -a -o -p plaintext -s "path/to/the/output/file.txt"
+
+    Describe Custom Objects, Custom Fields, Profiles and ValidationRules from your org with colorized output.
+
+        aura-helper metadata:org:describe -t "CustomObject, CustomField, Profile, ValidatiionRule" -b 
+
+- **metadata:org:compare** - Command for compare your local project with your auth org for get the differences. The result are the metadata types and objects that you have in your org, but don't have in your local project.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    Compare the local and org data with progress report and colorized output
+
+        aura-helper metadata:org:compare -p plaintext -b
+
+- **metadata:org:retrieve:special** - Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -a | --all                                      Retrieve all supported metadata types (Profile, PermissionSet, Translation, RecordType, CustomObject).
+        -t | --type <MetadataTypeNames>                 Retrieve specifics metadata types. You can choose one or a comma separated list of elements. Also you can choose 
+                                                        retrieve a specific profile, object o record type. Schema -> "Type1" or "Type1,Type2" or "Type1:Object1, 
+                                                        Type1:Object2" or "Type1:Object1:Item1" for example:  "Profile, PermissinSet" for retrieve all profiles and 
+                                                        permission sets. "Profile:Admin" for retrieve the admin profile. "RecordType:Account:RecordType1" for  retrieve 
+                                                        the RecordType1 for the object Account or "RecordType:Account" for retrieve all Record Types for Account.
+        -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
+                                                        your org namespace.
+        -c | --compress                                 Compress the retrieved files.
+        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
     
-    npm update -g aura-helper
+    Retrieve all supported types with only org namespace data, progress report and file compression
 
-### [Ignore File](#ignore-file)
+        aura-helper metadata:org:retrieve:special -a -c -o -p plaintext
+
+    Retrieve All Profiles, Perm1 and Perm2 Permission Sets, all Case RecordTypes and RtName Account Recordtype with colorized output and progress report
+
+        aura-helper metadata:org:retrieve:special -t "Profile, PermissionSet:Perm1, PermissionSet:Perm2, RecordType:Case, RecordType:Account:RtName" -p plaintext -b
+
+---
+
+# [Ignore File](#ignore-file)
+
+The ignore file is a JSON file used on ignore and create package commands. On this file you can specify metadata types, objects and elements for ignore or delete from your local project or package files. You can have a main ignore file on your root project (like gitignore) named .ahignore.json for use automatically, or have different ignore files and specify it on the commands when you need tou use.
+
+The ignore file have the next structure
+
+    {
+        // Basic structure
+        "MetadataTypeAPIName": {
+            "MetadataObject1",
+            "MetadataObject2"
+        }
+
+        // Advance Structure
+        "MetadataTypeAPIName": {
+            "MetadataObject1:MetadataItem1",
+            "MetadataObject1:MetadataItem2",
+            "MetadataObject2:*",
+            "*",
+            "*:*" // Only valid on Custom Objects
+        }
+
+        // Special for Permissions
+        "MetadataTypeAPIName": {
+            "UserPermission:MetadataObject1:PermissionName",
+            "UserPermission:MetadataObject2:*",
+            "UserPermission:*:PermissionName"
+        }
+    }
+
+*Example*:
+
+    {
+        "CustomLabels": {
+            "labelName1",                   // Ignore or remove the custom label "labelName1"
+            "labelName2",                   // Ignore or remove the custom label "labelName2",
+            "*"                             // Ignore or remove all Custom Labels
+        },
+        "AssignmentRules":{
+            "Case:Assign1",                 // Ignore or remove the Assignent Rule "Assign1" from the object Case
+            "Lead:*",                       // Ignore or remove all Assignment Rules from Lead
+            "*"                             // Ignore or remove all Assignment Rules
+        },
+        "CustomObject": {
+            "Account",                      // Ignore or remove the Account Object
+            "Case:*",                       // Ignore or remove all related objects from case, including the object (Bussines Process, Fields, Validation Rules...),
+            "*",                            // Ignore or remove all custom objects (only the object not the related metadata)
+            "*:*",                          // Ignore or remove all custom objects and the related metadata (Bussines Process, Fields, Validation Rules...)
+        },
+        "Report": {
+            "ReportFolder",                 // Ignore or remove the entire folder
+            "ReportFolder1:ReportName2",    // Ignore or remove the report "ReportName2" from "ReportFolder1" folder.
+            "*",                            // Ignore or remove all reports.
+        },
+        "Workflow": {
+            "Account",                      // Ignore or remove the Account worflows (Rules, Task, Alerts...)
+            "*"                             // Ignore or  remove all workflows (Rules, Task, Alerts...) from all objects 
+        },
+        "WorkflowRule": {
+            "Case:*",                       // Ignore or remove all Workflow rules from case object
+            "Account:Rule1",                // Ignore or remove "Rule1" from Account workflows,
+            "*"                             // Ignore or remove all Worflow rules from all objects
+        },
+        "Profile": {
+            "UserPermission:*:Permission1", // Remove the "Permission1" User Permission from all profiles
+            "UserPermission:TestProfile:*", // Remove all User permissions from TestProfile file
+            "UserPermission:Admin:Perm1",   // Remove the Perm1 User Permission from Admin profile
+            "TestProfile2",                 // Ignore or remove  the "TestProfile" profile 
+            "*"                             // Ignore or remove all profiles
+        }
+    }
+
+#### IMPORTANT
+
+    Some Metadata Types have singular and plural name like CustomLabels, MatchingRules, EscalationRules... For ignore or remove this types you must use the plural name, if use the singular name the ignore process not take effect with this types.
+
+---
+
+# [Metadata JSON Format](#metadata-file)
+
+The describe metadata commands and compare commands return the metadata in a JSON format, the same format for create the package througth a JSON file. This means that the output of the describe or compare commands can be used as input for create the package from JSON file. The next structure are the full JSON structure file:
+
+    {
+        "MetadataAPIName": {
+            "name": "MetadataAPIName",                                  // Required. Contains the Metadata Type API Name (like object Key)
+            "checked": false,                                           // Required. Field for include this type on package or not
+            "path": "path/to/the/metadata/folder",                      // Optional. Path to the Metadata Type folder in local project
+            "suffix": "fileSuffix",                                     // Optional. Metadata File suffix
+            "childs": {                                                 // Object with a collection of childs (Field required but can be an empty object)
+                "MetadataObjectName":{
+                    "name": "MetadataObjectName",                       // Required. Contains the Metadata Object API Name (like object Key)
+                    "checked": false,                                   // Required. Field for include this object on package or not
+                    "path": "path/to/the/metadata/file/or/folder",      // Optional. Path to the object file or folder path
+                    "childs": {                                         // Object with a collection of childs (Field required but can be an empty object)
+                        "MetadataItemName": {
+                            "name": "MetadataItemName",                   // Required. Contains the Metadata Item API Name (like object Key)
+                            "checked": false,                           // Required. Field for include this object on package or not
+                            "path": "path/to/the/metadata/file"
+                        },
+                        "MetadataItemName2": {
+                            ...
+                        },
+                        ...,
+                        ...,
+                        ...
+                    }
+                }
+                "MetadataObjectName2":{
+                   ...
+                },
+                ...,
+                ...,
+                ...
+            }
+        }
+    }
 
 
+*Example*:
 
+    {
+        "CustomObject": {
+            "name": "CustomObject",
+            "checked": false,
+            "path":  "path/to/root/project/force-app/main/default/objects",
+            "suffix": "object",
+            "childs": {
+                "Account": {
+                    "name": "Account",
+                    "checked": true,            // Add Account Object to the package
+                    "path": "path/to/root/project/force-app/main/default/objects/Account/Account.object-meta.xml",
+                    "childs": {}
+                },
+                "Case": {
+                    "name": "Case",
+                    "checked": true,            // Add Case Object to the package
+                    "path": "path/to/root/project/force-app/main/default/objects/Case/Case.object-meta.xml",
+                    "childs": {}
+                },
+                ...,
+                ...,
+                ...
+            }
+        },
+        "CustomField": {
+            "name": "CustomField",
+            "checked": false,
+            "path":  "path/to/root/project/force-app/main/default/objects",
+            "suffix": "field",
+            "childs": {
+                "Account": {
+                    "name": "Account",
+                    "checked": false,            
+                    "path": "path/to/root/project/force-app/main/default/objects/Account/fields",
+                    "childs": {
+                        "customField__c": {
+                            "name": "customField__c",
+                            "checked": true,    // Add customField__c to the package
+                            "path": "path/to/root/project/force-app/main/default/objects/Account/fields/customField__c.field-meta.xml",
+                        },
+                        ...,
+                        ...,
+                        ...
+                    }
+                },
+                "Case": {
+                    "name": "Case",
+                    "checked": false,           
+                    "path": "path/to/root/project/force-app/main/default/objects/Case/fields",
+                    "childs": {
+                        "CaseNumber": {
+                            "name": "CaseNumber",
+                            "checked": true,    // Add CaseNumber to the package
+                            "path": "path/to/root/project/force-app/main/default/objects/Account/fields/CaseNumber.field-meta.xml",
+                        },
+                        ...,
+                        ...,
+                        ...
+                    }
+                },
+                ...,
+                ...,
+                ...
+            }
+        }
+    }
 
 
 

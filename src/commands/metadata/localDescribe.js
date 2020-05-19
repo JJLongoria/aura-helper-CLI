@@ -15,9 +15,9 @@ const MetadataConnection = Metadata.Connection;
 exports.createCommand = function (program) {
     program
         .command('metadata:local:describe')
-        .description('Command for describe all metadata from the local project')
-        .option('-r, --root <path/to/project/root>', 'Path to project root', './')
-        .option('-a, --all', 'Describe all metadata types')
+        .description('Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.')
+        .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
+        .option('-a, --all', 'Describe all metadata types stored in your local project')
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
         .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
@@ -67,6 +67,7 @@ async function run(args) {
             if (!FileChecker.isExists(baseDir))
                 FileWriter.createFolderSync(baseDir);
             FileWriter.createFileSync(args.sendTo, JSON.stringify(result, null, 2));
+            Output.Printer.printSuccess(Response.success("Output saved in: " + args.sendTo));
         } else {
             Output.Printer.printSuccess(Response.success("Describe Metadata Types finished successfully", result));
         }

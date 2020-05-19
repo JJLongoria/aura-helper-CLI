@@ -103,11 +103,11 @@ exports.createCommand = function (program) {
     program
         .command('metadata:local:ignore')
         .description('Command for ignore metadata from your project. Use .ahignore.json file for perform this operation. This command will be delete the ignored metadata from your project folder')
-        .option('-r, --root <path/to/project/root>', 'Path to project root', './')
+        .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-a, --all', 'Ignore all metadata types according to the ignore file')
         .option('-t, --type <MetadataTypeNames>', 'Ignore the specified metadata types according to the ignore file. You can select a sigle or a list separated by commas. This options does not take effect if you choose ignore all')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
-        .option('-c, --compress', 'Add this option for compress modifieds files for ignore operation.')
+        .option('-c, --compress', 'Add this option for compress modified files for ignore operation.')
         .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
