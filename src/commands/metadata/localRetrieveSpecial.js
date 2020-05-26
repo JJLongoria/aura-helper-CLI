@@ -263,11 +263,6 @@ function copyType(types, metadataType, object, item) {
                 return true;
             }
         } else {
-            console.log(metadataType);
-            console.log(object);
-            console.log(item);
-            console.log(types[metadataType]);
-            console.log(types[metadataType][object]);
             if (types[metadataType]['*']) {
                 return true;
             } else if (types[metadataType][object] && (types[metadataType][object].includes(item) || types[metadataType][object].includes('*'))) {

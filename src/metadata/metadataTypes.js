@@ -69,8 +69,22 @@ const CUSTOM_PAGE_WEB_LINK = "CustomPageWebLink";
 const S_CONTROL = "Scontrol";
 const TOPICS_FOR_OBJECT = "TopicsForObjects";
 const POST_TEMPLATE = "PostTemplate";
+const STANDARD_VALUE_SET = "StandardValueSet";
+const STANDARD_VALUE_SET_TRANSLATION = "StandardValueSetTranslation";
+const ANALITYC_SNAPSHOT = "AnalyticSnapshot";
+const BOT_VERSION = "BotVersion";
+const CASE_SUBJECT_PARTICLE = "CaseSubjectParticle";
+const CUSTOM_NOTIFICATION_TYPE ="CustomNotificationType";
+const ACTION_OVERRIDE = "ActionOverride";
 
 module.exports = {
+  ACTION_OVERRIDE,
+  CUSTOM_NOTIFICATION_TYPE,
+  CASE_SUBJECT_PARTICLE,
+  BOT_VERSION,
+  ANALITYC_SNAPSHOT,
+  STANDARD_VALUE_SET_TRANSLATION,
+  STANDARD_VALUE_SET,
   S_CONTROL,
   CUSTOM_PAGE_WEB_LINK,
   LWC,

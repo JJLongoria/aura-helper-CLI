@@ -5,7 +5,7 @@
   "description": "Command Line Interface Application for support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects",
   "main": "src/aura-helper.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\"",
     "compileWin32": "pkg ./ --target \"node12-win-x86\" --output \"./bin/windows/x86/aura-helper\"",
     "compileWin64": "pkg ./ --target \"node12-win-x64\" --output \"./bin/windows/x64/aura-helper\"",
     "compileLinux64": "pkg ./ --target \"node12-linux-x64\" --output \"./bin/linux/x64/aura-helper\"",
@@ -16,7 +16,7 @@
     "ah": "src/aura-helper.js"
   },
   "keywords": [],
-  "author": "Juan José Longoria López (Kanko)",
+  "author": "Juan José Longoria López (Kanko) <juanjoselongoria@gmail.com>",
   "license": "MIT",
   "repository": {
     "url": "https://github.com/JJLongoria/aura-helper-CLI.git",

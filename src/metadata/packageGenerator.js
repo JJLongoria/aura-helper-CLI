@@ -22,6 +22,10 @@ const NAME_TAG_END = "</name>";
 const MEMBERS_TAG_START = "<members>";
 const MEMBERS_TAG_END = "</members>";
 
+const NOT_ALLOWED_WILDCARDS = [
+
+];
+
 class PackageGenerator {
 
     static transformPackageToMetadataFormat(pkg) {
@@ -194,81 +198,6 @@ class PackageGenerator {
         let packageContent = [];
         packageContent.push(START_XML_FILE);
         packageContent.push(PACKAGE_TAG_START);
-        if (!forRetrieve) {
-            let addWorkflow = false;
-            if (metadata[MetadataTypes.WORKFLOW])
-                addWorkflow = true;
-            let workflow = (metadata[MetadataTypes.WORKFLOW]) ? metadata[MetadataTypes.WORKFLOW] : MetadataFactory.createMetadataType(MetadataTypes.WORKFLOW, false);
-            if (metadata[MetadataTypes.WORKFLOW_ALERT] && metadata[MetadataTypes.WORKFLOW_ALERT].childs) {
-                Object.keys(metadata[MetadataTypes.WORKFLOW_ALERT].childs).forEach(function (key) {
-                    let existingWorkflows = Object.keys(workflow.childs);
-                    if (!existingWorkflows.includes(key) && (metadata[MetadataTypes.WORKFLOW_ALERT].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_ALERT].childs[key].childs))) {
-                        workflow.childs[key] = MetadataFactory.createMetadataObject(key, true);
-                        addWorkflow = true;
-                    } else if (metadata[MetadataTypes.WORKFLOW_ALERT].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_ALERT].childs[key].childs)) {
-                        workflow.childs[key].checked = true;
-                    }
-                });
-            }
-            if (metadata[MetadataTypes.WORKFLOW_FIELD_UPDATE] && metadata[MetadataTypes.WORKFLOW_FIELD_UPDATE].childs) {
-                let workflowFieldUpdates = metadata[MetadataTypes.WORKFLOW_FIELD_UPDATE];
-                Object.keys(workflowFieldUpdates.childs).forEach(function (key) {
-                    let existingWorkflows = Object.keys(workflow.childs);
-                    if (!existingWorkflows.includes(key) && (workflowFieldUpdates.childs[key].checked || MetadataUtils.isAnyChecked(workflowFieldUpdates.childs[key].childs))) {
-                        workflow.childs[key] = MetadataFactory.createMetadataObject(key, true);
-                        addWorkflow = true;
-                    } else if (workflowFieldUpdates.childs[key].checked || MetadataUtils.isAnyChecked(workflowFieldUpdates.childs[key].childs)) {
-                        workflow.childs[key].checked = true;
-                    }
-                });
-            }
-            if (metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH] && metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs) {
-                Object.keys(metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs).forEach(function (key) {
-                    let existingWorkflows = Object.keys(workflow.childs);
-                    if (!existingWorkflows.includes(key) && (metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs[key].childs))) {
-                        workflow.childs[key] = MetadataFactory.createMetadataObject(key, true);
-                        addWorkflow = true;
-                    } else if (metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH].childs[key].childs)) {
-                        workflow.childs[key].checked = true;
-                    }
-                });
-            }
-            if (metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE] && metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs) {
-                Object.keys(metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs).forEach(function (key) {
-                    let existingWorkflows = Object.keys(workflow.childs);
-                    if (!existingWorkflows.includes(key) && (metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs[key].childs))) {
-                        workflow.childs[key] = MetadataFactory.createMetadataObject(key, true);
-                        addWorkflow = true;
-                    } else if (metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE].childs[key].childs)) {
-                        workflow.childs[key].checked = true;
-                    }
-                });
-            }
-            if (metadata[MetadataTypes.WORKFLOW_RULE] && metadata[MetadataTypes.WORKFLOW_RULE].childs) {
-                Object.keys(metadata[MetadataTypes.WORKFLOW_RULE].childs).forEach(function (key) {
-                    let existingWorkflows = Object.keys(workflow.childs);
-                    if (!existingWorkflows.includes(key) && (metadata[MetadataTypes.WORKFLOW_RULE].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_RULE].childs[key].childs))) {
-                        workflow.childs[key] = MetadataFactory.createMetadataObject(key, true);
-                        addWorkflow = true;
-                    } else if (metadata[MetadataTypes.WORKFLOW_RULE].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_RULE].childs[key].childs)) {
-                        workflow.childs[key].checked = true;
-                    }
-                });
-            }
-            if (metadata[MetadataTypes.WORKFLOW_TASK] && metadata[MetadataTypes.WORKFLOW_TASK].childs) {
-                Object.keys(metadata[MetadataTypes.WORKFLOW_TASK].childs).forEach(function (key) {
-                    let existingWorkflows = Object.keys(workflow.childs);
-                    if (!existingWorkflows.includes(key) && (metadata[MetadataTypes.WORKFLOW_TASK].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_TASK].childs[key].childs))) {
-                        metadata[MetadataTypes.WORKFLOW_TASK].childs[key] = MetadataFactory.createMetadataObject(key, true);
-                        addWorkflow = true;
-                    } else if (metadata[MetadataTypes.WORKFLOW_TASK].childs[key].checked || MetadataUtils.isAnyChecked(metadata[MetadataTypes.WORKFLOW_TASK].childs[key].childs)) {
-                        workflow.childs[key].checked = true;
-                    }
-                });
-            }
-            if (addWorkflow)
-                metadata[MetadataTypes.WORKFLOW] = workflow;
-        }
         Object.keys(metadata).forEach(function (key) {
             let typesBlock = PackageGenerator.makeTypesBlock(metadata[key], metadata[key].childs, forRetrieve);
             if (typesBlock)
@@ -281,23 +210,11 @@ class PackageGenerator {
 
     static makeTypesBlock(metadataType, childs, forRetrieve) {
         let typesBlockContent = [];
-        let folders;
         let addBlock = false;
         if (!childs || Object.keys(childs).length === 0)
             return '';
-        if (metadataType.name === MetadataTypes.EMAIL_TEMPLATE || metadataType.name === MetadataTypes.REPORTS || metadataType.name === MetadataTypes.DOCUMENT || metadataType.name === MetadataTypes.DASHBOARD) {
-            folders = this.getFolders(childs);
-        }
         typesBlockContent.push('\t' + TYPES_TAG_START);
-        if (folders && folders.length > 0) {
-            for (const folder of folders) {
-                typesBlockContent.push('\t\t' + MEMBERS_TAG_START + folder + MEMBERS_TAG_END);
-            }
-        }
-        if (!forRetrieve && metadataType.checked && !forRetrieve && metadataType.name !== MetadataTypes.WORKFLOW_ALERT && metadataType.name !== MetadataTypes.WORKFLOW_FIELD_UPDATE && metadataType.name !== MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH && metadataType.name !== MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE && metadataType.name !== MetadataTypes.WORKFLOW_RULE && metadataType.name !== MetadataTypes.WORKFLOW_TASK) {
-            typesBlockContent.push('\t\t' + MEMBERS_TAG_START + '*' + MEMBERS_TAG_END);
-            addBlock = true;
-        } else if (!forRetrieve && (metadataType.name === MetadataTypes.CUSTOM_LABELS || metadataType.name === MetadataTypes.CUSTOM_LABEL) && MetadataUtils.isAnyChecked(childs)) {
+        if (!forRetrieve && metadataType.checked && MetadataUtils.isAllChecked(metadataType.childs) && !NOT_ALLOWED_WILDCARDS[metadataType.name]) {
             typesBlockContent.push('\t\t' + MEMBERS_TAG_START + '*' + MEMBERS_TAG_END);
             addBlock = true;
         } else if ((!forRetrieve && metadataType.name !== MetadataTypes.WORKFLOW_ALERT && metadataType.name !== MetadataTypes.WORKFLOW_FIELD_UPDATE && metadataType.name !== MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH && metadataType.name !== MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE && metadataType.name !== MetadataTypes.WORKFLOW_RULE && metadataType.name !== MetadataTypes.WORKFLOW_TASK) || forRetrieve) {

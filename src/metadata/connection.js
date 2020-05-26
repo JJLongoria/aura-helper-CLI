@@ -12,6 +12,76 @@ const Response = require('../commands/response');
 const MathUtils = require('../utils/MathUtils');
 const OSUtils = require('../utils/osUtils');
 
+const NOT_INCLUDED_METADATA = {
+    StandardValueSet: {
+        xmlName: "StandardValueSet",
+        suffix: "standardValueSet",
+        directoryName: "standardValueSets",
+        elements: [
+            "AccountContactMultiRoles",
+            "AccountContactRole",
+            "AccountOwnership",
+            "AccountRating",
+            "AccountType",
+            "AssetStatus",
+            "CampaignMemberStatus",
+            "CampaignStatus",
+            "CampaignType",
+            "CaseContactRole",
+            "CaseOrigin",
+            "CasePriority",
+            "CaseReason",
+            "CaseStatus",
+            "CaseType",
+            "ContactRole",
+            "ContractContactRole",
+            "ContractStatus",
+            "EntitlementType",
+            "EventSubject",
+            "EventType",
+            "FiscalYearPeriodName",
+            "FiscalYearPeriodPrefix",
+            "FiscalYearQuarterName",
+            "FiscalYearQuarterPrefix",
+            "IdeaMultiCategory",
+            "IdeaStatus",
+            "IdeaThemeStatus",
+            "Industry",
+            "LeadSource",
+            "LeadStatus",
+            "OpportunityCompetitor",
+            "OpportunityStage",
+            "OpportunityType",
+            "OrderStatus",
+            "OrderType",
+            "PartnerRole",
+            "Product2Family",
+            "QuickTextCategory",
+            "QuickTextChannel",
+            "QuoteStatus",
+            "RoleInTerritory2",
+            "ResourceAbsenceType",
+            "SalesTeamRole",
+            "Salutation",
+            "ServiceAppointmentStatus",
+            "ServiceContractApprovalStatus",
+            "ServTerrMemRoleType",
+            "SocialPostClassification",
+            "SocialPostEngagementLevel",
+            "SocialPostReviewedStatus",
+            "SolutionStatus",
+            "TaskPriority",
+            "TaskStatus",
+            "TaskSubject",
+            "TaskType",
+            "WorkOrderLineItemStatus",
+            "WorkOrderPriority",
+            "WorkOrderStatus",
+            "WorkTypeGroupAddInfo"
+        ]
+    }
+}
+
 const suffixByMetadataType = {
     CustomField: 'field',
     BusinessProcess: 'businessProcess',
@@ -97,7 +167,7 @@ class Connection {
             }
         });
     }
-    
+
     static getMetadataTypes(user, root, options) {
         if (!options) {
             options = {
@@ -234,8 +304,6 @@ class Connection {
             let metadataType = MetadataFactory.createMetadataType(metadataTypeName, false);
             let query = 'Select Id, Name, DeveloperName, NamespacePrefix, FolderId FROM EmailTemplate';
             try {
-                let buffer = [];
-                let bufferError = [];
                 let out = await ProcessManager.query(user, query);
                 if (out.stdOut && out.stdOut > 0) {
                     let outJson = JSON.parse(out.stdOut);
@@ -269,12 +337,22 @@ class Connection {
     static getMetadataObjectsFromOrg(user, metadataTypeName, options) {
         return new Promise(async function (resolve, reject) {
             try {
-                let out = await ProcessManager.describeMetadata(user, metadataTypeName, undefined);
-                if (out.stdOut) {
-                    let metadataType = Connection.processMetadataType(out.stdOut, metadataTypeName, options);
+                if (NOT_INCLUDED_METADATA[metadataTypeName]) {
+                    let metadataType = MetadataFactory.createMetadataType(metadataTypeName, false);
+                    let metadataObjects = {};
+                    for (const element of NOT_INCLUDED_METADATA[metadataTypeName].elements) {
+                        metadataObjects[element] =  MetadataFactory.createMetadataObject(element, false);
+                    }
+                    metadataType.childs = metadataObjects;
                     resolve(metadataType);
                 } else {
+                    let out = await ProcessManager.describeMetadata(user, metadataTypeName, undefined);
+                    if (out.stdOut) {
+                        let metadataType = Connection.processMetadataType(out.stdOut, metadataTypeName, options);
+                        resolve(metadataType);
+                    } else {
 
+                    }
                 }
             } catch (error) {
 
@@ -326,7 +404,7 @@ class Connection {
                 let separator;
                 if (metadataTypeName === MetadataTypes.EMAIL_TEMPLATE || metadataTypeName === MetadataTypes.DOCUMENT || metadataTypeName === MetadataTypes.REPORTS || metadataTypeName === MetadataTypes.DASHBOARD) {
                     separator = '/';
-                } else if (metadataTypeName === MetadataTypes.LAYOUT || metadataTypeName === MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS || metadataTypeName === MetadataTypes.FLOWS) {
+                } else if (metadataTypeName === MetadataTypes.LAYOUT || metadataTypeName === MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS || metadataTypeName === MetadataTypes.FLOWS || metadataTypeName === MetadataTypes.STANDARD_VALUE_SET_TRANSLATION) {
                     separator = '-';
                 } else {
                     separator = '.';
