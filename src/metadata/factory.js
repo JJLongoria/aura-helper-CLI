@@ -186,6 +186,8 @@ class MetadataFactory {
                               metadata[metadataType.xmlName] = MetadataFactory.getReportsMetadataFromFolder(folderPath);
                          } else if (folder == 'quickActions') {
                               metadata[metadataType.xmlName] = MetadataFactory.getQuickActionsMetadataFromFolder(folderPath);
+                         } else if (folder == 'standardValueSetTranslations') {
+                              metadata[metadataType.xmlName] = MetadataFactory.getStandardValueSetTranslationMetadataFromFolder(folderPath);
                          } else if (folder == 'lwc') {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath, true);
@@ -435,6 +437,30 @@ class MetadataFactory {
                     metadataObjects[flow] = MetadataFactory.createMetadataObject(flow, false, folderPath);
                if (version && version.length > 0)
                     metadataObjects[flow].childs[version] = MetadataFactory.createMetadataItem(version, false, path);
+          }
+          metadataType.childs = metadataObjects;
+          return metadataType;
+     }
+
+     static getStandardValueSetTranslationMetadataFromFolder(folderPath) {
+          let files = FileReader.readDirSync(folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.STANDARD_VALUE_SET_TRANSLATION, false, folderPath);
+          let metadataObjects = {};
+          for (const translationFile of files) {
+               let path = folderPath + '/' + flowFile;
+               let name = translationFile.substring(0, translationFile.indexOf('.'));
+               let translation = undefined
+               let version = undefined;
+               if (name.indexOf('-') !== -1) {
+                    translation = name.substring(0, name.indexOf('-')).trim();
+                    version = name.substring(name.indexOf('-') + 1).trim();
+               } else {
+                    translation = name.trim();
+               }
+               if (!metadataObjects[translation])
+                    metadataObjects[translation] = MetadataFactory.createMetadataObject(translation, false, folderPath);
+               if (version && version.length > 0)
+                    metadataObjects[translation].childs[version] = MetadataFactory.createMetadataItem(version, false, path);
           }
           metadataType.childs = metadataObjects;
           return metadataType;
@@ -773,7 +799,7 @@ class MetadataFactory {
                     objects[sobj] = MetadataFactory.createMetadataObject(sobj, true, folderPath);
                if (!objects[sobj].childs[item])
                     objects[sobj].childs[item] = MetadataFactory.createMetadataItem(item, true, filePath);
-          } else if (metadataType.xmlName === MetadataTypes.LAYOUT) {
+          } else if (metadataType.xmlName === MetadataTypes.LAYOUT || metadataType.xmlName === MetadataTypes.STANDARD_VALUE_SET_TRANSLATION) {
                let sobj = fileName.substring(0, fileName.indexOf('-')).trim();
                let item = fileName.substring(fileName.indexOf('-') + 1).trim();
                if (!objects[sobj])
