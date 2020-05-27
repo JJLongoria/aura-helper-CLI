@@ -65,6 +65,7 @@ const QuickActionUtils = require('./quickActionUtils');
 const ReportUtils = require('./reportUtils');
 const ReportTypeUtils = require('./reportTypeUtils');
 const SharingSetUtils = require('./sharingSetUtils');
+const StandardValueSetUtils = require('./standardValueSetUtils');
 const StandardValueSetTranslationUtils = require('./standardValueSetTranslationUtils');
 const Territory2Utils = require('./territory2Utils');
 const Territory2ModelUtils = require('./territory2ModelUtils');
@@ -122,7 +123,7 @@ class MetadataCompressor {
             content = CustomFeedFilterUtils.toXML(CustomFeedFilterUtils.createCustomFeedFilter(root.CustomFeedFilter), true);
         else if (root.CustomHelpMenuSection)
             content = CustomHelpMenuSectionUtils.toXML(CustomHelpMenuSectionUtils.createCustomHelpMenuSection(root.CustomHelpMenuSection), true);
-        else if (root.CustomLabels) 
+        else if (root.CustomLabels)
             content = CustomLabelsUtils.toXML(CustomLabelsUtils.createCustomLabels(root.CustomLabels), true);
         else if (root.CustomMetadata)
             content = CustomMetadataUtils.toXML(CustomMetadataUtils.createCustomMetadata(root.CustomMetadata), true);
@@ -222,6 +223,8 @@ class MetadataCompressor {
             content = ReportTypeUtils.toXML(ReportTypeUtils.createReportType(root.ReportType), true);
         else if (root.SharingSet)
             content = SharingSetUtils.toXML(SharingSetUtils.createSharingSet(root.SharingSet), true);
+        else if (root.StandardValueSet)
+            content = StandardValueSetUtils.toXML(StandardValueSetUtils.createStandardValueSet(root.StandardValueSet), true);
         else if (root.StandardValueSetTranslation)
             content = StandardValueSetTranslationUtils.toXML(StandardValueSetTranslationUtils.createStandardValueSetTranslation(root.StandardValueSetTranslation), true);
         else if (root.Territory2)

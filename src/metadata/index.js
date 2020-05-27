@@ -65,6 +65,7 @@ exports.QuickActionUtils = require('./quickActionUtils');
 exports.ReportUtils = require('./reportUtils');
 exports.ReportTypeUtils = require('./reportTypeUtils');
 exports.SharingSetUtils = require('./sharingSetUtils');
+exports.StandardValueSetUtils = require('./standardValueSetUtils');
 exports.StandardValueSetTranslationUtils = require('./standardValueSetTranslationUtils');
 exports.Territory2Utils = require('./territory2Utils');
 exports.Territory2ModelUtils = require('./territory2ModelUtils');
