@@ -1,7 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [1.0.0 - 2020-20-05]
+## [1.1.0 - 2020-XX-XX]
+### Added
+- Added support for compress StandardValueSet XML Metadata File. 
+
+## [1.0.0 - 2020-27-05]
 ### Added
 #### Metadata Commands
 - metadata:local:compress - Command for compress XML files for ocuppy less data storage, and make more usefull with SVC systems like Git. With XML Files compressed, the file confilcts on merges are to much easy to resolve.
