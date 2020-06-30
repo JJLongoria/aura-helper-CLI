@@ -36,7 +36,6 @@ const NOT_INCLUDED_METADATA = {
             "ContactRole",
             "ContractContactRole",
             "ContractStatus",
-            "EntitlementType",
             "EventSubject",
             "EventType",
             "FiscalYearPeriodName",
@@ -45,7 +44,6 @@ const NOT_INCLUDED_METADATA = {
             "FiscalYearQuarterPrefix",
             "IdeaMultiCategory",
             "IdeaStatus",
-            "IdeaThemeStatus",
             "Industry",
             "LeadSource",
             "LeadStatus",
@@ -59,13 +57,8 @@ const NOT_INCLUDED_METADATA = {
             "QuickTextCategory",
             "QuickTextChannel",
             "QuoteStatus",
-            "RoleInTerritory2",
-            "ResourceAbsenceType",
             "SalesTeamRole",
             "Salutation",
-            "ServiceAppointmentStatus",
-            "ServiceContractApprovalStatus",
-            "ServTerrMemRoleType",
             "SocialPostClassification",
             "SocialPostEngagementLevel",
             "SocialPostReviewedStatus",
@@ -77,7 +70,6 @@ const NOT_INCLUDED_METADATA = {
             "WorkOrderLineItemStatus",
             "WorkOrderPriority",
             "WorkOrderStatus",
-            "WorkTypeGroupAddInfo"
         ]
     }
 }
@@ -158,6 +150,7 @@ class Connection {
                                 nCompleted++;
                         }
                         if (nCompleted === batches.length) {
+                            metadata = Utils.orderMetadata(metadata);
                             resolve(metadata);
                         }
                     }).catch(function (error) {

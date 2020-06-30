@@ -7,6 +7,7 @@ const Metadata = require('../../metadata');
 const Config = require('../../main/config');
 const StrUtils = require('../../utils/strUtils');
 const Utils = require('./utils');
+const CommandUtils = require('../utils');
 const FileChecker = FileSystem.FileChecker;
 const FileReader = FileSystem.FileReader;
 const FileWriter = FileSystem.FileWriter;
@@ -56,6 +57,17 @@ const TYPES_FOR_REPAIR_DATA = {
     }
 };
 
+let argsList = [
+    "root",
+    "all",
+    "type",
+    "onlyCheck",
+    "compress",
+    "sendTo",
+    "progress",
+    "beautify"
+];
+
 exports.createCommand = function (program) {
     program
         .command('metadata:local:repair')
@@ -65,7 +77,7 @@ exports.createCommand = function (program) {
         .option('-t, --type <MetadataTypeNames>', 'Repair specified metadata types. You can choose single type or a list separated by commas,  also you can choose to repair a specified objects like "MetadataTypeAPIName:MetadataObjectAPIName". For example, "CustomApplication:AppName1" for repair only AppName1 Custom App. This option does not take effet if select repair all')
         .option('-o, --only-check', 'If you select this options, the command not repair dependencies, instead return the errors on the files for repair manually', false)
         .option('-c, --compress', 'Add this option for compress modifieds files for repair operation.', false)
-        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'If you choose --only-check, you can redirect the output to a file')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
@@ -75,7 +87,7 @@ exports.createCommand = function (program) {
 
 function run(args) {
     Output.Printer.setColorized(args.beautify);
-    if (hasEmptyArgs(args)) {
+    if (CommandUtils.hasEmptyArgs(args, argsList)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
@@ -94,8 +106,8 @@ function run(args) {
         return;
     }
     if (args.progress) {
-        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -133,10 +145,6 @@ function run(args) {
     }).catch(function (error) {
         Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
     });
-}
-
-function hasEmptyArgs(args) {
-    return args.root === undefined && args.all === undefined && args.sendTo === undefined && args.type === undefined && args.compress === undefined && args.onlyCheck === undefined && args.progress === undefined && args.beautify === undefined;
 }
 
 function repairDependencies(args, types) {

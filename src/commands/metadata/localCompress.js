@@ -4,12 +4,22 @@ const ErrorCodes = require('../errors');
 const FileSystem = require('../../fileSystem');
 const Metadata = require('../../metadata');
 const Utils = require('./utils');
+const CommandUtils = require('../utils');
 const FileChecker = FileSystem.FileChecker;
 const FileReader = FileSystem.FileReader;
 const FileWriter = FileSystem.FileWriter;
 const Paths = FileSystem.Paths;
 const Color = Output.Color;
 const MetadataCompressor = Metadata.MetadataCompressor;
+
+let argsList = [
+    "root",
+    "all",
+    "directory",
+    "file",
+    "progress",
+    "beautify"
+];
 
 exports.createCommand = function (program) {
     program
@@ -19,7 +29,7 @@ exports.createCommand = function (program) {
         .option('-a, --all', 'Compress all XML files with support compression in your project.')
         .option('-d, --directory <path/to/directory>', 'Compress XML Files from specific directory. This options does not take effect if you choose compress all.')
         .option('-f, --file <path/to/file>', 'Compress the specified XML file. This options does not take effect if you choose compress directory or all.')
-        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
@@ -28,7 +38,7 @@ exports.createCommand = function (program) {
 
 function run(args) {
     Output.Printer.setColorized(args.beautify);
-    if (hasEmptyArgs(args)) {
+    if (CommandUtils.hasEmptyArgs(args, argsList)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
@@ -43,8 +53,8 @@ function run(args) {
         return;
     }
     if (args.progress) {
-        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -79,10 +89,6 @@ function run(args) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, error));
         });
     }
-}
-
-function hasEmptyArgs(args) {
-    return args.all === undefined && args.directory === undefined && args.file === undefined && args.root === undefined;
 }
 
 function compressDirectory(directory, progress) {

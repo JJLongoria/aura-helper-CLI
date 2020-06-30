@@ -76,8 +76,12 @@ const BOT_VERSION = "BotVersion";
 const CASE_SUBJECT_PARTICLE = "CaseSubjectParticle";
 const CUSTOM_NOTIFICATION_TYPE ="CustomNotificationType";
 const ACTION_OVERRIDE = "ActionOverride";
+const EXTERNAL_DATA_SOURCE = "ExternalDataSource";
+const DATA_CATEGORY_GROUP = "DataCategoryGroup";
 
 module.exports = {
+  DATA_CATEGORY_GROUP,
+  EXTERNAL_DATA_SOURCE,
   ACTION_OVERRIDE,
   CUSTOM_NOTIFICATION_TYPE,
   CASE_SUBJECT_PARTICLE,

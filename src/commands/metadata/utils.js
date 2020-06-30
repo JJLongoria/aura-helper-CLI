@@ -18,7 +18,9 @@ class Utils {
                 MetadataTypes.TAB,
                 MetadataTypes.LAYOUT,
                 MetadataTypes.FLOWS,
-                MetadataTypes.RECORD_TYPE
+                MetadataTypes.RECORD_TYPE,
+                MetadataTypes.EXTERNAL_DATA_SOURCE,
+                MetadataTypes.DATA_CATEGORY_GROUP,
             ];
             speciaObjects[MetadataTypes.PERMISSION_SET] = [
                 MetadataTypes.CUSTOM_APPLICATION,
@@ -52,12 +54,6 @@ class Utils {
             speciaObjects[MetadataTypes.CUSTOM_OBJECT] = [];
         }
         return speciaObjects;
-    }
-
-    static getProgressAvailableTypes() {
-        return [
-            'plaintext',
-            'json'];
     }
 
     static getTypes(type) {

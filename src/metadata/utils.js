@@ -5,6 +5,19 @@ const MetadataType = require('./metadataTypes');
 
 class Utils {
 
+    static orderMetadata(metadata) {
+        let orderedMetadata = {};
+        Object.keys(metadata).sort(function(keyA, keyB){
+            return keyA.toLowerCase().localeCompare(keyB.toLowerCase());
+        }).forEach(function (key) {
+            orderedMetadata[key] = metadata[key];
+            if(Utils.haveChilds(metadata[key])){
+                orderedMetadata[key].childs = Utils.orderMetadata(metadata[key].childs);
+            }
+        });
+        return orderedMetadata;
+    }
+
     static isAnyChecked(objects) {
         let nChecked = 0;
         let nUnchecked = 0;
@@ -363,6 +376,25 @@ class Utils {
             }
         });
         return metadataOnOrg;
+    }
+
+    static haveChilds(object) {
+        return object && object.childs && Object.keys(object.childs).length > 0;
+    }
+
+    static createXMLFile(xmlMetadata){
+        let result = {};
+        Object.keys(xmlMetadata).forEach(function (xmlField) {
+            let elementData = xmlMetadata[xmlField];
+            if (elementData.datatype === 'array') {
+                result[xmlField] = [];
+            } else if (elementData.datatype === 'object') {
+                result[xmlField] = {};
+            } else {
+                result[xmlField] = undefined;
+            }
+        });
+        return result;
     }
 
 }

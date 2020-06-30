@@ -10,3 +10,4 @@ exports.OrgList = require('./orgList');
 exports.OrgDescribe = require('./orgDescribe');
 exports.OrgCompare = require('./orgCompare');
 exports.OrgRetrieveSpecial = require('./orgRetrieveSpecial');
+exports.OrgPermissions = require('./orgPermissions');

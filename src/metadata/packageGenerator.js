@@ -193,13 +193,13 @@ class PackageGenerator {
             throw new Error("Wrong JSON Format for Metadata Type with key " + key + ". Missing checked field");
     }
 
-    static createPackage(metadata, version, forRetrieve) {
-        forRetrieve = (forRetrieve != undefined) ? forRetrieve : true;
+    static createPackage(metadata, version, explicit) {
+        explicit = (explicit != undefined) ? explicit : true;
         let packageContent = [];
         packageContent.push(START_XML_FILE);
         packageContent.push(PACKAGE_TAG_START);
         Object.keys(metadata).forEach(function (key) {
-            let typesBlock = PackageGenerator.makeTypesBlock(metadata[key], metadata[key].childs, forRetrieve);
+            let typesBlock = PackageGenerator.makeTypesBlock(metadata[key], metadata[key].childs, explicit);
             if (typesBlock)
                 packageContent.push(typesBlock);
         });
@@ -208,16 +208,16 @@ class PackageGenerator {
         return packageContent.join('\n');
     }
 
-    static makeTypesBlock(metadataType, childs, forRetrieve) {
+    static makeTypesBlock(metadataType, childs, explicit) {
         let typesBlockContent = [];
         let addBlock = false;
         if (!childs || Object.keys(childs).length === 0)
             return '';
         typesBlockContent.push('\t' + TYPES_TAG_START);
-        if (!forRetrieve && metadataType.checked && MetadataUtils.isAllChecked(metadataType.childs) && !NOT_ALLOWED_WILDCARDS[metadataType.name]) {
+        if (!explicit && metadataType.checked && MetadataUtils.isAllChecked(metadataType.childs) && !NOT_ALLOWED_WILDCARDS[metadataType.name]) {
             typesBlockContent.push('\t\t' + MEMBERS_TAG_START + '*' + MEMBERS_TAG_END);
             addBlock = true;
-        } else if ((!forRetrieve && metadataType.name !== MetadataTypes.WORKFLOW_ALERT && metadataType.name !== MetadataTypes.WORKFLOW_FIELD_UPDATE && metadataType.name !== MetadataTypes.WORKFLOW_KNOWLEDGE_PUBLISH && metadataType.name !== MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE && metadataType.name !== MetadataTypes.WORKFLOW_RULE && metadataType.name !== MetadataTypes.WORKFLOW_TASK) || forRetrieve) {
+        } else if (explicit) {
             let folderAdded = false;
             Object.keys(childs).forEach(function (key) {
                 let mtObject = childs[key];

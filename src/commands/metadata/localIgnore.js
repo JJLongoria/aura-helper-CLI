@@ -7,6 +7,7 @@ const Metadata = require('../../metadata');
 const Config = require('../../main/config');
 const StrUtils = require('../../utils/strUtils');
 const Utils = require('./utils');
+const CommandUtils = require('../utils');
 const FileChecker = FileSystem.FileChecker;
 const FileReader = FileSystem.FileReader;
 const FileWriter = FileSystem.FileWriter;
@@ -99,6 +100,16 @@ const TYPES_XML_RELATION = {
     }
 };
 
+let argsList = [
+    "root",
+    "all",
+    "type",
+    "ignoreFile",
+    "compress",
+    "progress",
+    "beautify"
+];
+
 exports.createCommand = function (program) {
     program
         .command('metadata:local:ignore')
@@ -108,7 +119,7 @@ exports.createCommand = function (program) {
         .option('-t, --type <MetadataTypeNames>', 'Ignore the specified metadata types according to the ignore file. You can select a sigle or a list separated by commas. This options does not take effect if you choose ignore all')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
         .option('-c, --compress', 'Add this option for compress modified files for ignore operation.')
-        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
@@ -117,7 +128,7 @@ exports.createCommand = function (program) {
 
 function run(args) {
     Output.Printer.setColorized(args.beautify);
-    if (hasEmptyArgs(args)) {
+    if (CommandUtils.hasEmptyArgs(args, argsList)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
@@ -154,8 +165,8 @@ function run(args) {
         return;
     }
     if (args.progress) {
-        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -169,11 +180,6 @@ function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
     });
 }
-
-function hasEmptyArgs(args) {
-    return args.all === undefined && args.type === undefined && args.root === undefined && args.ignoreFile === undefined && args.compress === undefined;
-}
-
 
 function ignoreMetadata(args, typesForIgnore) {
     return new Promise(async function (resolve, reject) {
@@ -315,15 +321,15 @@ function ignoreFromPermissionFiles(args, metadataType, ignoredMetadata) {
                 }
             }
         });
-        Object.keys(permissionsToIgnore).forEach(function (objectKey) {
-            if (metadataType.childs[objectKey] || objectKey === '*') {
+        Object.keys(metadataType.childs).forEach(function(objectKey){
+            if(permissionsToIgnore[objectKey] || permissionsToIgnore['*']){
                 let xmlRoot = XMLParser.parseXML(FileReader.readFileSync(metadataType.childs[objectKey].path), false);
                 if (xmlRoot[metadataType.name] && xmlRoot[metadataType.name].userPermissions) {
                     xmlRoot[metadataType.name].userPermissions = MetadataUtils.forceArray(xmlRoot[metadataType.name].userPermissions);
                     let dataToRemove = [];
                     let dataToKeep = [];
                     for (let permission of xmlRoot[metadataType.name].userPermissions) {
-                        if (permissionsToIgnore[objectKey].includes(permission.name) || permissionsToIgnore[objectKey].includes('*')) {
+                        if ((permissionsToIgnore[objectKey] && (permissionsToIgnore[objectKey].includes(permission.name) || permissionsToIgnore[objectKey].includes('*'))) || (permissionsToIgnore['*'] && permissionsToIgnore['*'].includes(permission.name))) {
                             dataToRemove.push(permission);
                         } else {
                             dataToKeep.push(permission);

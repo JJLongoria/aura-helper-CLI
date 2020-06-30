@@ -91,7 +91,7 @@ METADATA_XML_RELATION = {
 
 class MetadataFactory {
 
-     static getMetadataXMLRelation(){
+     static getMetadataXMLRelation() {
           return METADATA_XML_RELATION;
      }
 
@@ -196,7 +196,7 @@ class MetadataFactory {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath, true);
                               metadata[metadataType.xmlName] = newMetadata;
-                         } else if(METADATA_XML_RELATION[metadataType.xmlName]){
+                         } else if (METADATA_XML_RELATION[metadataType.xmlName]) {
                               MetadataFactory.getMetadataFromFiles(metadataType, metadata, folderPath);
                          } else {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
@@ -206,6 +206,7 @@ class MetadataFactory {
                     }
                }
           }
+          metadata = Utils.orderMetadata(metadata);
           return metadata;
      }
 
@@ -513,11 +514,10 @@ class MetadataFactory {
           metadata[MetadataTypes.BUTTON_OR_LINK] = MetadataFactory.createMetadataType(MetadataTypes.BUTTON_OR_LINK, false, objectsPath);
           for (const objFolder of files) {
                let objPath = objectsPath + '/' + objFolder;
-               let objs = MetadataFactory.createMetadataObject(objFolder, false, objPath + '/' + objFolder + '.object-meta.xml');
-               metadata[MetadataTypes.CUSTOM_OBJECT].childs[objFolder] = objs;
+               let objFilePath = objPath + '/' + objFolder + '.object-meta.xml';
                if (FileChecker.isExists(objPath + '/fields')) {
                     let fields = MetadataFactory.createMetadataObject(objFolder, false, objPath + '/fields');
-                    fields.childs = MetadataFactory.getMetadataItems(objPath + '/fields');
+                    fields.childs = MetadataFactory.getMetadataItems(objPath + '/fields', false);
                     metadata[MetadataTypes.CUSTOM_FIELDS].childs[objFolder] = fields;
                }
                if (FileChecker.isExists(objPath + '/recordTypes')) {
@@ -549,6 +549,9 @@ class MetadataFactory {
                     let weblinks = MetadataFactory.createMetadataObject(objFolder, false, objPath + '/webLinks');
                     weblinks.childs = MetadataFactory.getMetadataItems(objPath + '/webLinks');
                     metadata[MetadataTypes.BUTTON_OR_LINK].childs[objFolder] = weblinks;
+               }
+               if (FileChecker.isExists(objFilePath)) {
+                    metadata[MetadataTypes.CUSTOM_OBJECT].childs[objFolder] = MetadataFactory.createMetadataObject(objFolder, false, objFilePath);
                }
           }
           return metadata;
@@ -736,6 +739,8 @@ class MetadataFactory {
                MetadataTypes.SHARING_TERRITORY_RULE
           ];
           MetadataFactory.priorMetadataTypes(typesForPriorDeploy, metadataForDeploy, metadataForDelete);
+          metadataForDeploy = Utils.orderMetadata(metadataForDeploy);
+          metadataForDelete = Utils.orderMetadata(metadataForDelete);
           return {
                metadataForDeploy: metadataForDeploy,
                metadataForDelete: metadataForDelete
@@ -945,16 +950,16 @@ class MetadataFactory {
                if (metadataToPrior[type]) {
                     Object.keys(metadataToPrior[type].childs).forEach(function (childKey) {
                          if (metadataToPrior[type].childs[childKey].childs && Object.keys(metadataToPrior[type].childs[childKey].childs).length > 0) {
-                              if (metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].checked) {
+                              if (metadataToRemove[type] && metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].checked) {
                                    metadataToRemove[type].childs[childKey].checked = false;
                               }
                               Object.keys(metadataToPrior[type].childs[childKey].childs).forEach(function (grandChildKey) {
-                                   if (metadataToRemove[type] && metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].childs[grandChildKey]) {
+                                   if (metadataToRemove[type] && metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].childs[grandChildKey] && metadataToRemove[type].childs[childKey].childs[grandChildKey].checked) {
                                         metadataToRemove[type].childs[childKey].childs[grandChildKey].checked = false;
                                    }
                               });
                          } else {
-                              if (metadataToRemove[type] && metadataToRemove[type].childs[childKey]) {
+                              if (metadataToRemove[type] && metadataToRemove[type].childs[childKey] && metadataToRemove[type].childs[childKey].checked) {
                                    metadataToRemove[type].childs[childKey].checked = false;
                               }
                          }
@@ -1007,22 +1012,22 @@ class MetadataFactory {
      static createIgnoreMap(objectsForIgnore) {
           let objectToIgnoreMap = {};
           for (let objectToIgnore of objectsForIgnore) {
-              if (objectToIgnore.indexOf(':') !== -1) {
-                  let splits = objectToIgnore.split(':');
-                  if (splits.length === 2) {
-                      if (!objectToIgnoreMap[splits[0]])
-                          objectToIgnoreMap[splits[0]] = [];
-                      objectToIgnoreMap[splits[0]].push(splits[1]);
-                  } else if (splits.length === 3 && splits[0].toLowerCase() === 'userpermission') {
-                      if (!objectToIgnoreMap[splits[1]])
-                          objectToIgnoreMap[splits[1]] = [];
-                      objectToIgnoreMap[splits[1]].push({ permission: splits[2] });
-                  }
-              } else {
-                  objectToIgnoreMap[objectToIgnore] = [objectToIgnore];
-              }
+               if (objectToIgnore.indexOf(':') !== -1) {
+                    let splits = objectToIgnore.split(':');
+                    if (splits.length === 2) {
+                         if (!objectToIgnoreMap[splits[0]])
+                              objectToIgnoreMap[splits[0]] = [];
+                         objectToIgnoreMap[splits[0]].push(splits[1]);
+                    } else if (splits.length === 3 && splits[0].toLowerCase() === 'userpermission') {
+                         if (!objectToIgnoreMap[splits[1]])
+                              objectToIgnoreMap[splits[1]] = [];
+                         objectToIgnoreMap[splits[1]].push({ permission: splits[2] });
+                    }
+               } else {
+                    objectToIgnoreMap[objectToIgnore] = [objectToIgnore];
+               }
           }
           return objectToIgnoreMap;
-      }
+     }
 }
 module.exports = MetadataFactory;
