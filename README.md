@@ -56,7 +56,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -a | --all                                      Compress all XML files with support compression in your project.
         -d | --directory <path/to/directory>            Compress XML Files from specific directory. This options does not take effect if you choose compress all.
         -f | --file <path/to/file>                      Compress the specified XML file. This options does not take effect if you choose compress directory or all.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
     
@@ -86,7 +86,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -i | --ignore-file <path/to/ignore/file>        Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By 
                                                         default use .ahignore.json file from your project root.
         -c | --compress                                 Add this option for compress modified files for ignore operation.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
     
@@ -106,7 +106,7 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -130,7 +130,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -a | --all                                      Describe all metadata types stored in your local project.
         -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                         option does not take effect if you choose describe all.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -159,7 +159,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -o | --only-check                               If you select this options, the command not repair dependencies, instead return the errors on the files for 
                                                         repair manually.
         -c | --compress                                 Add this option for compress modifieds files for repair operation.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -s | --send-to <path/to/output/file>            If you choose --only-check, you can redirect the output to a file.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -207,7 +207,7 @@ Metadata commands are the commands for work with your metadata files. You can co
                                                         package generator will be use a wildcard (*) when is necessary (All Childs from a metadata type are selected for 
                                                         deploy). Explicit option are fully recomended for retrieve metadata. This option only works if you select 
                                                         --create-from json.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
 
@@ -242,7 +242,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
                                                         your org namespace.
         -c | --compress                                 Compress the retrieved files.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
 
@@ -263,7 +263,7 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -287,7 +287,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                         option does not take effect if you choose describe all.
         -o | --org-namespace                            Describe only metadata types from your org namespace.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -307,7 +307,7 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -332,7 +332,7 @@ Metadata commands are the commands for work with your metadata files. You can co
         -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
                                                         your org namespace.
         -c | --compress                                 Compress the retrieved files.
-        -p | --progress [format]                        Option for report the command progress. Available formats: plaintext, json.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
 
@@ -345,6 +345,60 @@ Metadata commands are the commands for work with your metadata files. You can co
     Retrieve All Profiles, Perm1 and Perm2 Permission Sets, all Case RecordTypes and RtName Account Recordtype with colorized output and progress report
 
         aura-helper metadata:org:retrieve:special -t "Profile, PermissionSet:Perm1, PermissionSet:Perm2, RecordType:Case, RecordType:Account:RtName" -p plaintext -b
+
+---
+
+## [Data Commands](#data-commands)
+Data commands are the commands for work with data stored in your orgs. You can export and import data between orgs with two simple commands. You can export related objects and import all throgth one command, and Aura Helper automatically match the record types and related objects with their parents. Don't have any salesforce limits and you can export and import all data that you need. Now is in BETA.
+
+- **data:export** - *BETA*- Command for export data from the project's auth org or any other org that you have access. This command use the tree:export command from sfdx with plan. If you want to resolve record types automatically on import, you must extract the field "RecordType.DeveloperName" into the query. For resolve parent-child relationship, you must extract the parent field into the childs subquery.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder
+        -q | --query <query>                            Query for extract data. You can use a simple query (Select [fields] from [object] [where] ...) or a complex query 
+                                                        (select [fields], [query], [query] from [object] [where] ...) for export data in tree format.
+        -u | --username <username/or/alias>             Username or Alias for extract the data from a diferent org than the auth org in the project.
+        -o | --output-path <path/to/output/dir>         Path for save the generated output files. By default save result on <actualDir>/export.
+        -x | --prefix <prefixForCreatedFiles>           Prefix for add to the generated files.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    Export all account records with contacts with progress report and beautify
+
+        aura-helper data:export -q "Select Id, Name, BillingNumber, (Select Id, Name, AccountId, Phone from Contacts) from Account" -o "./export/accounts" -p plaintext -b
+    
+    Export all accounts for link with record type with progress report and beautify
+
+        aura-helper data:export -q "Select Id, Name, BillingNumber, RecordType.DeveloperName from Account" -o "./export/accounts" -p plaintext -b
+
+
+- **data:import** - *BETA*- Command for import data extracted from data:export (or sfdx tree:export with a plan) and use the tree:import command from sfdx. Unlike the export command. The import command pre process the extracted data before insert for link record types if apply, save and resolve object references, and avoid the salesforce limits. For link record types automatically, you must include in the export query this field "RecordType.DeveloperName" and Aura Helper CLI automatically resolve the record types on target org. For link child objects with their parents, you must extract the parent object into the childs subqueries. Also, you can import data directly from other org.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder
+        -f | --file <path/to/exported/file>             Path to the exported file with data:export command for import into the auth org.
+        -n | --records-number <recordsPerBatch>         Number of records to insert at one time. Limit are 200 records. (200 by default).
+        -s | --source-org <username/or/alias>           Username or Alias to the source org for import data from the org, not from a file.
+        -q | --query <query>                            Query for extract data. You can use a simple query (Select [fields] from [object] [where] ...) or a complex query
+                                                        (select [fields], [query], [query] from [object] [where] ...) for export data in tree format.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+
+    Import all account records with contacts with progress report and beautify from other org
+
+        aura-helper data:export -source-org "aliasOrg" -q "Select Id, Name, BillingNumber, (Select Id, Name, AccountId, Phone from Contacts) from Account" -p plaintext -b
+    
+    Import all accounts from a plan file and process 50 accounts maximum per batch.
+
+        aura-helper data:export -f "./export/accounts/accounts-plan.json" -n 50 -p plaintext -b
 
 ---
 

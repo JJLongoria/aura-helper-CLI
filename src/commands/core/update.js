@@ -1,7 +1,10 @@
 const Output = require('../../output');
+const Response = require('../response');
+const ErrorCodes = require('../errors');
 const Config = require('../../main/config');
 const FileSystem = require('../../fileSystem');
 const StrUtils = require('../../utils/strUtils');
+const ProcessManager = require('../../processes/processManager');
 const Paths = FileSystem.Paths;
 
 exports.createCommand = function (program) {
@@ -15,18 +18,44 @@ exports.createCommand = function (program) {
 
 function run() {
     let appPaths = Paths.getAppPath();
-    if (appPaths.length > 1) {
+    let runNpm = false;
+    if (appPaths.length > 0) {
         for (const appPath of appPaths) {
             let tmp = StrUtils.replace(appPath, '\\', '/');
-            if (tmp.indexOf('/npm/') !== -1)
-                Output.Printer.printError("Aura Helper installed with NPM. Please, update it with NPM.");
-                Output.Printer.print("Run npm update -g aura-helper", Output.Color.GRAY)
-                return;
+            if (tmp.indexOf('/npm/') !== -1) {
+                runNpm = true;
+                break;
+            }
         }
     }
-    update(appPaths[0]);
+    if (runNpm) {
+        updateNPM().then(function(result){
+            Output.Printer.printSuccess(Response.success(result));
+        }).catch(function(error){
+            Output.Printer.printError(Response.error(ErrorCodes.UNKNOWN_ERROR, error));
+        });
+    } else {
+        update(appPaths[0]);
+    }
 }
 
-function update(appPath){
-    
+function updateNPM() {
+    return new Promise(function (resolve, reject) {
+        try{
+            let out = ProcessManager.updateNPM(true);
+            if(out && out.stdOut)
+                resolve('Aura Helper Updated Succesfully');
+            else if(out.stdErr)
+                reject(out.stdErr);
+            else
+                resolve("Aura Helper CLI is already updated");
+        } catch(error){
+            console.log(error);
+            reject(error)
+        } 
+    });
+}
+
+function update(appPath) {
+
 }

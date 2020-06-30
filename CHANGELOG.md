@@ -3,7 +3,16 @@ All notable changes to this project will be documented in this file.
 
 ## [1.1.0 - 2020-XX-XX]
 ### Added
+- Added two new commands (data:export and data:import) for Export and Import Data at tree format and resolve relationships and recordtypes automatically (Beta)
 - Added support for compress StandardValueSet XML Metadata File. 
+
+### Changed
+- Change commands for return metadata ordered alphabetically.
+
+### Fixed
+- Removed not supported StandardValueSet Types by Metadatada API
+- Fixed a little problem with the detection of custom objects as local metadata type.
+- Fixed a bug with ignore permissions from all profiles
 
 ## [1.0.0 - 2020-27-05]
 ### Added

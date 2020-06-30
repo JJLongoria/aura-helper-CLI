@@ -7,6 +7,8 @@ const Config = require('../../main/config');
 const Metadata = require('../../metadata');
 const StrUtils = require('../../utils/strUtils');
 const Utils = require('./utils');
+const CommandUtils = require('../utils');
+const { Command } = require('commander');
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const MetadataFactory = Metadata.Factory;
@@ -148,6 +150,23 @@ const METADATA_WITH_CHILDS = {
     ]
 };
 
+let argsList = [
+    "root",
+    "outputPath",
+    "createType",
+    "createFrom",
+    "deleteOrder",
+    "source",
+    "target",
+    "raw",
+    "apiVersion",
+    "useIgnore",
+    "ignoreFile",
+    "explicit",
+    "progress",
+    "beautify"
+];
+
 exports.createCommand = function (program) {
     program
         .command('metadata:local:package:create')
@@ -164,7 +183,7 @@ exports.createCommand = function (program) {
         .option('-u, --use-ignore', 'Option for ignore the metadata included in ignore file from the package and destructive files')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
         .option('-e, --explicit', 'If you select explicit option, the package will contains all object names explicit on the file, in otherwise, the package generator will be use a wildcard (*) when is necessary (All Childs from a metadata type are selected for deploy). Explicit option are fully recomended for retrieve metadata. This option only works if you select --create-from json', false)
-        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
             run(args);
@@ -173,7 +192,7 @@ exports.createCommand = function (program) {
 
 function run(args) {
     Output.Printer.setColorized(args.beautify);
-    if (hasEmptyArgs(args)) {
+    if (CommandUtils.hasEmptyArgs(args, argsList)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
@@ -215,12 +234,8 @@ function run(args) {
         Output.Printer.printWarning('WARNING. --use-ignore option selected but not exists the ignore file in (' + args.ignoreFile + '). The selected files will be created but metadata not will be ignored');
     }
     if (args.apiVersion) {
-        if (args.apiVersion.match(/^\d+\.\d+$/)) {
-            let integerPart = args.apiVersion;
-            if (args.apiVersion.indexOf('.') !== -1)
-                integerPart = args.apiVersion.split('.')[0];
-            args.apiVersion = integerPart + '.0';
-        } else {
+        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        if(!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
         }
@@ -229,8 +244,8 @@ function run(args) {
         args.apiVersion = projectConfig.sourceApiVersion;
     }
     if (args.progress) {
-        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -250,7 +265,7 @@ function run(args) {
             }
             createFromGit(args).then(function (result) {
                 if (args.raw) {
-                    Output.Printer.printSuccess(Response.success('Mestadata extrated successfully for create the package and destructive files', result));
+                    Output.Printer.printSuccess(Response.success('Metadata extrated successfully for create the package and destructive files', result));
                 } else {
                     Output.Printer.printSuccess(Response.success(result));
                 }
@@ -331,10 +346,6 @@ function run(args) {
             });
             break;
     }
-}
-
-function hasEmptyArgs(args) {
-    return args.root === undefined && args.path === undefined && args.createType === undefined && args.createFrom === undefined && args.source === undefined && args.target === undefined && args.apiVersion === undefined && args.deleteOrder === undefined && args.raw === undefined && args.explicit === undefined;
 }
 
 function createFromGit(args) {
@@ -559,7 +570,7 @@ function createFromJSON(args) {
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
                 let packagePath = args.outputPath + '/' + PACKAGE_FILENAME;
-                let packageContent = PackageGenerator.createPackage(metadataTypes, args.apiVersion, true);
+                let packageContent = PackageGenerator.createPackage(metadataTypes, args.apiVersion, args.explicit);
                 FileWriter.createFileSync(packagePath, packageContent);
                 resolve(PACKAGE_FILENAME + ' file created succesfully on ' + args.outputPath);
             } else if (args.createType === 'destructive') {
@@ -572,7 +583,7 @@ function createFromJSON(args) {
                 let destructivePath = args.outputPath + '/' + destructiveName;
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + destructiveName, args.progress));
-                let destructiveContent = PackageGenerator.createPackage(metadataTypes, args.apiVersion, true);
+                let destructiveContent = PackageGenerator.createPackage(metadataTypes, args.apiVersion, args.explicit);
                 FileWriter.createFileSync(destructivePath, destructiveContent);
                 resolve(destructiveName + ' file created succesfully on ' + args.outputPath);
             }

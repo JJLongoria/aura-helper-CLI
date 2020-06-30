@@ -18,5 +18,15 @@ module.exports = {
         code: 4,
         name: "METADATA_ERROR",
         message: ""
+    },
+    DATA_ERROR: {
+        code: 5,
+        name: "DATA_ERROR",
+        message: ""
+    },
+    UNKNOWN_ERROR: {
+        code: 6,
+        name: "UNKNOWN_ERROR",
+        message: ""
     }
 }

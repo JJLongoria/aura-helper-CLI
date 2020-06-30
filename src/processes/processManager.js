@@ -7,6 +7,31 @@ const OSUtils = require('../utils/osUtils');
 
 class ProcessManager {
 
+    static updateNPM(output) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('npm');
+        } else if (OSUtils.isLinux()) {
+            command = 'npm';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('update');
+        commandArgs.push('-g');
+        commandArgs.push('aura-helper-cli');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
+        return new Promise(function (resolve) {
+            runProcess(process, output).then(function (stdOut) {
+                resolve({ stdOut: stdOut, stdErr: undefined });
+            }).catch(function (stdErr) {
+                resolve({ stdOut: undefined, stdErr: stdErr });
+            });
+        });
+    }
+
     static listAuthOurgs() {
         let command;
         let commandArgs = [];
@@ -351,7 +376,7 @@ class ProcessManager {
         }
         commandArgs.push('diff');
         commandArgs.push(source);
-        if(target){
+        if (target) {
             commandArgs.push(target);
         }
         let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
@@ -471,15 +496,127 @@ class ProcessManager {
         });
     }
 
+    static exportTreeData(query, prefix, outputPath, username) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:data:tree:export');
+        if (query) {
+            commandArgs.push('-q');
+            commandArgs.push(query);
+        }
+        if (prefix) {
+            commandArgs.push('-x');
+            commandArgs.push(prefix);
+        }
+        if (outputPath) {
+            commandArgs.push('-d');
+            commandArgs.push(outputPath);
+        }
+        if (username) {
+            commandArgs.push('-u');
+            commandArgs.push(username);
+        }
+        commandArgs.push('-p');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });
+        return new Promise(function (resolve) {
+            runProcess(process).then(function (stdOut) {
+                resolve({ stdOut: stdOut, stdErr: undefined });
+            }).catch(function (stdErr) {
+                resolve({ stdOut: undefined, stdErr: stdErr });
+            });
+        });
+    }
+
+    static importTreeData(root, username, file) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:data:tree:import');
+        if (file) {
+            commandArgs.push('-f');
+            commandArgs.push(file);
+        }
+        if (username) {
+            commandArgs.push('-u');
+            commandArgs.push(username);
+        }
+        commandArgs.push('--json');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
+        return new Promise(function (resolve) {
+            runProcess(process).then(function (stdOut) {
+                resolve({ stdOut: stdOut, stdErr: undefined });
+            }).catch(function (stdErr) {
+                resolve({ stdOut: undefined, stdErr: stdErr });
+            });
+        });
+    }
+
+    static deleteBatch(root, csvFile, sobject, username) {
+        let command;
+        let commandArgs = [];
+        if (OSUtils.isWindows()) {
+            command = 'cmd';
+            commandArgs.push('/c');
+            commandArgs.push('sfdx');
+        } else if (OSUtils.isLinux()) {
+            command = 'sfdx';
+        } else {
+            throw new Error('Operative System Not Supported');
+        }
+        commandArgs.push('force:data:bulk:delete');
+        if (file) {
+            commandArgs.push('-f');
+            commandArgs.push(csvFile);
+        }
+        if (sobject) {
+            commandArgs.push('-s');
+            commandArgs.push(sobject);
+        }
+        if (username) {
+            commandArgs.push('-u');
+            commandArgs.push(username);
+        }
+        commandArgs.push('-w');
+        commandArgs.push('-1');
+        commandArgs.push('--json');
+        let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE, cwd: root });
+        return new Promise(function (resolve) {
+            runProcess(process).then(function (stdOut) {
+                resolve({ stdOut: stdOut, stdErr: undefined });
+            }).catch(function (stdErr) {
+                resolve({ stdOut: undefined, stdErr: stdErr });
+            });
+        });
+    }
+
 }
 module.exports = ProcessManager;
 
-function runProcess(process) {
+function runProcess(process, output) {
     let stdOut = [];
     let stdErr = [];
     let excludeError = false;
     return new Promise(function (resolve, rejected) {
         process.run(function (event, data) {
+            if (output && data && data.length > 0)
+                console.log(data.toString());
             switch (event) {
                 case ProcessEvent.STD_OUT:
                     excludeError = false;

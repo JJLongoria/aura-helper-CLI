@@ -5,18 +5,26 @@ const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
 const Metadata = require('../../metadata');
 const Utils = require('./utils');
+const CommandUtils = require('../utils');
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const FileWriter = FileSystem.FileWriter;
 const MetadataFactory = Metadata.Factory;
 const MetadataConnection = Metadata.Connection;
 
+let argsList = [
+    "root",
+    "sendTo",
+    "progress",
+    "beautify"
+];
+
 exports.createCommand = function (program) {
     program
         .command('metadata:local:list')
         .description('Command for list all metadata from the local project')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
-        .option('-p, --progress [format]', 'Option for report the command progress. Available formats: ' + Utils.getProgressAvailableTypes().join(','))
+        .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
@@ -26,7 +34,7 @@ exports.createCommand = function (program) {
 
 async function run(args) {
     Output.Printer.setColorized(args.beautify);
-    if (hasEmptyArgs(args)) {
+    if (CommandUtils.hasEmptyArgs(args, argsList)) {
         Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
@@ -45,8 +53,8 @@ async function run(args) {
         }
     }
     if (args.progress) {
-        if (!Utils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + Utils.getProgressAvailableTypes().join(',')));
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -66,10 +74,6 @@ async function run(args) {
     }).catch(function (error) {
         Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
     });
-}
-
-function hasEmptyArgs(args) {
-    return args.root === undefined && args.sendTo === undefined;
 }
 
 function listLocalMetadata(args) {
