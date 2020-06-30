@@ -394,11 +394,11 @@ Data commands are the commands for work with data stored in your orgs. You can e
 
     Import all account records with contacts with progress report and beautify from other org
 
-        aura-helper data:export -source-org "aliasOrg" -q "Select Id, Name, BillingNumber, (Select Id, Name, AccountId, Phone from Contacts) from Account" -p plaintext -b
+        aura-helper data:import -s "aliasOrg" -q "Select Id, Name, BillingNumber, (Select Id, Name, AccountId, Phone from Contacts) from Account" -p plaintext -b
     
     Import all accounts from a plan file and process 50 accounts maximum per batch.
 
-        aura-helper data:export -f "./export/accounts/accounts-plan.json" -n 50 -p plaintext -b
+        aura-helper data:import -f "./export/accounts/accounts-plan.json" -n 50 -p plaintext -b
 
 ---
 
