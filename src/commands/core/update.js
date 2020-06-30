@@ -40,17 +40,14 @@ function run() {
 }
 
 function updateNPM() {
-    return new Promise(function (resolve, reject) {
+    return new Promise(async function (resolve, reject) {
         try{
-            let out = ProcessManager.updateNPM(true);
-            if(out && out.stdOut)
+            let out = await ProcessManager.updateNPM(true);
+            if(!out || (out && out.stdOut))
                 resolve('Aura Helper Updated Succesfully');
             else if(out.stdErr)
                 reject(out.stdErr);
-            else
-                resolve("Aura Helper CLI is already updated");
         } catch(error){
-            console.log(error);
             reject(error)
         } 
     });
