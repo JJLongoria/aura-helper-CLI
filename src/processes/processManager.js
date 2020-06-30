@@ -19,7 +19,7 @@ class ProcessManager {
         } else {
             throw new Error('Operative System Not Supported');
         }
-        commandArgs.push('update');
+        commandArgs.push('install');
         commandArgs.push('-g');
         commandArgs.push('aura-helper-cli');
         let process = new Process(command, commandArgs, { maxBuffer: BUFFER_SIZE });

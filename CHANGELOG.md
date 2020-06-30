@@ -1,7 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [1.1.0 - 2020-XX-XX]
+## [1.1.1 - 2020-06-30]
+### Fixed
+- Fixed update command
+- Fixed documentation on readme with import command
+
+## [1.1.0 - 2020-06-30]
 ### Added
 - Added two new commands (data:export and data:import) for Export and Import Data at tree format and resolve relationships and recordtypes automatically (Beta)
 - Added support for compress StandardValueSet XML Metadata File. 
@@ -27,7 +32,7 @@ All notable changes to this project will be documented in this file.
 
 - metadata:local:repair - Command for repair your project local dependencies. With this command you cand repair automatically or check if have dependencies errors for repair it (or not, because is possible to detect errors because you don't have all metadata into your local project).
 
-- metadata:local:package:create - Command for repair create the package files. You can create the package and destructive files for deploy and delete (before and after deploy) automatically from different sources. You can chose to create from other package files for merge all packages into only one. Also you can create the package files based on a JSON file (See Metadata JSON Format section) or better, you can create the files from a git differences. You can compare two branches, commits, tags... for detect modifies, new files and deleted metadata for create the package and destructive files with a simple command. Also you can ignore metadata types for not include in package according .ahignore.json file.
+- metadata:local:package:create - Command for create the package files. You can create the package and destructive files for deploy and delete (before and after deploy) automatically from different sources. You can chose to create from other package files for merge all packages into only one. Also you can create the package files based on a JSON file (See Metadata JSON Format section) or better, you can create the files from a git differences. You can compare two branches, commits, tags... for detect modifies, new files and deleted metadata for create the package and destructive files with a simple command. Also you can ignore metadata types for not include in package according .ahignore.json file.
 
 - metadata:local:retrieve:special - Command for retrieve the special metadata types stored in your local project. The special types are the types generated at runtime when retrieving data from org according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
 
