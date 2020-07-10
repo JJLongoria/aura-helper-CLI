@@ -7,7 +7,7 @@ class XMLParser {
     static getParserXMLToJSONOptions() {
         return {
             attributeNamePrefix: "",
-            attrNodeName: "@attr", //default is 'false'
+            attrNodeName: "@attrs", //default is 'false'
             textNodeName: "#text",
             ignoreAttributes: false,
             ignoreNameSpace: false,
@@ -29,7 +29,7 @@ class XMLParser {
     static getParserJSONToXMLOptions() {
         return {
             attributeNamePrefix: "",
-            attrNodeName: "@attr", //default is false
+            attrNodeName: "@attrs", //default is false
             textNodeName: "#text",
             ignoreAttributes: false,
             cdataTagName: "__cdata", //default is false
