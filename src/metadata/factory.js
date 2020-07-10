@@ -191,17 +191,24 @@ class MetadataFactory {
                          } else if (folder == 'lwc') {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath, true);
-                              metadata[metadataType.xmlName] = newMetadata;
+                              if (newMetadata.childs && Object.keys(newMetadata.childs).length > 0){
+                                   metadata[metadataType.xmlName] = newMetadata;
+                              }
                          } else if (folder == 'aura') {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath, true);
-                              metadata[metadataType.xmlName] = newMetadata;
+                              if (newMetadata.childs && Object.keys(newMetadata.childs).length > 0){
+                                   metadata[metadataType.xmlName] = newMetadata;
+                              }
                          } else if (METADATA_XML_RELATION[metadataType.xmlName]) {
                               MetadataFactory.getMetadataFromFiles(metadataType, metadata, folderPath);
                          } else {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
-                              newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath);
-                              metadata[metadataType.xmlName] = newMetadata;
+                              let childs = MetadataFactory.getMetadataObjects(folderPath);
+                              if (childs && Object.keys(childs).length > 0){
+                                   newMetadata.childs = childs;
+                                   metadata[metadataType.xmlName] = newMetadata;
+                              }
                          }
                     }
                }
@@ -558,10 +565,12 @@ class MetadataFactory {
      }
 
      static getMetadataObjects(folderPath, onlyFolders) {
-          let objects = {};
+          let objects;
           let objNamesAdded = [];
           if (FileChecker.isExists(folderPath)) {
                let files = FileReader.readDirSync(folderPath);
+               if (files.length > 0)
+                    objects = {}
                for (const file of files) {
                     let path = folderPath + '/' + file;
                     if (onlyFolders && file.indexOf('.') == -1) {

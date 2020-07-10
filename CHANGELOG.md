@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.1.3 - 2020-07-10]
+### Fixed
+- Fixed XML Attributes loosing when compresing XML Files
+
 ## [1.1.2 - 2020-06-30]
 ### Fixed
 - Fixed update command
