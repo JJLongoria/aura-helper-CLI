@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [2.0.0 - 2020-07-XX]
+## [2.0.0 - 2020-07-17]
 ### Added
 - metadata:org:compare:between - Command for compare two organization to get the differences. Return the metadata that exists on target but not exists on source
 - Added support for mac operative system
