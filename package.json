@@ -1,7 +1,7 @@
 {
   "name": "aura-helper-cli",
   "productName": "Aura Helper CLI",
-  "version": "1.1.3",
+  "version": "2.0.0",
   "description": "Command Line Interface Application for support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects. Specially designed for DevOps workflows",
   "main": "src/aura-helper.js",
   "scripts": {
