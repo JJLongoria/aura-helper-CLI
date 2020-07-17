@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.0.0 - 2020-07-XX]
+### Added
+- metadata:org:compare:between - Command for compare two organization to get the differences. Return the metadata that exists on target but not exists on source
+- Added support for mac operative system
+
+### Changed
+- Change --send-to (-s or --send-to) option on all commands for --output-file.
+
+### Fixed
+- Fixed some problems with ignore command
+
 ## [1.1.3 - 2020-07-10]
 ### Fixed
 - Fixed XML Attributes loosing when compresing XML Files

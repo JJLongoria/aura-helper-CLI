@@ -63,7 +63,7 @@ let argsList = [
     "type",
     "onlyCheck",
     "compress",
-    "sendTo",
+    "outputFile",
     "progress",
     "beautify"
 ];
@@ -78,8 +78,8 @@ exports.createCommand = function (program) {
         .option('-o, --only-check', 'If you select this options, the command not repair dependencies, instead return the errors on the files for repair manually', false)
         .option('-c, --compress', 'Add this option for compress modifieds files for repair operation.', false)
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
-        .option('-s, --send-to <path/to/output/file>', 'If you choose --only-check, you can redirect the output to a file')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
+        .option('--output-file <path/to/output/file>', 'If you choose --only-check, you can redirect the output to a file')
         .action(function (args) {
             run(args);
         });
@@ -120,22 +120,22 @@ function run(args) {
     } else if (args.type) {
         types = Utils.getAdvanceTypes(args.type);
     }
-    if (args.onlyCheck && args.sendTo) {
+    if (args.onlyCheck && args.outputFile) {
         try {
-            args.sendTo = Paths.getAbsolutePath(args.sendTo);
+            args.outputFile = Paths.getAbsolutePath(args.outputFile);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --send-to path. Select a valid path'));
+            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-file path. Select a valid path'));
             return;
         }
     }
     repairDependencies(args, types).then(function (result) {
         if (args.onlyCheck) {
-            if (args.sendTo) {
-                let baseDir = Paths.getFolderPath(args.sendTo);
+            if (args.outputFile) {
+                let baseDir = Paths.getFolderPath(args.outputFile);
                 if (!FileChecker.isExists(baseDir))
                     FileWriter.createFolderSync(baseDir);
-                FileWriter.createFileSync(args.sendTo, JSON.stringify(result, null, 2));
-                Output.Printer.printSuccess(Response.success("Output saved in: " + args.sendTo));
+                FileWriter.createFileSync(args.outputFile, JSON.stringify(result, null, 2));
+                Output.Printer.printSuccess(Response.success("Output saved in: " + args.outputFile));
             } else {
                 Output.Printer.printSuccess(Response.success("The next metadata types has dependencies errors", result));
             }

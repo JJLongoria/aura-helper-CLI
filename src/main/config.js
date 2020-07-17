@@ -1,4 +1,5 @@
 const fileSystem = require('../fileSystem');
+const { FileChecker } = require('../fileSystem/fileChecker');
 const ProcessManager = require('../processes').ProcessManager;
 const ProcessEvent = require('../processes').ProcessEvent;
 const Paths = fileSystem.Paths;
@@ -53,7 +54,9 @@ class Config {
     }
 
     static getProjectConfig(projectFolder) {
-        return JSON.parse(FileReader.readFileSync(projectFolder + '/sfdx-project.json'));
+        if(FileChecker.isExists(projectFolder))
+            return JSON.parse(FileReader.readFileSync(projectFolder + '/sfdx-project.json'));
+        return undefined;
     }
 }
 module.exports = Config;

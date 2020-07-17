@@ -174,8 +174,8 @@ function run(args) {
     if (args.type) {
         types = Utils.getTypes(args.type);
     }
-    ignoreMetadata(args, types).then(function (typesProcessed) {
-        Output.Printer.printSuccess(Response.success("Ignore metadata finished successfully", typesProcessed));
+    ignoreMetadata(args, types).then(function () {
+        Output.Printer.printSuccess(Response.success("Ignore metadata finished successfully"));
     }).catch(function (error) {
         Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
     });
@@ -184,7 +184,6 @@ function run(args) {
 function ignoreMetadata(args, typesForIgnore) {
     return new Promise(async function (resolve, reject) {
         try {
-            let typesProcessed = {};
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Reading ignore File', args.progress));
             let ignoredMetadata = JSON.parse(FileReader.readFileSync(args.ignoreFile));
@@ -203,7 +202,8 @@ function ignoreMetadata(args, typesForIgnore) {
                         Output.Printer.printProgress(Response.progress(undefined, 'Processing ' + metadataTypeKey + ' Metadata Type', args.progress));
                     switch (metadataTypeKey) {
                         case MetadataTypes.CUSTOM_LABELS:
-                            ignoreCustomLabels(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey], typeData);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreCustomLabels(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey], typeData);
                             break;
                         case MetadataTypes.MATCHING_RULES:
                         case MetadataTypes.ASSIGNMENT_RULES:
@@ -222,10 +222,12 @@ function ignoreMetadata(args, typesForIgnore) {
                         case MetadataTypes.WORKFLOW_RULE:
                         case MetadataTypes.WORKFLOW_TASK:
                         case MetadataTypes.WORKFLOW_OUTBOUND_MESSAGE:
-                            ignoreMetadataFromFiles(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreMetadataFromFiles(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
                             break;
                         case MetadataTypes.CUSTOM_OBJECT:
-                            ignoreCustomObjects(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreCustomObjects(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
                             break;
                         case MetadataTypes.CUSTOM_FIELDS:
                         case MetadataTypes.INDEX:
@@ -237,24 +239,29 @@ function ignoreMetadata(args, typesForIgnore) {
                         case MetadataTypes.SHARING_REASON:
                         case MetadataTypes.LISTVIEW:
                         case MetadataTypes.FIELD_SET:
-                            ignoreFromCustomObjects(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreFromCustomObjects(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
                             break;
                         case MetadataTypes.EMAIL_TEMPLATE:
                         case MetadataTypes.REPORTS:
                         case MetadataTypes.DASHBOARD:
                         case MetadataTypes.DOCUMENT:
-                            ignoreMetadataFromFolders(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreMetadataFromFolders(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
                             break;
                         case MetadataTypes.PROFILE:
                         case MetadataTypes.PERMISSION_SET:
-                            ignoreFromPermissionFiles(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreFromPermissionFiles(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
                             break;
                         default:
-                            ignoreMetadataFiles(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
+                            if (metadataFromFileSystem[metadataTypeKey] && ignoredMetadata[metadataTypeKey])
+                                ignoreMetadataFiles(args, metadataFromFileSystem[metadataTypeKey], ignoredMetadata[metadataTypeKey]);
                             break;
                     }
                 }
             });
+            resolve();
         } catch (error) {
             reject(error);
         }
@@ -321,8 +328,8 @@ function ignoreFromPermissionFiles(args, metadataType, ignoredMetadata) {
                 }
             }
         });
-        Object.keys(metadataType.childs).forEach(function(objectKey){
-            if(permissionsToIgnore[objectKey] || permissionsToIgnore['*']){
+        Object.keys(metadataType.childs).forEach(function (objectKey) {
+            if (permissionsToIgnore[objectKey] || permissionsToIgnore['*']) {
                 let xmlRoot = XMLParser.parseXML(FileReader.readFileSync(metadataType.childs[objectKey].path), false);
                 if (xmlRoot[metadataType.name] && xmlRoot[metadataType.name].userPermissions) {
                     xmlRoot[metadataType.name].userPermissions = MetadataUtils.forceArray(xmlRoot[metadataType.name].userPermissions);

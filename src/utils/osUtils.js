@@ -10,6 +10,10 @@ class OSUtils {
         return os.platform() === 'win32';
     }
 
+    static isMac(){
+        return os.platform() === 'darwin';
+    }
+
     static getAvailableCPUs(){
         let cpus = os.cpus().length;
         if(cpus > 1)

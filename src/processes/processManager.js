@@ -14,7 +14,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('npm');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'npm';
         } else {
             throw new Error('Operative System Not Supported');
@@ -39,7 +39,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -63,7 +63,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -89,7 +89,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -117,7 +117,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -149,7 +149,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -178,7 +178,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -208,7 +208,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -236,7 +236,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -264,7 +264,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -292,7 +292,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -321,7 +321,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('git');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'git';
         } else {
             throw new Error('Operative System Not Supported');
@@ -345,7 +345,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('git');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'git';
         } else {
             throw new Error('Operative System Not Supported');
@@ -369,7 +369,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('git');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'git';
         } else {
             throw new Error('Operative System Not Supported');
@@ -396,7 +396,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('git');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'git';
         } else {
             throw new Error('Operative System Not Supported');
@@ -419,7 +419,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -448,7 +448,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -478,7 +478,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -503,7 +503,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -543,7 +543,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
@@ -575,7 +575,7 @@ class ProcessManager {
             command = 'cmd';
             commandArgs.push('/c');
             commandArgs.push('sfdx');
-        } else if (OSUtils.isLinux()) {
+        } else if (OSUtils.isLinux() || OSUtils.isMac()) {
             command = 'sfdx';
         } else {
             throw new Error('Operative System Not Supported');
