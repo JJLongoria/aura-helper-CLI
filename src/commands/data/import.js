@@ -83,7 +83,7 @@ async function run(args) {
                 Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Please, select a plan file (File ended with -plan.json)'));
                 return;
             } else if (!FileChecker.isExists(args.file)) {
-                Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. The selected plan file not exists or do not have permissions to access.'));
+                Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. The selected plan file not exists or do not has permissions to access.'));
                 return;
             }
         } catch (error) {
@@ -109,10 +109,8 @@ async function run(args) {
     username = await Config.getAuthUsername(args.root);
     cleanWorkspace(Paths.getAuraHelperCLITempFilesPath() + '/import-export');
     if(args.sourceOrg){
-        args.outputPath = Paths.getAuraHelperCLITempFilesPath() + '/import-export';
-        args.prefix = 'autoExported';
         let planFile = await startExtractingData(args);
-        args.file = args.outputPath + '/' + planFile;
+        args.file = planFile;
     }
     isCorrectPlan(args.file).then(function (planData) {
         startImportingData(args, planData).then(function (insertErrorsByBatch) {
@@ -133,7 +131,7 @@ async function run(args) {
         });
     }).catch(function (result) {
         if (Array.isArray(result))
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, "The next files does not exists or do not have access permission: " + result.join(", ")));
+            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, "The next files does not exists or do not has access permission: " + result.join(", ")));
         else
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, result));
     });
@@ -169,12 +167,12 @@ function startExtractingData(args) {
                 Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from Org with username or alias ' + args.sourceOrg, args.progress));
                 reportExtractingProgress(args, 1000);
             }
-            let out = await ProcessManager.exportTreeData(args.query, args.prefix, args.outputPath, args.sourceOrg);
+            let out = await ProcessManager.exportTreeData(args.query, 'autoExported', Paths.getAuraHelperCLITempFilesPath() + '/import-export', args.sourceOrg);
             extractingFinished = true;
             if (out) {
                 if (out.stdOut) {
                     let planFile = processExtractOut(out.stdOut);
-                    resolve(planFile);
+                    resolve(Paths.getAuraHelperCLITempFilesPath() + '/import-export/' + planFile);
                 } else {
                     reject(out.stdErr);
                 }

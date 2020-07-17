@@ -5,6 +5,7 @@ const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
 const StrUtils = require('../../utils/strUtils');
 const CommandUtils = require('../utils');
+const { exception } = require('console');
 const ProcessManager = require('../../processes').ProcessManager;
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
@@ -19,6 +20,7 @@ let argsList = [
     "beautify"
 ];
 
+let LIMIT = 10000;
 let extractingFinished = false;
 
 exports.createCommand = function (program) {
@@ -78,6 +80,7 @@ function run(args) {
     startExtractingData(args).then(function (out) {
         Output.Printer.printSuccess(Response.success("Data extracted succesfully on " + args.outputPath, out));
     }).catch(function (error) {
+        extractingFinished = true;
         Output.Printer.printError(Response.error(ErrorCodes.DATA_ERROR, error));
     });
 }
@@ -85,23 +88,119 @@ function run(args) {
 function startExtractingData(args) {
     return new Promise(async function (resolve, reject) {
         try {
+            if (!args.username)
+                args.username = await Config.getAuthUsername(args.root);
+            //let batchesToExport = await getBatchesToExport(args);
+            //if (!batchesToExport) {
+                if (args.progress) {
+                    Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
+                    reportExtractingProgress(args, 1000);
+                }
+                let out = await ProcessManager.exportTreeData(args.query, args.prefix, args.outputPath, args.username);
+                extractingFinished = true;
+                if (out) {
+                    if (out.stdOut) {
+                        resolve(processOut(out.stdOut));
+                    } else {
+                        reject(out.stdErr);
+                    }
+                } else {
+                    reject('Operation cancelled');
+                }
+            /*} else {
+                await exportWithBatches(args, batchesToExport);
+            }*/
+        } catch (error) {
+            extractingFinished = true;
+            reject(error);
+        }
+    });
+}
+
+function getBatchesToExport(args) {
+    return new Promise(async (resolve) => {
+        if (args.progress) {
+            Output.Printer.printProgress(Response.progress(undefined, 'Preparing to avoid limits.', args.progress));
+            Output.Printer.printProgress(Response.progress(undefined, 'Count Main Records.', args.progress));
+        }
+        let from = args.query.substring(args.query.toLowerCase().lastIndexOf(' from '));
+        let countResult = await runQuery(args, 'select count(Id) ' + from);
+        if (args.progress)
+            Output.Printer.printProgress(Response.progress(undefined, 'Main Records to process: ' + countResult.records[0].expr0, args.progress));
+        if (countResult.records[0].expr0 > LIMIT) {
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Getting Ids for prepare export batches. Please, wait.', args.progress));
+            let queryResult = await runQuery(args, 'select Id ' + from);
+            let recordIdsGroups = {};
+            let counter = 0;
+            let groupName = 'Batch_';
+            for (let record of queryResult.records) {
+                let groupId = groupName + counter;
+                if (!recordIdsGroups[groupId]) {
+                    recordIdsGroups[groupId] = {
+                        groupId: groupId,
+                        records: [],
+                    };
+                }
+                if (recordIdsGroups[groupId].records.length < LIMIT)
+                    recordIdsGroups[groupId].records.push("'" + record.Id + "'");
+                else {
+                    counter++;
+                    recordIdsGroups[groupId].records.sort();
+                    groupId = groupName + counter;
+                    if (!recordIdsGroups[groupId]) {
+                        recordIdsGroups[groupId] = {
+                            groupId: groupId,
+                            records: ["'" + record.Id + "'"],
+                        };
+                    }
+                }
+            }
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, counter + 1 + ' Batches created to export data', args.progress));
+            resolve(recordIdsGroups);
+        }
+        resolve(undefined);
+    });
+}
+
+function exportWithBatches(args, batchesToExport) {
+    return new Promise(async (resolve, reject) => {
+        try {
             if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from  Org with username or alias ' + args.username, args.progress));
                 reportExtractingProgress(args, 1000);
             }
-            let out = await ProcessManager.exportTreeData(args.query, args.prefix, args.outputPath, args.username);
-            extractingFinished = true;
-            if (out) {
-                if (out.stdOut) {
-                    resolve(processOut(out.stdOut));
+            for (let batchId of Object.keys(batchesToExport)) {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'Running export batch ' + batchId, args.progress));
+                let ids = batchesToExport[batchId].records;
+                let query = args.query;
+                let lastFromIndex = query.toLowerCase().lastIndexOf(' from ');
+                let from = args.query.substring(lastFromIndex).trim();
+                let splits = from.split(' ');
+                let obj = splits[1];
+                query = query.substring(0, lastFromIndex);
+                query += ' from ' + obj + ' where id >= ' + ids[0] + ' and id <= ' + ids[ids.length - 1];
+                console.log(query);
+                let out = await ProcessManager.exportTreeData(query, args.prefix, args.outputPath, args.username);
+                console.log(out);
+                if (out) {
+                    if (out.stdOut) {
+                        resolve();
+                    } else {
+                        reject(out.stdErr);
+                        break;
+                    }
                 } else {
-                    reject(out.stdErr);
+                    reject('Unknow Error');
+                    break;
                 }
-            } else {
-                reject('Operation cancelled');
             }
+            extractingFinished = true;
         } catch (error) {
             reject(error);
+            return;
         }
     });
 }
@@ -133,4 +232,21 @@ function processOut(out) {
         );
     }
     return dataToReturn;
+}
+
+function runQuery(args, query) {
+    return new Promise(async function (resolve, reject) {
+        try {
+            let out = await ProcessManager.query(args.username, query);
+            let result;
+            if (out && out.stdOut) {
+                let response = JSON.parse(out.stdOut);
+                result = response.result;
+            }
+            resolve(result);
+
+        } catch (error) {
+            reject(error);
+        }
+    });
 }

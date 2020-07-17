@@ -107,9 +107,9 @@ Metadata commands are the commands for work with your metadata files. You can co
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
-        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -131,9 +131,9 @@ Metadata commands are the commands for work with your metadata files. You can co
         -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                         option does not take effect if you choose describe all.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
-        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -160,9 +160,9 @@ Metadata commands are the commands for work with your metadata files. You can co
                                                         repair manually.
         -c | --compress                                 Add this option for compress modifieds files for repair operation.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
-        -s | --send-to <path/to/output/file>            If you choose --only-check, you can redirect the output to a file.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             If you choose --only-check, you can redirect the output to a file.
 
     *Examples*:
 
@@ -264,9 +264,10 @@ Metadata commands are the commands for work with your metadata files. You can co
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
-        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+
 
     *Examples*:
 
@@ -288,9 +289,9 @@ Metadata commands are the commands for work with your metadata files. You can co
                                                         option does not take effect if you choose describe all.
         -o | --org-namespace                            Describe only metadata types from your org namespace.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
-        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -308,15 +309,34 @@ Metadata commands are the commands for work with your metadata files. You can co
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
-        -s | --send-to <path/to/output/file>            Path to file for redirect the output.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
     Compare the local and org data with progress report and colorized output
 
         aura-helper metadata:org:compare -p plaintext -b
+
+- **metadata:org:compare:between** - Command for compare between two different orgs. The result are the metadata types that exists in on target, but not exists on source.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -s | --source <sourceUsernameOrAlias>           Source Salesforce org to compare. If you want to compare your active org with other, this options is not necessary 
+                                                        because use the --root option for get the project\'s auth org. If you choose source, --root will be ignored.
+        -t | --target <targetUsernameOrAlias>           Target Salesforce org to compare.
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+
+    *Examples*:
+
+    Compare between to orgs with report and colorized output.
+
+        aura-helper metadata:org:compare:between -s test.username@salesforceOrg.com.uat -t test.username@salesforceOrg.com.qa -p plaintext -b
 
 - **metadata:org:retrieve:special** - Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
 

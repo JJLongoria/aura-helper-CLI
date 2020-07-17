@@ -17,7 +17,7 @@ let argsList = [
     "all",
     "type",
     "orgNamespace",
-    "sendTo",
+    "outputFile",
     "progress",
     "beautify"
 ];
@@ -31,8 +31,8 @@ exports.createCommand = function (program) {
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
         .option('-o, --org-namespace', 'Describe only metadata types from your org namespace')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
-        .option('-s, --send-to <path/to/output/file>', 'Path to file for redirect the output')
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
+        .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
         .action(function (args) {
             run(args);
         });
@@ -50,11 +50,11 @@ async function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
         return;
     }
-    if (args.sendTo) {
+    if (args.outputFile) {
         try {
-            args.sendTo = Paths.getAbsolutePath(args.sendTo);
+            args.outputFile = Paths.getAbsolutePath(args.outputFile);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --send-to path. Select a valid path'));
+            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-file path. Select a valid path'));
             return;
         }
     }
@@ -86,12 +86,12 @@ async function run(args) {
         types = Utils.getTypes(args.type);
     }
     describeMetadata(args, username, types).then(function (result) {
-        if (args.sendTo) {
-            args.sendTo = Paths.getAbsolutePath(args.sendTo);
-            let baseDir = Paths.getFolderPath(args.sendTo);
+        if (args.outputFile) {
+            args.outputFile = Paths.getAbsolutePath(args.outputFile);
+            let baseDir = Paths.getFolderPath(args.outputFile);
             if (!FileChecker.isExists(baseDir))
                 FileWriter.createFolderSync(baseDir);
-            FileWriter.createFileSync(args.sendTo, JSON.stringify(result, null, 2));
+            FileWriter.createFileSync(args.outputFile, JSON.stringify(result, null, 2));
         } else {
             Output.Printer.printSuccess(Response.success("Describe Metadata Types finished successfully", result));
         }

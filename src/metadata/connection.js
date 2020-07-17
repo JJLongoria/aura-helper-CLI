@@ -164,8 +164,11 @@ class Connection {
     static getMetadataTypes(user, root, options) {
         if (!options) {
             options = {
+                createFile: true,
                 forceDownload: false,
             };
+        } else if (options.createFile === undefined) {
+            options.createFile = true;
         }
         let folder = root + '/.sfdx/orgs/' + user + '/metadata';
         let file = folder + '/metadataTypes.json';
@@ -175,10 +178,15 @@ class Connection {
             } else {
                 let out = await ProcessManager.listMetadataTypes(user);
                 if (out && out.stdOut) {
-                    if (!FileChecker.isExists(folder))
-                        FileWriter.createFolderSync(folder);
-                    FileWriter.createFileSync(file, out.stdOut.toString());
-                    resolve(Connection.getMetadataObjectsFromSFDXMetadataTypesFile(file));
+                    if (options.createFile) {
+                        if (!FileChecker.isExists(folder))
+                            FileWriter.createFolderSync(sfolder);
+                        FileWriter.createFileSync(file, out.stdOut.toString());
+                        resolve(Connection.getMetadataObjectsFromSFDXMetadataTypesFile(file));
+                    } else {
+                        let response = JSON.parse(out.stdOut);
+                        resolve({metadataTypes: Connection.getMetadataObjectsFromSFDXResult(response.result.metadataObjects), namespace: response.result.organizationNamespace});
+                    }
                 } else {
                     reject();
                 }
@@ -187,8 +195,12 @@ class Connection {
     }
 
     static getMetadataObjectsFromSFDXMetadataTypesFile(file) {
-        let metadataObjects = [];
         let metadataFromSFDX = JSON.parse(FileReader.readFileSync(file)).result.metadataObjects;
+        return Connection.getMetadataObjectsFromSFDXResult(metadataFromSFDX);
+    }
+
+    static getMetadataObjectsFromSFDXResult(metadataFromSFDX){
+        let metadataObjects = [];
         for (const metadata of metadataFromSFDX) {
             if (abort) {
                 return;
@@ -334,7 +346,7 @@ class Connection {
                     let metadataType = MetadataFactory.createMetadataType(metadataTypeName, false);
                     let metadataObjects = {};
                     for (const element of NOT_INCLUDED_METADATA[metadataTypeName].elements) {
-                        metadataObjects[element] =  MetadataFactory.createMetadataObject(element, false);
+                        metadataObjects[element] = MetadataFactory.createMetadataObject(element, false);
                     }
                     metadataType.childs = metadataObjects;
                     resolve(metadataType);
