@@ -167,29 +167,34 @@ class Connection {
                 createFile: true,
                 forceDownload: false,
             };
-        } else if (options.createFile === undefined) {
+        }
+        if (options.createFile === undefined) {
             options.createFile = true;
         }
         let folder = root + '/.sfdx/orgs/' + user + '/metadata';
         let file = folder + '/metadataTypes.json';
         return new Promise(async function (resolve, reject) {
-            if (FileChecker.isExists(file) && !options.forceDownload) {
-                resolve(Connection.getMetadataObjectsFromSFDXMetadataTypesFile(file));
-            } else {
-                let out = await ProcessManager.listMetadataTypes(user);
-                if (out && out.stdOut) {
-                    if (options.createFile) {
-                        if (!FileChecker.isExists(folder))
-                            FileWriter.createFolderSync(sfolder);
-                        FileWriter.createFileSync(file, out.stdOut.toString());
-                        resolve(Connection.getMetadataObjectsFromSFDXMetadataTypesFile(file));
-                    } else {
-                        let response = JSON.parse(out.stdOut);
-                        resolve({metadataTypes: Connection.getMetadataObjectsFromSFDXResult(response.result.metadataObjects), namespace: response.result.organizationNamespace});
-                    }
+            try {
+                if (FileChecker.isExists(file) && !options.forceDownload) {
+                    resolve(Connection.getMetadataObjectsFromSFDXMetadataTypesFile(file));
                 } else {
-                    reject();
+                    let out = await ProcessManager.listMetadataTypes(user);
+                    if (out && out.stdOut) {
+                        if (options.createFile) {
+                            if (!FileChecker.isExists(folder))
+                                FileWriter.createFolderSync(folder);
+                            FileWriter.createFileSync(file, out.stdOut);
+                            resolve(Connection.getMetadataObjectsFromSFDXMetadataTypesFile(file));
+                        } else {
+                            let response = JSON.parse(out.stdOut);
+                            resolve({ metadataTypes: Connection.getMetadataObjectsFromSFDXResult(response.result.metadataObjects), namespace: response.result.organizationNamespace });
+                        }
+                    } else {
+                        reject();
+                    }
                 }
+            } catch (error) {
+                reject(error);
             }
         });
     }
@@ -199,7 +204,7 @@ class Connection {
         return Connection.getMetadataObjectsFromSFDXResult(metadataFromSFDX);
     }
 
-    static getMetadataObjectsFromSFDXResult(metadataFromSFDX){
+    static getMetadataObjectsFromSFDXResult(metadataFromSFDX) {
         let metadataObjects = [];
         for (const metadata of metadataFromSFDX) {
             if (abort) {
