@@ -10,6 +10,11 @@ exports.createCommand = function (program) {
 }
 
 function run() {
-    let config = JSON.parse(FileSystem.FileReader.readFileSync(FileSystem.Paths.getAbsolutePath('package.json')));
-    console.log("Aura Helper CLI Version: v"  + config.version);
+    let config = JSON.parse(
+        FileSystem.FileReader.readFileSync(
+            FileSystem.Paths.getAbsolutePath(
+                FileSystem.Paths.getFolderPath(
+                    FileSystem.Paths.getFolderPath(
+                        FileSystem.Paths.getFolderPath(__dirname))) + '/package.json')));
+    console.log("Aura Helper CLI Version: v" + config.version);
 }
