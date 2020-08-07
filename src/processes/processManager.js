@@ -610,8 +610,8 @@ class ProcessManager {
 module.exports = ProcessManager;
 
 function runProcess(process, output) {
-    let stdOut = [];
-    let stdErr = [];
+    let stdOut = '';
+    let stdErr = '';
     let excludeError = false;
     return new Promise(function (resolve, rejected) {
         process.run(function (event, data) {
@@ -620,13 +620,13 @@ function runProcess(process, output) {
             switch (event) {
                 case ProcessEvent.STD_OUT:
                     excludeError = false;
-                    stdOut = stdOut.concat(data);
+                    stdOut += data;
                     break;
                 case ProcessEvent.ERR_OUT:
                     if (data.toString().indexOf('[EACCES]') !== -1) {
                         excludeError = true;
                     } else if (!excludeError) {
-                        stdErr = stdErr.concat(data);
+                        stdErr += data;
                     }
                     break;
                 case ProcessEvent.KILLED:
@@ -634,9 +634,9 @@ function runProcess(process, output) {
                     break;
                 case ProcessEvent.END:
                     if (stdErr.length > 0) {
-                        rejected(stdErr.toString());
+                        rejected(stdErr);
                     } else {
-                        resolve(stdOut.toString());
+                        resolve(stdOut);
                     }
                     break;
                 default:
