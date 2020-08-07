@@ -9,6 +9,7 @@ const FileWriter = FileSystem.FileWriter;
 const Paths = FileSystem.Paths;
 const FileChecker = FileSystem.FileChecker;
 const Response = require('../commands/response');
+const StrUtils = require('../utils/strUtils');
 const MathUtils = require('../utils/MathUtils');
 const OSUtils = require('../utils/osUtils');
 
@@ -180,6 +181,7 @@ class Connection {
                 } else {
                     let out = await ProcessManager.listMetadataTypes(user);
                     if (out && out.stdOut) {
+                        out.stdOut = StrUtils.replace(out.stdOut,  '[,', '[');
                         if (options.createFile) {
                             if (!FileChecker.isExists(folder))
                                 FileWriter.createFolderSync(folder);
@@ -271,7 +273,6 @@ class Connection {
                         if (metadataType)
                             metadata[objName] = metadataType;
                     } else {
-                        // TODO: Report Progress
                         metadataType = await Connection.getMetadataObjectsFromOrg(user, objName, options);
                         percentage += increment;
                         if (output && options.progressReport) {
@@ -360,13 +361,12 @@ class Connection {
                     if (out.stdOut) {
                         let metadataType = Connection.processMetadataType(out.stdOut, metadataTypeName, options);
                         resolve(metadataType);
-                    } else {
-
                     }
                 }
             } catch (error) {
-
+                resolve({});
             }
+            
         });
     }
 
