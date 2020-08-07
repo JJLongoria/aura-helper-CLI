@@ -5,6 +5,7 @@ Command Line Interface for work with Salesforce Projects and Support Aura Helper
 Supported Operative Systems:
 - Windows
 - Linux
+- Mac OS X
 
 ## Features
 
