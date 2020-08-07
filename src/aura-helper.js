@@ -29,6 +29,7 @@ Commands.Data.Import.createCommand(program);
 
 // Core Commands
 Commands.Core.Update.createCommand(program);
+Commands.Core.Version.createCommand(program);
 
 
 program.parse(process.argv);
