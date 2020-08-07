@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## [2.1.1 - 2020-08-07]
+### Fixed
+- Fixed some problems with mac compatibility
 
 ## [2.0.0 - 2020-07-17]
 ### Added
