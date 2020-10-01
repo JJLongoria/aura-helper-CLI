@@ -165,29 +165,29 @@ class MetadataFactory {
                          if (folder == 'objects') {
                               metadata = MetadataFactory.getCustomObjectsMetadata(metadata, folderPath);
                          } else if (folder == 'approvalProcesses') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getApprovalProcessesMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getApprovalProcessesMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'customMetadata') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getCustomMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getCustomMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'dashboards') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getDashboardsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getDashboardsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'documents') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getDocumentsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getDocumentsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'duplicateRules') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getDuplicateRulesMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getDuplicateRulesMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'email') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getEmailTemplateMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getEmailTemplateMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'flows') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getFlowsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getFlowsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'layouts') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getLayoutsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getLayoutsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'objectTranslations') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getObjectTranslationsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getObjectTranslationsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'reports') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getReportsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getReportsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'quickActions') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getQuickActionsMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getQuickActionsMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'standardValueSetTranslations') {
-                              metadata[metadataType.xmlName] = MetadataFactory.getStandardValueSetTranslationMetadataFromFolder(folderPath);
+                              metadata[metadataType.xmlName] = MetadataFactory.getStandardValueSetTranslationMetadataFromFolder(folderPath, metadataType);
                          } else if (folder == 'lwc') {
                               let newMetadata = MetadataFactory.createMetadataType(metadataType.xmlName, false, folderPath, metadataType.suffix);
                               newMetadata.childs = MetadataFactory.getMetadataObjects(folderPath, true);
@@ -265,9 +265,9 @@ class MetadataFactory {
           }
      }
 
-     static getApprovalProcessesMetadataFromFolder(folderPath) {
+     static getApprovalProcessesMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.APPROVAL_PROCESSES, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.APPROVAL_PROCESSES, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const file of files) {
                let path = folderPath + '/' + file;
@@ -283,9 +283,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getDuplicateRulesMetadataFromFolder(folderPath) {
+     static getDuplicateRulesMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.DUPLICATE_RULE, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.DUPLICATE_RULE, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const file of files) {
                let path = folderPath + '/' + file;
@@ -301,9 +301,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getQuickActionsMetadataFromFolder(folderPath) {
+     static getQuickActionsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.QUICK_ACTION, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.QUICK_ACTION, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const file of files) {
                let path = folderPath + '/' + file;
@@ -319,9 +319,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getDashboardsMetadataFromFolder(folderPath) {
+     static getDashboardsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.DASHBOARD, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.DASHBOARD, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const dashboardFolder of files) {
                let fPath = folderPath + '/' + dashboardFolder;
@@ -341,9 +341,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getReportsMetadataFromFolder(folderPath) {
+     static getReportsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.REPORTS, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.REPORTS, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const reportsFolder of files) {
                let fPath = folderPath + '/' + reportsFolder;
@@ -363,9 +363,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getDocumentsMetadataFromFolder(folderPath) {
+     static getDocumentsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.DOCUMENT, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.DOCUMENT, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const docFolder of files) {
                let fPath = folderPath + '/' + docFolder;
@@ -386,9 +386,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getObjectTranslationsMetadataFromFolder(folderPath) {
+     static getObjectTranslationsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_OBJECT_TRANSLATIONS, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const translationFolder of files) {
                let path = folderPath + '/' + translationFolder;
@@ -404,9 +404,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getEmailTemplateMetadataFromFolder(folderPath) {
+     static getEmailTemplateMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.EMAIL_TEMPLATE, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.EMAIL_TEMPLATE, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const emailFolder of files) {
                let fPath = folderPath + '/' + emailFolder;
@@ -426,9 +426,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getFlowsMetadataFromFolder(folderPath) {
+     static getFlowsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.FLOWS, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.FLOWS, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const flowFile of files) {
                let path = folderPath + '/' + flowFile;
@@ -474,9 +474,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getLayoutsMetadataFromFolder(folderPath) {
+     static getLayoutsMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.LAYOUT, false, folderPath);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.LAYOUT, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const layoutFile of files) {
                let path = folderPath + '/' + layoutFile;
@@ -492,9 +492,9 @@ class MetadataFactory {
           return metadataType;
      }
 
-     static getCustomMetadataFromFolder(folderPath) {
+     static getCustomMetadataFromFolder(folderPath, type) {
           let files = FileReader.readDirSync(folderPath);
-          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_METADATA, false);
+          let metadataType = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_METADATA, false, folderPath, type.suffix);
           let metadataObjects = {};
           for (const file of files) {
                let path = folderPath + '/' + file;
@@ -511,14 +511,14 @@ class MetadataFactory {
 
      static getCustomObjectsMetadata(metadata, objectsPath) {
           let files = FileReader.readDirSync(objectsPath);
-          metadata[MetadataTypes.CUSTOM_OBJECT] = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_OBJECT, false, objectsPath);
-          metadata[MetadataTypes.CUSTOM_FIELDS] = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_FIELDS, false, objectsPath);
-          metadata[MetadataTypes.RECORD_TYPE] = MetadataFactory.createMetadataType(MetadataTypes.RECORD_TYPE, false, objectsPath);
-          metadata[MetadataTypes.LISTVIEW] = MetadataFactory.createMetadataType(MetadataTypes.LISTVIEW, false, objectsPath);
-          metadata[MetadataTypes.BUSINESS_PROCESS] = MetadataFactory.createMetadataType(MetadataTypes.BUSINESS_PROCESS, false, objectsPath);
-          metadata[MetadataTypes.COMPACT_LAYOUT] = MetadataFactory.createMetadataType(MetadataTypes.COMPACT_LAYOUT, false, objectsPath);
-          metadata[MetadataTypes.VALIDATION_RULE] = MetadataFactory.createMetadataType(MetadataTypes.VALIDATION_RULE, false, objectsPath);
-          metadata[MetadataTypes.BUTTON_OR_LINK] = MetadataFactory.createMetadataType(MetadataTypes.BUTTON_OR_LINK, false, objectsPath);
+          metadata[MetadataTypes.CUSTOM_OBJECT] = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_OBJECT, false, objectsPath, 'object');
+          metadata[MetadataTypes.CUSTOM_FIELDS] = MetadataFactory.createMetadataType(MetadataTypes.CUSTOM_FIELDS, false, objectsPath, 'field');
+          metadata[MetadataTypes.RECORD_TYPE] = MetadataFactory.createMetadataType(MetadataTypes.RECORD_TYPE, false, objectsPath, 'recordType');
+          metadata[MetadataTypes.LISTVIEW] = MetadataFactory.createMetadataType(MetadataTypes.LISTVIEW, false, objectsPath, 'listView');
+          metadata[MetadataTypes.BUSINESS_PROCESS] = MetadataFactory.createMetadataType(MetadataTypes.BUSINESS_PROCESS, false, objectsPath, 'businessProcess');
+          metadata[MetadataTypes.COMPACT_LAYOUT] = MetadataFactory.createMetadataType(MetadataTypes.COMPACT_LAYOUT, false, objectsPath, 'compactLayout');
+          metadata[MetadataTypes.VALIDATION_RULE] = MetadataFactory.createMetadataType(MetadataTypes.VALIDATION_RULE, false, objectsPath, 'validationRule');
+          metadata[MetadataTypes.BUTTON_OR_LINK] = MetadataFactory.createMetadataType(MetadataTypes.BUTTON_OR_LINK, false, objectsPath, 'webLink');
           for (const objFolder of files) {
                let objPath = objectsPath + '/' + objFolder;
                let objFilePath = objPath + '/' + objFolder + '.object-meta.xml';
