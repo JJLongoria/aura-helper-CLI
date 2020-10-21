@@ -1,6 +1,6 @@
 # Change Log
 All notable changes to this project will be documented in this file.
-## [2.1.2 - 2020-09-XX]
+## [2.1.2 - 2020-10-21]
 ### Fixed
 - Fixed a little problem with some suffix when describing local metadata types
 
