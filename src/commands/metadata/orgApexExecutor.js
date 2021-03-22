@@ -2,19 +2,17 @@ const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
 const Config = require('../../main/config');
-const AppUtils = require('./utils');
 const CommandUtils = require('../utils');
-const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
 const Connection = require('@ah/connector');
+const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
 const { ProjectUtils } = require('@ah/core').Utils;
 
 
 let argsList = [
     "root",
-    "all",
-    "type",
-    "orgNamespace",
-    "outputFile",
+    "file",
+    "iterations",
+    "printLog",
     "apiVersion",
     "progress",
     "beautify"
@@ -22,13 +20,12 @@ let argsList = [
 
 exports.createCommand = function (program) {
     program
-        .command('metadata:org:describe')
-        .description('Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org')
+        .command('metadata:org:apex:executor')
+        .description('Command to execute an Anonymous Apex script from file against the auth org.')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
-        .option('-a, --all', 'Describe all metadata types')
-        .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
-        .option('-o, --org-namespace', 'Describe only metadata types from your org namespace')
-        .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
+        .option('-f, --file <path/to/apex/script>', 'Path to the Anonymous Apex Script file')
+        .option('-l, --print-log', 'Option to print the result log of every execution', false)
+        .option('-i, --iterations <number/of/iterations>', 'Option for select the scritp execution number. For example, 3 for execute the script 3 times', 1)
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
@@ -49,16 +46,15 @@ async function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
         return;
     }
-    if (args.outputFile) {
+    if (args.file) {
         try {
-            args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
+            args.file = PathUtils.getAbsolutePath(args.file);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-file path. Select a valid path'));
+            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Select a valid path'));
             return;
         }
-    }
-    if (args.all == undefined && args.type === undefined) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select describe all or describe specific types"));
+    } else {
+        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Missing --file path. Apex Script file is required'));
         return;
     }
     if (args.apiVersion) {
@@ -77,53 +73,41 @@ async function run(args) {
             return;
         }
     }
+    if (args.iterations <= 0) {
+        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --iterations option. Select a value greater than 0'));
+        return;
+    }
     if (!FileChecker.isSFDXRootPath(args.root)) {
         Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
         return;
     }
-    describeMetadata(args).then(function (result) {
-        if (args.outputFile) {
-            args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
-            let baseDir = PathUtils.getDirname(args.outputFile);
-            if (!FileChecker.isExists(baseDir))
-                FileWriter.createFolderSync(baseDir);
-            FileWriter.createFileSync(args.outputFile, JSON.stringify(result, null, 2));
-        } else {
-            Output.Printer.printSuccess(Response.success("Describe Metadata Types finished successfully", result));
-        }
+    executeApex(args).then(function () {
+        Output.Printer.printSuccess(Response.success("Apex execution finished succesfully"));
     }).catch(function (error) {
         Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
     });
 }
 
-function describeMetadata(args) {
+function executeApex(args) {
     return new Promise(async function (resolve, reject) {
         try {
-            const username = await Config.getAuthUsername(args.root);
+            let iterations = args.iterations;
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
+            const username = await Config.getAuthUsername(args.root);
             const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
-            connection.setMultiThread();
-            let types;
-            if (args.all) {
-                if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
-                types = [];
-                const metadataTypes = await connection.listMetadataTypes();
-                for (const type of metadataTypes) {
-                    types.push(type);
+            for (let i = 0; i < iterations; i++) {
+                if (args.progress) {
+                    Output.Printer.printProgress(Response.progress(undefined, 'Executing Script. Iteration: ' + (i + 1) + '/' + iterations, args.progress));
                 }
-            } else if (args.type) {
-                types = AppUtils.getTypes(args.type);
+                let result = await connection.executeApexAnonymous(args.file);
+                if (args.progress) {
+                    Output.Printer.printProgress(Response.progress(undefined, 'Iteration: ' + (i + 1) + '/' + iterations + ' finished. ', args.progress));
+                }
+                if (args.printLog) {
+                    Output.Printer.printProgress(Response.progress(undefined, result, 'plaintext'));
+                }
             }
-            if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Describing Org Metadata Types', args.progress));
-            const metadata = await connection.describeMetadataTypes(types, !args.orgNamespace, function (status) {
-                if (status.stage === 'afterDownload') {
-                    if (args.progress)
-                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
-                }
-            });
-            resolve(metadata);
+            resolve();
         } catch (error) {
             reject(error);
         }

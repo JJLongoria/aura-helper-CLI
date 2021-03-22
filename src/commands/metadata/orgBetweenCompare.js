@@ -1,18 +1,11 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
-const Metadata = require('../../metadata');
-const Utils = require('./utils');
 const CommandUtils = require('../utils');
-const { group } = require('console');
-const Paths = FileSystem.Paths;
-const FileChecker = FileSystem.FileChecker;
-const MetadataFactory = Metadata.Factory;
-const FileWriter = FileSystem.FileWriter;
-const MetadataConnection = Metadata.Connection;
-const MetadataUtils = Metadata.Utils;
+const Connection = require('@ah/connector');
+const { Utils, ProjectUtils } = require('@ah/core').Utils;
+const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
 
 
 let argsList = [
@@ -20,6 +13,7 @@ let argsList = [
     "source",
     "target",
     "outputFile",
+    "apiVersion",
     "progress",
     "beautify"
 ];
@@ -31,9 +25,10 @@ exports.createCommand = function (program) {
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-s, --source <sourceUsernameOrAlias>', 'Source Salesforce org to compare. If you want to compare your active org with other, this options is not necessary because use the --root option for get the project\'s auth org. If you choose source, --root will be ignored')
         .option('-t, --target <targetUsernameOrAlias>', 'Target Salesforce org to compare.')
+        .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
+        .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
-        .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
         .action(function (args) {
             run(args);
         });
@@ -47,7 +42,7 @@ async function run(args) {
     }
     if (!args.source) {
         try {
-            args.root = Paths.getAbsolutePath(args.root);
+            args.root = PathUtils.getAbsolutePath(args.root);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
             return;
@@ -59,11 +54,21 @@ async function run(args) {
     }
     if (args.outputFile) {
         try {
-            args.outputFile = Paths.getAbsolutePath(args.outputFile);
+            args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-file path. Select a valid path'));
             return;
         }
+    }
+    if (args.apiVersion) {
+        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        if (!args.apiVersion) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
+            return;
+        }
+    } else {
+        let projectConfig = ProjectUtils.getProjectConfig(args.root);
+        args.apiVersion = projectConfig.sourceApiVersion;
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
@@ -77,7 +82,7 @@ async function run(args) {
     }
     compareMetadata(args).then((result) => {
         if (args.outputFile) {
-            let baseDir = Paths.getFolderPath(args.outputFile);
+            let baseDir = PathUtils.getDirname(args.outputFile);
             if (!FileChecker.isExists(baseDir))
                 FileWriter.createFolderSync(baseDir);
             FileWriter.createFileSync(args.outputFile, JSON.stringify(result, null, 2));
@@ -95,50 +100,37 @@ function compareMetadata(args) {
             let username = args.source;
             if (!username)
                 username = await Config.getAuthUsername(args.root);
+            const projectConfig = ProjectUtils.getProjectConfig(args.root);
+            const connectionSource = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
+            const connectionTarget = new Connection(args.target, args.apiVersion, args.root, projectConfig.namespace);
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting Available types on source (' + username + ')', args.progress));
-            let sourceMetadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true, createFile: false });
-            let sourceTypes = getTypes(sourceMetadataTypes.metadataTypes);
+            const sourceMetadataDetails = await connectionSource.listMetadataTypes();
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describe Metadata from source (' + username + ')', args.progress));
-            let sourceMetadata = await describeOrgMetadata(args, username, sourceMetadataTypes.namespace, sourceTypes);
+            const sourceMetadata = await connectionSource.describeMetadataTypes(sourceMetadataDetails, false, function (status) {
+                if (status.stage === 'afterDownload') {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                }
+            });
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting Available types on target (' + args.target + ')', args.progress));
-            let targetMetadataTypes = await MetadataConnection.getMetadataTypes(args.target, args.root, { forceDownload: true, createFile: false });
-            let targetTypes = getTypes(targetMetadataTypes.metadataTypes);
+            const targetMetadataDetails = await connectionTarget.listMetadataTypes();
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describe Metadata from target (' + args.target + ')', args.progress));
-            let targetMetadata = await describeOrgMetadata(args, args.target, targetMetadataTypes.namespace, targetTypes);
+            const targetMetadata = await connectionTarget.describeMetadataTypes(targetMetadataDetails, false, function (status) {
+                if (status.stage === 'afterDownload') {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                }
+            });
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Comparing Metadata Types', args.progress));
-            let compareResult = MetadataUtils.compareMetadata(sourceMetadata, targetMetadata);
+            const compareResult = Utils.compareMetadata(sourceMetadata, targetMetadata);
             resolve(compareResult);
         } catch (error) {
             reject(error);
         }
     });
-}
-
-function describeOrgMetadata(args, username, namespace, metadataTypes) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let options = {
-                orgNamespace: namespace,
-                downloadAll: false,
-                progressReport: args.progress
-            }
-            let metadata = await MetadataConnection.getSpecificMetadataFromOrg(username, metadataTypes, options, Output);
-            resolve(metadata);
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
-function getTypes(objects){
-    let types = [];
-    for(let obj of objects){
-        types.push(obj.xmlName);
-    }
-    return types;
 }

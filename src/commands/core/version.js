@@ -1,4 +1,4 @@
-const FileSystem = require('../../fileSystem');
+const { FileReader, PathUtils } = require('@ah/core').FileSystem;
 
 exports.createCommand = function (program) {
     program
@@ -10,11 +10,6 @@ exports.createCommand = function (program) {
 }
 
 function run() {
-    let config = JSON.parse(
-        FileSystem.FileReader.readFileSync(
-            FileSystem.Paths.getAbsolutePath(
-                FileSystem.Paths.getFolderPath(
-                    FileSystem.Paths.getFolderPath(
-                        FileSystem.Paths.getFolderPath(__dirname))) + '/package.json')));
+    let config = JSON.parse(FileReader.readFileSync(PathUtils.getAbsolutePath(PathUtils.getDirname(PathUtils.getDirname(PathUtils.getDirname(__dirname))) + '/package.json')));
     console.log("Aura Helper CLI Version: v" + config.version);
 }

@@ -1,16 +1,9 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const FileSystem = require('../../fileSystem');
-const Metadata = require('../../metadata');
-const Utils = require('./utils');
 const CommandUtils = require('../utils');
-const FileChecker = FileSystem.FileChecker;
-const FileReader = FileSystem.FileReader;
-const FileWriter = FileSystem.FileWriter;
-const Paths = FileSystem.Paths;
-const Color = Output.Color;
-const MetadataCompressor = Metadata.MetadataCompressor;
+const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
+const XMLCompressor = require('@ah/xml-compressor');
 
 let argsList = [
     "root",
@@ -18,14 +11,23 @@ let argsList = [
     "directory",
     "file",
     "progress",
-    "beautify"
+    "beautify",
+    "sorOrder"
 ];
+
+let sortOrderValues = [
+    XMLCompressor.SORT_ORDER.SIMPLE_FIRST,
+    XMLCompressor.SORT_ORDER.COMPLEX_FIRST,
+    XMLCompressor.SORT_ORDER.ALPHABET_ASC,
+    XMLCompressor.SORT_ORDER.ALPHABET_DESC,
+]
 
 exports.createCommand = function (program) {
     program
         .command('metadata:local:compress')
         .description('Compress XML Metadata Files for best conflict handling with SVC systems. Works with relative or absolute paths.')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder.', './')
+        .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.SORT_ORDER.SIMPLE_FIRST)
         .option('-a, --all', 'Compress all XML files with support compression in your project.')
         .option('-d, --directory <path/to/directory>', 'Compress XML Files from specific directory. This options does not take effect if you choose compress all.')
         .option('-f, --file <path/to/file>', 'Compress the specified XML file. This options does not take effect if you choose compress directory or all.')
@@ -38,108 +40,86 @@ exports.createCommand = function (program) {
 
 function run(args) {
     Output.Printer.setColorized(args.beautify);
-    if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
-        return;
-    }
     try {
-        args.root = Paths.getAbsolutePath(args.root);
-    } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
-        return;
-    }
-    if (args.all == undefined && args.directory === undefined && args.file === undefined) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select compress all, entire directory or single file"));
-        return;
-    }
-    if (args.progress) {
-        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
+        if (CommandUtils.hasEmptyArgs(args, argsList)) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
             return;
         }
+        try {
+            args.root = PathUtils.getAbsolutePath(args.root);
+        } catch (error) {
+            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+            return;
+        }
+        if (args.all == undefined && args.directory === undefined && args.file === undefined) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select compress all, entire directory or single file"));
+            return;
+        }
+        if (args.progress) {
+            if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
+                return;
+            }
+        }
+        if (args.sortOrder) {
+            if (!sortOrderValues.includes(args.sortOrder)) {
+                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --sort-order value. Please, select any  of this vales: " + sortOrderValues.join(',')));
+                return;
+            }
+        }
+        if (!FileChecker.isSFDXRootPath(args.root)) {
+            Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
+            return;
+        }
+        compress(args);
+    } catch (error) {
+        Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
     }
-    if (!FileChecker.isSFDXRootPath(args.root)) {
-        Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
-        return;
-    }
+}
+
+function compress(args) {
     if (args.all || args.directory) {
         let param = (args.all) ? '--root' : '--directory';
         let path = (args.all) ? args.root : args.directory;
         try {
-            path = Paths.getAbsolutePath(path);
+            path = PathUtils.getAbsolutePath(path);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong ' + param + ' path. Select a valid path'));
             return;
         }
-        compressDirectory(path, args.progress).then(function () {
+        XMLCompressor.compress(path, args.sortOrder, function (file, compressed) {
+            if (compressed) {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'File ' + file + ' compressed succesfully', args.progress));
+            } else {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + file + ' does not support XML compression', args.progress));
+            }
+        }).then(() => {
             Output.Printer.printSuccess(Response.success('Compress XML files finish successfully'));
-        }).catch(function (error) {
+        }).catch((error) => {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, error));
         });
     } else {
         try {
-            args.file = Paths.getAbsolutePath(args.file);
+            args.file = PathUtils.getAbsolutePath(args.file);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Select a valid path'));
             return;
         }
-        compressFile(args.file, args.progress).then(function () {
+        XMLCompressor.compress(args.file, args.sortOrder, function (file, compressed) {
+            if (compressed) {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'File ' + file + ' compressed succesfully', args.progress));
+            } else {
+                if (args.progress)
+                    Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + file + ' does not support XML compression', args.progress));
+            }
+        }).then(() => {
             Output.Printer.printSuccess(Response.success('Compress XML files finish successfully'));
-        }).catch(function (error) {
+        }).catch((error) => {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, error));
         });
     }
-}
-
-function compressDirectory(directory, progress) {
-    return new Promise(function (resolve, reject) {
-        FileReader.getAllFiles(directory).then(function (files) {
-            try {
-                let xmlFiles = [];
-                for (const filePath of files) {
-                    if (filePath.endsWith('.xml')) {
-                        xmlFiles.push(filePath);
-                    }
-                }
-                let filesToProcess = xmlFiles.length;
-                for (const filePath of xmlFiles) {
-                    compressFile(filePath, progress).then(function () {
-                        filesToProcess--;
-                        if (filesToProcess === 0)
-                            resolve();
-                    }).catch(function (error) {
-                        if (progress)
-                            Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + filePath + ' does not support XML compression', progress));
-                        filesToProcess--;
-                    });
-                }
-                if (filesToProcess === 0)
-                    resolve();
-            } catch (error) {
-                reject(error);
-            }
-        }).catch(function (error) {
-            reject(error);
-        });
-    });
-}
-
-function compressFile(file, progress) {
-    return new Promise(function (resolve, reject) {
-        try {
-            let content = MetadataCompressor.compress(file);
-            if (content) {
-                if (progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Compresing ' + file + ' XML file', progress));
-                FileWriter.createFile(file, content, function () {
-                    resolve();
-                });
-            } else {
-                reject("The selected file does not support xml compression");
-            }
-        } catch (error) {
-            reject(error);
-        }
-    });
 }
 
