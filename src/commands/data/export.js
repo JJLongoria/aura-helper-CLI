@@ -1,14 +1,11 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
-const StrUtils = require('../../utils/strUtils');
+const { ProjectUtils } = require('@ah/core').Utils;
+const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
+const Connection = require('@ah/connector');
 const CommandUtils = require('../utils');
-const { exception } = require('console');
-const ProcessManager = require('../../processes').ProcessManager;
-const Paths = FileSystem.Paths;
-const FileChecker = FileSystem.FileChecker;
 
 let argsList = [
     "root",
@@ -16,6 +13,7 @@ let argsList = [
     "prefix",
     "outputPath",
     "username",
+    "apiVersion",
     "progress",
     "beautify"
 ];
@@ -32,6 +30,7 @@ exports.createCommand = function (program) {
         .option('-u, --username <username/or/alias>', 'Username or Alias for extract the data from a diferent org than the auth org in the project')
         .option('-o, --output-path <path/to/output/dir>', 'Path for save the generated output files. By default save result on <actualDir>/export', './export')
         .option('-x, --prefix <prefixForCreatedFiles>', 'Prefix for add to the generated files')
+        .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
@@ -51,7 +50,7 @@ function run(args) {
         return;
     }
     try {
-        args.root = Paths.getAbsolutePath(args.root);
+        args.root = PathUtils.getAbsolutePath(args.root);
     } catch (error) {
         Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
         return;
@@ -61,11 +60,21 @@ function run(args) {
         return;
     } else {
         try {
-            args.outputPath = Paths.getAbsolutePath(args.outputPath);
+            args.outputPath = PathUtils.getAbsolutePath(args.outputPath);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-path path. Select a valid path'));
             return;
         }
+    }
+    if (args.apiVersion) {
+        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        if (!args.apiVersion) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
+            return;
+        }
+    } else {
+        let projectConfig = ProjectUtils.getProjectConfig(args.root);
+        args.apiVersion = projectConfig.sourceApiVersion;
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
@@ -90,33 +99,20 @@ function startExtractingData(args) {
         try {
             if (!args.username)
                 args.username = await Config.getAuthUsername(args.root);
-            //let batchesToExport = await getBatchesToExport(args);
-            //if (!batchesToExport) {
-                if (args.progress) {
-                    Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
-                    reportExtractingProgress(args, 1000);
-                }
-                let out = await ProcessManager.exportTreeData(args.query, args.prefix, args.outputPath, args.username);
-                extractingFinished = true;
-                if (out) {
-                    if (out.stdOut) {
-                        resolve(processOut(out.stdOut));
-                    } else {
-                        reject(out.stdErr);
-                    }
-                } else {
-                    reject('Operation cancelled');
-                }
-            /*} else {
-                await exportWithBatches(args, batchesToExport);
-            }*/
+            if (args.progress) {
+                Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
+                reportExtractingProgress(args, 1000);
+            }
+            const connection = new Connection(args.username, args.apiVersion, args.root, undefined);
+            const response = await connection.exportTreeData(args.query, args.prefix, args.outputPath);
+            resolve(response);
         } catch (error) {
             extractingFinished = true;
             reject(error);
         }
     });
 }
-
+/*
 function getBatchesToExport(args) {
     return new Promise(async (resolve) => {
         if (args.progress) {
@@ -203,7 +199,7 @@ function exportWithBatches(args, batchesToExport) {
             return;
         }
     });
-}
+}*/
 
 function reportExtractingProgress(args, millis) {
     if (!extractingFinished) {
@@ -214,39 +210,4 @@ function reportExtractingProgress(args, millis) {
             }
         }, millis);
     }
-}
-
-function processOut(out) {
-    let outData = StrUtils.replace(out, '\n', '').split(',');
-    let dataToReturn = [];
-    for (let data of outData) {
-        let splits = data.split(" ");
-        let nRecords = splits[1];
-        let file = Paths.getBasename(splits[splits.length - 1]);
-        dataToReturn.push(
-            {
-                file: file,
-                records: nRecords,
-                isPlanFile: file.endsWith("-plan.json")
-            }
-        );
-    }
-    return dataToReturn;
-}
-
-function runQuery(args, query) {
-    return new Promise(async function (resolve, reject) {
-        try {
-            let out = await ProcessManager.query(args.username, query);
-            let result;
-            if (out && out.stdOut) {
-                let response = JSON.parse(out.stdOut);
-                result = response.result;
-            }
-            resolve(result);
-
-        } catch (error) {
-            reject(error);
-        }
-    });
 }

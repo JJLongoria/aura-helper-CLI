@@ -1,11 +1,9 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
-const FileSystem = require('../../fileSystem');
-const StrUtils = require('../../utils/strUtils');
-const ProcessManager = require('../../processes/processManager');
-const Paths = FileSystem.Paths;
+const { PathUtils } = require('@ah/core').FileSystem;
+const { StrUtils } = require('@ah/core').Utils;
+const { ProcessFactory, ProcessHandler } = require('@ah/core').ProcessManager;
 
 exports.createCommand = function (program) {
     program
@@ -17,7 +15,7 @@ exports.createCommand = function (program) {
 }
 
 function run() {
-    let appPaths = Paths.getAppPath();
+    let appPaths = PathUtils.getAuraHelperCLIAppPath();
     let runNpm = false;
     if (appPaths.length > 0) {
         for (const appPath of appPaths) {
@@ -29,9 +27,9 @@ function run() {
         }
     }
     if (runNpm) {
-        updateNPM().then(function(result){
+        updateNPM().then(function (result) {
             Output.Printer.printSuccess(Response.success(result));
-        }).catch(function(error){
+        }).catch(function (error) {
             Output.Printer.printError(Response.error(ErrorCodes.UNKNOWN_ERROR, error));
         });
     } else {
@@ -41,15 +39,17 @@ function run() {
 
 function updateNPM() {
     return new Promise(async function (resolve, reject) {
-        try{
-            let out = await ProcessManager.updateNPM(true);
-            if(!out || (out && out.stdOut))
+        try {
+            const process = ProcessFactory.updateNPM(true);
+            try {
+                await ProcessHandler.runProcess(process);
                 resolve('Aura Helper Updated Succesfully');
-            else if(out.stdErr)
-                reject(out.stdErr);
-        } catch(error){
+            } catch (error) {
+                reject(error);
+            }
+        } catch (error) {
             reject(error)
-        } 
+        }
     });
 }
 

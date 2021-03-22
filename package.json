@@ -1,7 +1,7 @@
 {
   "name": "aura-helper-cli",
   "productName": "Aura Helper CLI",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "Command Line Interface Application for support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects. Specially designed for DevOps workflows",
   "main": "src/aura-helper.js",
   "scripts": {
@@ -29,28 +29,21 @@
     "type": "git"
   },
   "dependencies": {
+    "@ah/core": "../Aura Helper Framework/ah-core",
+    "@ah/connector": "../Aura Helper Framework/ah-connector",
+    "@ah/xml-compressor": "../Aura Helper Framework/ah-xml-compressor",
+    "@ah/ignore": "../Aura Helper Framework/ah-ignore",
+    "@ah/git-manager": "../Aura Helper Framework/ah-git-manager",
+    "@ah/package-generator": "../Aura Helper Framework/ah-package-generator",
+    "@ah/dependencies-manager": "../Aura Helper Framework/ah-dependencies-manager",
+    "@ah/xml-definitions": "../Aura Helper Framework/ah-xml-definitions",
     "colors": "^1.4.0",
-    "commander": "^5.0.0",
-    "fast-xml-parser": "^3.16.0",
-    "he": "^1.2.0",
-    "inquirer": "^7.1.0",
-    "ts-node": "^8.8.2",
-    "typescript": "^3.8.3",
-    "unzipper": "^0.10.10"
+    "commander": "^5.1.0",
+    "inquirer": "^7.3.3"
   },
   "devDependencies": {
-    "@types/node": "^13.11.0"
-  },
-  "pkg": {
-    "assets": [
-      "./node_modules/colors/**",
-      "./node_modules/commander/**",
-      "./node_modules/fast-xml-parser/**",
-      "./node_modules/he/**",
-      "./node_modules/inquirer/**",
-      "./node_modules/ts-node/**",
-      "./node_modules/typescript/**",
-      "./node_modules/unzipper/**"
-    ]
+    "@types/node": "^13.13.47",
+    "@types/jest": "^26.0.20",
+    "jest": "^26.6.3"
   }
 }

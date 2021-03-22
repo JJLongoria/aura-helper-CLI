@@ -54,6 +54,8 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -s | --sort-order <sortOrder>                   Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML 
+                                                        elements first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
         -a | --all                                      Compress all XML files with support compression in your project.
         -d | --directory <path/to/directory>            Compress XML Files from specific directory. This options does not take effect if you choose compress all.
         -f | --file <path/to/file>                      Compress the specified XML file. This options does not take effect if you choose compress directory or all.
@@ -87,6 +89,8 @@ Metadata commands are the commands for work with your metadata files. You can co
         -i | --ignore-file <path/to/ignore/file>        Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By 
                                                         default use .ahignore.json file from your project root.
         -c | --compress                                 Add this option for compress modified files for ignore operation.
+        -s | --sort-order <sortOrder>                   Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML 
+                                                        elements first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -107,10 +111,12 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
-        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -131,10 +137,12 @@ Metadata commands are the commands for work with your metadata files. You can co
         -a | --all                                      Describe all metadata types stored in your local project.
         -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                         option does not take effect if you choose describe all.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
+        --output-file <path/to/output/file>             Path to file for redirect the output.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
-        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -160,6 +168,11 @@ Metadata commands are the commands for work with your metadata files. You can co
         -o | --only-check                               If you select this options, the command not repair dependencies, instead return the errors on the files for 
                                                         repair manually.
         -c | --compress                                 Add this option for compress modifieds files for repair operation.
+        -s | --sort-order <sortOrder>                   Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML 
+                                                        elements first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
+        -u | --use-ignore                               Option for ignore the metadata included in ignore file from the repair command.
+        -i | --ignore-file <path/to/ignore/file>        Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By 
+                                                        default use .ahignore.json file from your project root.
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -243,6 +256,10 @@ Metadata commands are the commands for work with your metadata files. You can co
         -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
                                                         your org namespace.
         -c | --compress                                 Compress the retrieved files.
+        -s | --sort-order <sortOrder>                   Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML 
+                                                        elements first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -264,10 +281,12 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
-        --output-file <path/to/output/file>             Path to file for redirect the output.
 
 
     *Examples*:
@@ -289,10 +308,12 @@ Metadata commands are the commands for work with your metadata files. You can co
         -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                         option does not take effect if you choose describe all.
         -o | --org-namespace                            Describe only metadata types from your org namespace.
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
-        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -309,10 +330,12 @@ Metadata commands are the commands for work with your metadata files. You can co
     *Options*:
 
         -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
-        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -328,10 +351,12 @@ Metadata commands are the commands for work with your metadata files. You can co
         -s | --source <sourceUsernameOrAlias>           Source Salesforce org to compare. If you want to compare your active org with other, this options is not necessary 
                                                         because use the --root option for get the project\'s auth org. If you choose source, --root will be ignored.
         -t | --target <targetUsernameOrAlias>           Target Salesforce org to compare.
+        --output-file <path/to/output/file>             Path to file for redirect the output.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
-        --output-file <path/to/output/file>             Path to file for redirect the output.
 
     *Examples*:
 
@@ -353,6 +378,10 @@ Metadata commands are the commands for work with your metadata files. You can co
         -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
                                                         your org namespace.
         -c | --compress                                 Compress the retrieved files.
+        -s | --sort-order <sortOrder>                   Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML 
+                                                        elements first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -366,6 +395,51 @@ Metadata commands are the commands for work with your metadata files. You can co
     Retrieve All Profiles, Perm1 and Perm2 Permission Sets, all Case RecordTypes and RtName Account Recordtype with colorized output and progress report
 
         aura-helper metadata:org:retrieve:special -t "Profile, PermissionSet:Perm1, PermissionSet:Perm2, RecordType:Case, RecordType:Account:RtName" -p plaintext -b
+
+- **metadata:org:permissions** - Command for get all available User permisions in your org.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+    
+    Get all user permission from your auth org and your project api version with colorized output and progress report
+
+        aura-helper metadata:org:permissions -b -p plaintext
+
+    Get all user permission from your auth org for a specific api version with colorized output and progress report
+
+        aura-helper metadata:org:permissions -v 45.0 -b -p plaintext
+
+- **metadata:org:apex:executor** - Command for get all available User permisions in your org.
+
+    *Options*:
+
+        -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
+        -f | --file <path/to/apex/script>               Path to the Anonymous Apex Script file.
+        -l | --print-log                                Option to print the result log of every execution
+        -i | --iterations <number/of/iterations>        Option for select the scritp execution number. For example, 3 for execute the script 3 times
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
+        -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
+        -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
+                                                        Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+
+    *Examples*:
+    
+    Execute an script 3 times without printing log with colorized output and progress report
+
+        aura-helper metadata:org:apex:executor -f "pathh/to/script.apex" -i 3 -b -p plaintext
+
+     Execute an script 10 times wit printing log, colorized output and progress report
+
+        aura-helper metadata:org:apex:executor -f "pathh/to/script.apex" --iterations 3 --print-log -b -p plaintext
 
 ---
 
@@ -382,6 +456,8 @@ Data commands are the commands for work with data stored in your orgs. You can e
         -u | --username <username/or/alias>             Username or Alias for extract the data from a diferent org than the auth org in the project.
         -o | --output-path <path/to/output/dir>         Path for save the generated output files. By default save result on <actualDir>/export.
         -x | --prefix <prefixForCreatedFiles>           Prefix for add to the generated files.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
@@ -407,6 +483,8 @@ Data commands are the commands for work with data stored in your orgs. You can e
         -s | --source-org <username/or/alias>           Username or Alias to the source org for import data from the org, not from a file.
         -q | --query <query>                            Query for extract data. You can use a simple query (Select [fields] from [object] [where] ...) or a complex query
                                                         (select [fields], [query], [query] from [object] [where] ...) for export data in tree format.
+        -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
+                                                        sfdx-project. json file
         -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json.
         -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
                                                         Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).

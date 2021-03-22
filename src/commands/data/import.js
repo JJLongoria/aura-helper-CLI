@@ -1,16 +1,11 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
 const CommandUtils = require('../utils');
-const { FileWriter } = require('../../fileSystem/fileWriter');
-const { ProcessManager } = require('../../processes');
-const MathUtils = require('../../utils/MathUtils');
-const StrUtils = require('../../utils/strUtils');
-const FileChecker = FileSystem.FileChecker;
-const FileReader = FileSystem.FileReader;
-const Paths = FileSystem.Paths;
+const { PathUtils, FileChecker, FileReader, FileWriter } = require('@ah/core').FileSystem;
+const { MathUtils, ProjectUtils } = require('@ah/core').Utils;
+const Connection = require('@ah/connector');
 
 let argsList = [
     "root",
@@ -18,6 +13,7 @@ let argsList = [
     "query",
     "recordsNumber",
     "sourceOrg",
+    "apiVersion",
     "progress",
     "beautify"
 ];
@@ -40,6 +36,7 @@ exports.createCommand = function (program) {
         .option('-n, --records-number <recordsPerBatch>', 'Number of records to insert at one time. Limit are 200 records. (200 by default)', "200")
         .option('-s, --source-org <username/or/alias>', 'Username or Alias to the source org for import data from the org, not from a file')
         .option('-q, --query <query>', 'Query for extract data. You can use a simple query (Select [fields] from [object] [where] ...) or a complex query (select [fields], [query], [query] from [object] [where] ...) for export data in tree format')
+        .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args) {
@@ -59,7 +56,7 @@ async function run(args) {
         return;
     }
     try {
-        args.root = Paths.getAbsolutePath(args.root);
+        args.root = PathUtils.getAbsolutePath(args.root);
     } catch (error) {
         Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
         return;
@@ -78,7 +75,7 @@ async function run(args) {
     }
     if (!args.sourceOrg) {
         try {
-            args.file = Paths.getAbsolutePath(args.file);
+            args.file = PathUtils.getAbsolutePath(args.file);
             if (!args.file.endsWith('-plan.json')) {
                 Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Please, select a plan file (File ended with -plan.json)'));
                 return;
@@ -91,10 +88,20 @@ async function run(args) {
             return;
         }
     } else {
-        if(!args.query){
+        if (!args.query) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --query. If you select a source org, you must include a query for export data'));
             return;
         }
+    }
+    if (args.apiVersion) {
+        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        if (!args.apiVersion) {
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
+            return;
+        }
+    } else {
+        let projectConfig = ProjectUtils.getProjectConfig(args.root);
+        args.apiVersion = projectConfig.sourceApiVersion;
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
@@ -107,15 +114,15 @@ async function run(args) {
         return;
     }
     username = await Config.getAuthUsername(args.root);
-    cleanWorkspace(Paths.getAuraHelperCLITempFilesPath() + '/import-export');
-    if(args.sourceOrg){
+    cleanWorkspace(PathUtils.getAuraHelperCLITempFilesPath() + '/import-export');
+    if (args.sourceOrg) {
         let planFile = await startExtractingData(args);
         args.file = planFile;
     }
     isCorrectPlan(args.file).then(function (planData) {
         startImportingData(args, planData).then(function (insertErrorsByBatch) {
             if (Object.keys(insertErrorsByBatch).length > 0) {
-                let folder = Paths.getFolderPath(args.file) + '/errors';
+                let folder = PathUtils.getDirname(args.file) + '/errors';
                 if (FileChecker.isExists(folder))
                     FileWriter.delete(folder);
                 FileWriter.createFolderSync(folder);
@@ -140,9 +147,9 @@ async function run(args) {
 
 function startImportingData(args, planData) {
     return new Promise(async function (resolve, reject) {
-        let tempFolder = Paths.getAuraHelperCLITempFilesPath() + '/import-export';
+        let tempFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
         try {
-            let planFolder = Paths.getFolderPath(args.file);
+            let planFolder = PathUtils.getDirname(args.file);
             await loadStoredRecordTypes(args);
             createReferencesMap(args, planData, planFolder);
             resolveRecordTypeReferences(args, planData, planFolder);
@@ -151,7 +158,7 @@ function startImportingData(args, planData) {
             let insertErrorsByBatch = await insertBatches(args, planData);
             if (Object.keys(insertErrorsByBatch).length > 0) {
                 await cleanInsertedRecords(args, tempFolder);
-            } 
+            }
             resolve(insertErrorsByBatch);
             //cleanWorkspace(tempFolder);
         } catch (error) {
@@ -167,34 +174,13 @@ function startExtractingData(args) {
                 Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from Org with username or alias ' + args.sourceOrg, args.progress));
                 reportExtractingProgress(args, 1000);
             }
-            let out = await ProcessManager.exportTreeData(args.query, 'autoExported', Paths.getAuraHelperCLITempFilesPath() + '/import-export', args.sourceOrg);
-            extractingFinished = true;
-            if (out) {
-                if (out.stdOut) {
-                    let planFile = processExtractOut(out.stdOut);
-                    resolve(Paths.getAuraHelperCLITempFilesPath() + '/import-export/' + planFile);
-                } else {
-                    reject(out.stdErr);
-                }
-            } else {
-                reject('Unknown Error');
-            }
+            const connection = new Connection(args.sourceOrg, args.apiVersion, args.root, undefined);
+            const response = await connection.exportTreeData(args.query, args.prefix, args.outputPath);
+            resolve(response);
         } catch (error) {
             reject(error);
         }
     });
-}
-
-function processExtractOut(out) {
-    let outData = StrUtils.replace(out, '\n', '').split(',');
-    for (let data of outData) {
-        let splits = data.split(" ");
-        let nRecords = splits[1];
-        let file = Paths.getBasename(splits[splits.length - 1]);
-        if(file.endsWith("-plan.json"))
-            return file;
-    }
-    return undefined;;
 }
 
 function formatBatchCounter(counter) {
@@ -230,7 +216,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
                 }
                 idsByType[refData.sobject].push(refData.id);
             });
-            for(let sobject of Object.keys(idsByType)){
+            for (let sobject of Object.keys(idsByType)) {
                 deletingFinished = false;
                 if (args.progress) {
                     Output.Printer.printProgress(Response.progress(undefined, 'Rolling back ' + sobject + ' record(s)', args.progress));
@@ -239,29 +225,15 @@ function cleanInsertedRecords(args, tempFolder, callback) {
                 let csvContent = 'Id\n' + idsByType[sobject].join('\n');
                 let csvFile = sobject + '_deleteFile.csv';
                 FileWriter.createFileSync(tempFolder + '/' + csvFile, csvContent);
-                let out = await ProcessManager.deleteBatch(tempFolder, csvFile, sobject, username);
-                if (out) {
-                    if (!out.stdErr) {
-                        if(out.stdOut){
-                            let response = JSON.parse(out.stdOut);
-                            if (response.status === 0) {
-                                if (args.progress)
-                                    Output.Printer.printProgress(Response.progress(undefined, 'Roll back on ' + sobject + ' record(s) finished succesfully', args.progress));
-                            } else {
-                                deletingFinished = true;
-                                reject(response.message);
-                            }
-                        } else {
-                            if (args.progress)
-                                Output.Printer.printProgress(Response.progress(undefined, 'Roll back on ' + sobject + ' record(s) finished succesfully', args.progress));
-                        }
-                    } else {
-                        deletingFinished = true;
-                        reject(out.stdErr);
-                    }
-                } else {
+                const connection = new Connection(username, args.apiVersion, args.root, undefined);
+                try {
+                    const response = await connection.bulkDelete(csvFile, sobject);
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Roll back on ' + sobject + ' record(s) finished succesfully', args.progress));
+                } catch (error) {
                     deletingFinished = true;
-                    reject("Unknown Error");
+                    reject(error);
+                    return;
                 }
                 deletingFinished = true;
             }
@@ -372,7 +344,7 @@ function createRecordsHierarchy(args, planData, planFolder) {
 function createBatches(args, planData) {
     if (args.progress)
         Output.Printer.printProgress(Response.progress(undefined, 'Creating Batches to insert data', args.progress));
-    let batchFolder = Paths.getAuraHelperCLITempFilesPath() + '/import-export';
+    let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
     totalBatches = 0;
     let totalRecords = 0;
     for (let plan of planData) {
@@ -441,10 +413,11 @@ function insertBatches(args, planData) {
         try {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Start job to insert data. This operation can take several minutes. Please wait.', args.progress));
-            let batchFolder = Paths.getAuraHelperCLITempFilesPath() + '/import-export';
+            let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
             let increment = MathUtils.round(100 / totalBatches, 2);
             let percentage = 0;
             let insertErrosByBatch = {};
+            const connection = new Connection(username, args.apiVersion, batchFolder, undefined);
             for (let plan of planData) {
                 let mastersFolder = plan.sobject + '/masters';
                 let childsFolder = plan.sobject + '/childs';
@@ -461,34 +434,24 @@ function insertBatches(args, planData) {
                             let batchName = batchFile.replace('.json', '');
                             if (args.progress)
                                 Output.Printer.printProgress(Response.progress(MathUtils.round(percentage, 2), 'Running Batch ' + batchName, args.progress));
-                            let out = await ProcessManager.importTreeData(batchFolder, username, mastersFolder + '/' + batchFile);
-                            if (out) {
-                                if (out.stdOut) {
-                                    let response = JSON.parse(out.stdOut);
-                                    if (response.status === 0) {
-                                        for (let insertResult of response.result) {
-                                            savedIdsByReference['@' + insertResult.refId] = {
-                                                id: insertResult.id,
-                                                sobject: insertResult.type,
-                                            };
-                                        }
-                                    } else {
-                                        if (response.name === 'ERROR_HTTP_400') {
-                                            let errorResults = JSON.parse(response.message);
-                                            insertErrosByBatch[batchName] = {
-                                                name: batchName,
-                                                file: batchFolder + '/' + mastersFolder + '/' + batchFile,
-                                                errors: errorResults.results,
-                                            };
-                                        } else {
-                                            reject(response.message);
-                                        }
+                            try {
+                                const response = await connection.importTreeData(mastersFolder + '/' + batchFile);
+                                if (response.results) {
+                                    for (let insertResult of response.results) {
+                                        savedIdsByReference[insertResult.refId] = {
+                                            id: insertResult.id,
+                                            sobject: insertResult.sobject,
+                                        };
                                     }
                                 } else {
-                                    reject(out.stdErr);
+                                    insertErrosByBatch[batchName] = {
+                                        name: batchName,
+                                        file: batchFolder + '/' + mastersFolder + '/' + batchFile,
+                                        errors: response.errors,
+                                    };
                                 }
-                            } else {
-                                reject("Unknown Error");
+                            } catch (error) {
+                                reject(error);
                             }
                         }
                     }
@@ -504,34 +467,24 @@ function insertBatches(args, planData) {
                             percentage += increment;
                             if (args.progress)
                                 Output.Printer.printProgress(Response.progress(percentage, 'Running Batch ' + batchFile.replace('.json', ''), args.progress));
-                            let out = await ProcessManager.importTreeData(batchFolder, username, childsFolder + '/' + batchFile);
-                            if (out) {
-                                if (out.stdOut) {
-                                    let response = JSON.parse(out.stdOut);
-                                    if (response.status === 0) {
-                                        for (let insertResult of response.result) {
-                                            savedIdsByReference['@' + insertResult.refId] = {
-                                                id: insertResult.id,
-                                                sobject: insertResult.type,
-                                            };
-                                        }
-                                    } else {
-                                        if (response.name === 'ERROR_HTTP_400') {
-                                            let errorResults = JSON.parse(response.message);
-                                            insertErrosByBatch[batchName] = {
-                                                name: batchName,
-                                                file: batchFolder + '/' + childsFolder + '/' + batchFile,
-                                                errors: errorResults.results,
-                                            };
-                                        } else {
-                                            reject(response.message);
-                                        }
+                            try {
+                                const response = await connection.importTreeData(childsFolder + '/' + batchFile);
+                                if (response.results) {
+                                    for (let insertResult of response.results) {
+                                        savedIdsByReference[insertResult.refId] = {
+                                            id: insertResult.id,
+                                            sobject: insertResult.sobject,
+                                        };
                                     }
                                 } else {
-                                    reject(out.stdErr);
+                                    insertErrosByBatch[batchName] = {
+                                        name: batchName,
+                                        file: batchFolder + '/' + childsFolder + '/' + batchFile,
+                                        errors: response.errors,
+                                    };
                                 }
-                            } else {
-                                reject("Unknown Error");
+                            } catch (error) {
+                                reject(error);
                             }
                         }
                     }
@@ -555,7 +508,7 @@ function resolveReferences(args, mastersFolder, childsFolder) {
                     let records = JSON.parse(FileReader.readFileSync(mastersFolder + '/' + batchFile));
                     for (let record of records.records) {
                         Object.keys(record).forEach(function (field) {
-                            if (savedIdsByReference[record[field]]){
+                            if (savedIdsByReference[record[field]]) {
                                 record[field] = savedIdsByReference[record[field]].id;
                             }
                         });
@@ -571,7 +524,7 @@ function resolveReferences(args, mastersFolder, childsFolder) {
                     let records = JSON.parse(FileReader.readFileSync(childsFolder + '/' + batchFile));
                     for (let record of records.records) {
                         Object.keys(record).forEach(function (field) {
-                            if (savedIdsByReference[record[field]]){
+                            if (savedIdsByReference[record[field]]) {
                                 record[field] = savedIdsByReference[record[field]].id;
                             }
                         });
@@ -587,7 +540,7 @@ function isCorrectPlan(planFile) {
     return new Promise(function (resolve, reject) {
         try {
             let planData = JSON.parse(FileReader.readFileSync(planFile));
-            let planFolder = Paths.getFolderPath(planFile);
+            let planFolder = PathUtils.getDirname(planFile);
             let notExistingFiles = getNotExistingFiles(planData, planFolder);
             if (notExistingFiles.length > 0)
                 reject(notExistingFiles);
@@ -604,27 +557,20 @@ function loadStoredRecordTypes(args) {
         try {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Loading stored Record Types from target org', args.progress));
-            let out = await ProcessManager.query(username, "Select Id, Name, DeveloperName, SobjectType from RecordType");
-            if (out) {
-                if (out.stdOut) {
-                    recordTypeByObject = {};
-                    let response = JSON.parse(out.stdOut);
-                    for (let record of response.result.records) {
-                        if (!recordTypeByObject[record.SobjectType]) {
-                            recordTypeByObject[record.SobjectType] = {
-                                sObject: record.SobjectType,
-                                recordTypes: {},
-                            };
-                        }
-                        recordTypeByObject[record.SobjectType].recordTypes[record.DeveloperName] = record;
-                    }
-                    if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Record Types Loaded Successfully', args.progress));
-                    resolve();
-                } else {
-                    reject(out.stdErr);
+            const connection = new Connection(username, args.apiVersion, undefined, undefined);
+            const records = await connection.query("Select Id, Name, DeveloperName, SobjectType from RecordType");
+            for (let record of records) {
+                if (!recordTypeByObject[record.SobjectType]) {
+                    recordTypeByObject[record.SobjectType] = {
+                        sObject: record.SobjectType,
+                        recordTypes: {},
+                    };
                 }
+                recordTypeByObject[record.SobjectType].recordTypes[record.DeveloperName] = record;
             }
+            if (args.progress)
+                Output.Printer.printProgress(Response.progress(undefined, 'Record Types Loaded Successfully', args.progress));
+            resolve();
         } catch (error) {
             reject(error);
         }

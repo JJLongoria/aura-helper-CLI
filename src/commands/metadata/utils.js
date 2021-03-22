@@ -1,4 +1,4 @@
-let MetadataTypes = require('../../metadata').MetadataTypes;
+const { MetadataTypes } = require('@ah/core').Values;
 
 let speciaObjects;
 
@@ -13,11 +13,11 @@ class Utils {
                 MetadataTypes.APEX_PAGE,
                 MetadataTypes.CUSTOM_METADATA,
                 MetadataTypes.CUSTOM_OBJECT,
-                MetadataTypes.CUSTOM_FIELDS,
+                MetadataTypes.CUSTOM_FIELD,
                 MetadataTypes.CUSTOM_PERMISSION,
-                MetadataTypes.TAB,
+                MetadataTypes.CUSTOM_TAB,
                 MetadataTypes.LAYOUT,
-                MetadataTypes.FLOWS,
+                MetadataTypes.FLOW,
                 MetadataTypes.RECORD_TYPE,
                 MetadataTypes.EXTERNAL_DATA_SOURCE,
                 MetadataTypes.DATA_CATEGORY_GROUP,
@@ -28,19 +28,19 @@ class Utils {
                 MetadataTypes.APEX_PAGE,
                 MetadataTypes.CUSTOM_METADATA,
                 MetadataTypes.CUSTOM_OBJECT,
-                MetadataTypes.CUSTOM_FIELDS,
+                MetadataTypes.CUSTOM_FIELD,
                 MetadataTypes.CUSTOM_PERMISSION,
-                MetadataTypes.TAB,
+                MetadataTypes.CUSTOM_TAB,
                 MetadataTypes.RECORD_TYPE
             ];
-            speciaObjects[MetadataTypes.TRANSLATION] = [
+            speciaObjects[MetadataTypes.TRANSLATIONS] = [
                 MetadataTypes.CUSTOM_APPLICATION,
                 MetadataTypes.CUSTOM_LABEL,
-                MetadataTypes.TAB,
-                MetadataTypes.FLOWS,
+                MetadataTypes.CUSTOM_TAB,
+                MetadataTypes.FLOW,
                 MetadataTypes.FLOW_DEFINITION,
                 MetadataTypes.CUSTOM_OBJECT,
-                MetadataTypes.CUSTOM_FIELDS,
+                MetadataTypes.CUSTOM_FIELD,
                 MetadataTypes.QUICK_ACTION,
                 MetadataTypes.REPORT_TYPE,
                 MetadataTypes.CUSTOM_PAGE_WEB_LINK,
@@ -48,7 +48,7 @@ class Utils {
             ];
             speciaObjects[MetadataTypes.RECORD_TYPE] = [
                 MetadataTypes.COMPACT_LAYOUT,
-                MetadataTypes.CUSTOM_FIELDS,
+                MetadataTypes.CUSTOM_FIELD,
                 MetadataTypes.BUSINESS_PROCESS
             ];
             speciaObjects[MetadataTypes.CUSTOM_OBJECT] = [];
