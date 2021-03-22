@@ -1,5 +1,50 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## [3.0.0 - 2020-03-XX]
+### Added
+- Added **Aura Helper Framework Modules** to enhance, reuse and optimize code and processes.
+- Added new command **metadata:org:permissions** to execute anonymous apex scripts N times.
+- Added new command **metadata:org:apex:executor** to execute anonymous apex scripts N times.
+- Added new option to **metadata:local:compress** Command for select the sort order for the XML elements when compress.
+- Added new option to **metadata:local:ignore** Command for select the sort order for the XML elements when compress.
+- Added new options to **metadata:local:repair** Command for select the sort order for the XML elements when compress or to select and use an ignore file to exclude the specified types from checking dependencies.
+- Added new option to **metadata:local:retrieve:special** Command for select the sort order for the XML elements when compress.
+- Added support up to API v51.0 (and older versions) to all operations (repair dependencies, compress...) and support all types and files.
+- Added API Version Option (-v or --api-version) to **data:export** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **data:import** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:local:describe** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:local:list** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:local:retrieve:special** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:org:compare:between** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:org:compare** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:org:describe** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:org:list** command to use another API Version.
+- Added API Version Option (-v or --api-version) to **metadata:org:retrieve:special** command to use another API Version.
+- Added support to compress All XML Files.
+- Added support to repair or check error dependencies on all XML Files with Metadata Type Reference. **Supported Types**: *AccountRelationshipShareRule, AnimationRule, AppointmentSchedulingPolicy, BatchCalcJobDefinition, BatchProcessJobDefinition, BlacklistedConsumer, Bot, CareProviderSearchConfig, CleanDataService, Community, ConnectedApp, CustomApplication, CustomFeedFilter, CustomField, CustomObject, CustomObjectTranslation, CustomPageWebLink, CustomPermission, CustomSite, CustomTab, Dashboard, DataSourceObject, DataStreamDefinition, DecisionTable, DecisionTableDatasetLink, DelegateGroup, EmailTemplate, EmbeddedServiceConfig, EmbeddedServiceLiveAgent, EmbeddedServiceMenuSettings, EntitlementProcess, FieldSet, FlexiPage, Flow, FlowCategory, HomePageLayout, Index, Layout, LightningBolt, ListView, LiveChatAgentConfig, LiveChatButton, LiveChatDeployment, MatchingRules, MLDataDefinition, MLPredictionDefinition, ModerationRule, MutingPermissionSet, MyDomainDiscoverableLogin, NamedFilter, NavigationMenu, Network, NotificationTypeConfig, OauthCustomScope, Package, PathAssistant, PaymentGatewayProvider, PermissionSet, PermissionSetGroup, PlatformEventChannel, Portal, PresenceUserConfig, Profile, ProfilePasswordPolicy, ProfileSearchLayouts, ProfileSessionSetting, Prompt, Queue, QuickAction, RecommendationStrategy, RecordActionDeployment, RecordType, Report, ReportType, Role, SalesWorkQueueSettings, SamlSsoConfig, SearchLayouts, ServiceAISetupDefinition, SharingReason, SharingRules, SharingSet, SharingRules, Skill, Territory, TimeSheetTemplate, TopicsForObjects, TransactionSecurityPolicy, Translations, UserProvisioningConfig, ValidationRule, WaveApplication, WaveLens, WaveRecipe, WaveXmd, WebLink, Workflow*
+
+### Changed
+- Changed and remove to many code for use **Aura Helper Framework modules**. Changed all references
+- Changed **update** Command for use *Aura Helper Framework Modules*
+- Changed **version** Command for use *Aura Helper Framework Modules*
+- Changed **data:export** Command for use *Aura Helper Framework Modules*
+- Changed **data:import** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:xml:compress** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:describe** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:ignore** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:list** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:package:create** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:repair** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:local:retrieve:special** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:org:compare:between** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:org:compare** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:org:describe** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:org:list** Command for use *Aura Helper Framework Modules*
+- Changed **metadata:org:retrieve:special** Command for use *Aura Helper Framework Modules*
+
+### Fixed
+- Fixed minor errors on several commands
+
 ## [2.1.2 - 2020-10-21]
 ### Fixed
 - Fixed a little problem with some suffix when describing local metadata types

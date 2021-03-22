@@ -1,19 +1,15 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
-const Metadata = require('../../metadata');
-const Utils = require('./utils');
 const CommandUtils = require('../utils');
-const Paths = FileSystem.Paths;
-const FileChecker = FileSystem.FileChecker;
-const FileWriter = FileSystem.FileWriter;
-const MetadataConnection = Metadata.Connection;
+const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
+const Connection = require('@ah/connector');
 
 let argsList = [
     "root",
     "outputFile",
+    "apiVersion",
     "progress",
     "beautify"
 ];
@@ -23,9 +19,10 @@ exports.createCommand = function (program) {
         .command('metadata:org:list')
         .description('Command for list all metadata from the auth org')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
+        .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
+        .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
-        .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
         .action(function (args) {
             run(args);
         });
@@ -39,18 +36,28 @@ async function run(args) {
             return;
         }
         try {
-            args.root = Paths.getAbsolutePath(args.root);
+            args.root = PathUtils.getAbsolutePath(args.root);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
             return;
         }
         if (args.outputFile) {
             try {
-                args.outputFile = Paths.getAbsolutePath(args.outputFile);
+                args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
             } catch (error) {
                 Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-file path. Select a valid path'));
                 return;
             }
+        }
+        if (args.apiVersion) {
+            args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+            if (!args.apiVersion) {
+                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
+                return;
+            }
+        } else {
+            let projectConfig = ProjectUtils.getProjectConfig(args.root);
+            args.apiVersion = projectConfig.sourceApiVersion;
         }
         if (args.progress) {
             if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
@@ -64,8 +71,8 @@ async function run(args) {
         }
         listOrgMetadata(args).then(function (result) {
             if (args.outputFile) {
-                args.outputFile = Paths.getAbsolutePath(args.outputFile);
-                let baseDir = Paths.getFolderPath(args.outputFile);
+                args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
+                let baseDir = PathUtils.getDirname(args.outputFile);
                 if (!FileChecker.isExists(baseDir))
                     FileWriter.createFolderSync(baseDir);
                 FileWriter.createFileSync(args.outputFile, JSON.stringify(metadataTypes, null, 2));
@@ -85,9 +92,10 @@ function listOrgMetadata(args) {
         try {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
-            let username = await Config.getAuthUsername(args.root);
-            let metadataTypes = await MetadataConnection.getMetadataTypes(username, args.root, { forceDownload: true });
-            resolve(metadataTypes);
+            const username = await Config.getAuthUsername(args.root);
+            const connection = new Connection(username, args.apiVersion, args.root, undefined);
+            const metadataDetails = await connection.listMetadataTypes();
+            resolve(metadataDetails);
         } catch (error) {
             reject(error);
         }

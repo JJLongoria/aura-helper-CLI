@@ -22,6 +22,7 @@ Commands.Metadata.OrgCompare.createCommand(program);
 Commands.Metadata.OrgBetweenCompare.createCommand(program);
 Commands.Metadata.OrgRetrieveSpecial.createCommand(program);
 Commands.Metadata.OrgPermissions.createCommand(program);
+Commands.Metadata.OrgApexExecutor.createCommand(program);
 
 // DATA COMMANDS
 Commands.Data.Export.createCommand(program);
