@@ -1,24 +1,16 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const FileSystem = require('../../fileSystem');
 const Config = require('../../main/config');
-const Metadata = require('../../metadata');
-const Utils = require('./utils');
 const CommandUtils = require('../utils');
-const Languages = require('../../languages');
-const ProcessManager = require('../../processes').ProcessManager;
-const MetadataTypes = Metadata.MetadataTypes;
-const MetadataUtils = Metadata.Utils;
-const Paths = FileSystem.Paths;
-const FileChecker = FileSystem.FileChecker;
-const FileWriter = FileSystem.FileWriter;
-const FileReader = FileSystem.FileReader;
-const PackageGenerator = Metadata.PackageGenerator;
-const XMLParser = Languages.XMLParser;
-const MetadataFactory = Metadata.Factory;
+const { PathUtils, FileChecker, FileWriter, FileReader } = require('@ah/core').FileSystem;
+const Connection = require('@ah/connector');
+const { MetadataType, MetadataObject } = require('@ah/core').Types;
+const { MetadataTypes } = require('@ah/core').Values;
+const { XMLUtils, ProjectUtils } = require('@ah/core').Utils;
+const PackageGenerator = require('@ah/package-generator');
+const { XMLParser } = require('@ah/core').Languages;
 
-const PACKAGE_FILENAME = 'package.xml';
 const PROJECT_NAME = 'TempProject';
 
 let argsList = [
@@ -51,7 +43,7 @@ function run(args) {
         return;
     }
     try {
-        args.root = Paths.getAbsolutePath(args.root);
+        args.root = PathUtils.getAbsolutePath(args.root);
     } catch (error) {
         Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
         return;
@@ -63,7 +55,7 @@ function run(args) {
             return;
         }
     } else {
-        let projectConfig = Config.getProjectConfig(args.root);
+        let projectConfig = ProjectUtils.getProjectConfig(args.root);
         args.apiVersion = projectConfig.sourceApiVersion;
     }
     if (args.progress) {
@@ -86,58 +78,36 @@ function loadPermissions(args) {
                 Output.Printer.printProgress(Response.progress(undefined, 'Loading user permissions started.', args.progress));
                 reportRetrieveProgress(args, 2500);
             }
-            let username = await Config.getAuthUsername(args.root);
+            const projectConfig = ProjectUtils.getProjectConfig(args.root);
+            const username = await Config.getAuthUsername(args.root);
+            const connection = new Connection(username, undefined, args.root, projectConfig.namespace);
             let metadata = {};
-            let metadataType = MetadataFactory.createMetadataType(MetadataTypes.PROFILE, true);
-            metadataType.childs["Admin"] = MetadataFactory.createMetadataObject("Admin", true);
+            const metadataType = new MetadataType(MetadataTypes.PROFILE, true);
+            metadataType.childs["Admin"] = new MetadataObject("Admin", true);
             metadata[MetadataTypes.PROFILE] = metadataType;
-            let path = Paths.getAuraHelperCLITempFilesPath();
+            let path = PathUtils.getAuraHelperCLITempFilesPath();
             if (FileChecker.isExists(path))
                 FileWriter.delete(path);
             FileWriter.createFolderSync(path);
-            let createProjectOut = await ProcessManager.createSFDXProject(PROJECT_NAME, path);
-            if (createProjectOut) {
-                if (createProjectOut.stdOut) {
-                    let projectConfig = Config.getProjectConfig(args.root);
-                    let packageFile = path + '/' + PROJECT_NAME + '/manifest/' + PACKAGE_FILENAME;
-                    let packageContent = PackageGenerator.createPackage(metadata, projectConfig.sourceApiVersion);
-                    FileWriter.createFileSync(packageFile, packageContent);
-                    let setDefaultOrgOut = await ProcessManager.setDefaultOrg(PROJECT_NAME, path + '/' + PROJECT_NAME);
-                    if (setDefaultOrgOut) {
-                        if (setDefaultOrgOut.stdOut) {
-                            let retrieveOut = await ProcessManager.retrieveSFDX(username, packageFile, path + '/' + PROJECT_NAME);
-                            retrievedFinished = true;
-                            if (retrieveOut) {
-                                if (retrieveOut.stdOut) {
-                                    let result = [];
-                                    let xmlRoot = XMLParser.parseXML(FileReader.readFileSync(args.root + '/force-app/main/default/profiles/Admin.profile-meta.xml'), true);
-                                    if(xmlRoot[MetadataTypes.PROFILE] && xmlRoot[MetadataTypes.PROFILE].userPermissions){
-                                        let permissions = MetadataUtils.forceArray(xmlRoot[MetadataTypes.PROFILE].userPermissions);
-                                        for(let permission of permissions){
-                                            result.push(permission.name);
-                                        }
-                                    }
-                                    resolve(result);
-                                } else {
-                                    reject(retrieveOut.stdErr);
-                                }
-                            } else {
-                                reject('Operation cancelled');
-                            }
-                        } else {
-                            reject(setDefaultOrgOut.stdErr);
-                        }
-                    } else {
-                        reject('Operation cancelled');
-                    }
-                } else {
-                    reject(createProjectOut.stdErr);
+            const createProjectOut = await connection.createSFDXProject(PROJECT_NAME, path, undefined, true);
+            const packageResult = PackageGenerator.createPackage(metadata, connection.packageFolder, {
+                apiVersion: projectConfig.sourceApiVersion,
+                explicit: true,
+            });
+            const setDefaultOrgOut = await connection.setAuthOrg(username);
+            const retrieveOut = await connection.retrieve(false);
+            retrievedFinished = true;
+            let result = [];
+            let xmlRoot = XMLParser.parseXML(FileReader.readFileSync(connection.projectFolder + '/force-app/main/default/profiles/Admin.profile-meta.xml'), true);
+            if (xmlRoot[MetadataTypes.PROFILE] && xmlRoot[MetadataTypes.PROFILE].userPermissions) {
+                let permissions = XMLUtils.forceArray(xmlRoot[MetadataTypes.PROFILE].userPermissions);
+                for (let permission of permissions) {
+                    result.push(permission.name);
                 }
-            } else {
-                reject('Operation cancelled');
             }
+            resolve(result);
         } catch (error) {
-            retrievedFinished  = true;
+            retrievedFinished = true;
             reject(error);
         }
     });

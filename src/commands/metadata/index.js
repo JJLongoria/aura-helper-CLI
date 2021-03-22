@@ -12,3 +12,4 @@ exports.OrgCompare = require('./orgCompare');
 exports.OrgBetweenCompare = require('./orgBetweenCompare');
 exports.OrgRetrieveSpecial = require('./orgRetrieveSpecial');
 exports.OrgPermissions = require('./orgPermissions');
+exports.OrgApexExecutor = require('./orgApexExecutor');
