@@ -139,10 +139,6 @@ function run(args) {
                 Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --source. For --create-from git you must select a branch, tag or commit at source'));
                 return;
             }
-            if (args.target === undefined) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --target. For --create-from git you must select a branch, tag or commit at source'));
-                return;
-            }
             if (args.target === 'this') {
                 Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --target. For --create-from git "this" value is only available for --source parameter'));
                 return;
@@ -241,10 +237,10 @@ function createFromGit(args) {
             }
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Running Git Diff', args.progress));
-            let gitDiffs = GitManager.getDiffs(args.root, args.source, args.target);
+            const gitDiffs = await GitManager.getDiffs(args.root, args.source, args.target);
             //FileWriter.createFileSync('./diffsOut.txt', diffsOut.stdOut);
             //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
-            let username = await Config.getAuthUsername(args.root);
+            const username = await Config.getAuthUsername(args.root);
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
             const connection = new Connection(username, undefined, args.root);
@@ -252,7 +248,7 @@ function createFromGit(args) {
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Analyzing Process Diffs for get Metadata changes', args.progress));
-            let metadataFromGitDiffs = TypesFactory.createMetadataTypesFromGitDiffs(args.root, gitDiffs, folderMetadataMap);
+            const metadataFromGitDiffs = TypesFactory.createMetadataTypesFromGitDiffs(args.root, gitDiffs, folderMetadataMap);
             if (args.useIgnore) {
                 if (args.progress)
                     Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
