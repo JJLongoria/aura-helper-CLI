@@ -375,6 +375,8 @@ Metadata commands are the commands for work with your metadata files. You can co
                                                         Type1:Object2" or "Type1:Object1:Item1" for example:  "Profile, PermissinSet" for retrieve all profiles and 
                                                         permission sets. "Profile:Admin" for retrieve the admin profile. "RecordType:Account:RecordType1" for  retrieve 
                                                         the RecordType1 for the object Account or "RecordType:Account" for retrieve all Record Types for Account.
+        -i | --include-org',                            With this option, you can retrieve the data from org and not only for local, but only retrieve the types that you 
+                                                        have in your local.
         -o | --org-namespace                            If you choose include data from org, also you can choose if include all data from the org, or only the data from 
                                                         your org namespace.
         -c | --compress                                 Compress the retrieved files.

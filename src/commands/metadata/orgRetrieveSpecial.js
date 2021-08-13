@@ -1,22 +1,14 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
-const AppUtils = require('./utils');
+const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
-const { PathUtils, FileChecker, FileWriter, FileReader } = require('@ah/core').FileSystem;
+const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
 const XMLCompressor = require('@ah/xml-compressor');
 const Connection = require('@ah/connector');
-const { TypesFactory } = require('@ah/core').Types;
-const { ProjectUtils } = require('@ah/core').Utils;
-const { MetadataTypes } = require('@ah/core').Values;
-const PackageGenerator = require('@ah/package-generator');
-
-const PROJECT_NAME = 'TempProject';
-
-const SUBFOLDER_BY_METADATA_TYPE = {
-    RecordType: 'recordTypes'
-}
+const { ProjectUtils } = require('@ah/core').CoreUtils;
+const { SpecialMetadata } = require('@ah/core').Values;
+const { ProgressStatus } = require('@ah/core').Types;
 
 let retrievedFinished = false;
 
@@ -44,7 +36,7 @@ exports.createCommand = function (program) {
         .command('metadata:org:retrieve:special')
         .description('Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
-        .option('-a, --all', 'Retrieve all supported metadata types (' + Object.keys(AppUtils.getSpecialMetadata()).join(',') + ')')
+        .option('-a, --all', 'Retrieve all supported metadata types (' + Object.keys(SpecialMetadata).join(',') + ')')
         .option('-t, --type <MetadataTypeNames>', 'Retrieve specifics metadata types. You can choose one or a comma separated list of elements. Also you can choose retrieve a specific profile, object o record type. Schema -> "Type1" or "Type1,Type2" or "Type1:Object1, Type1:Object2" or "Type1:Object1:Item1" for example:  "Profile, PermissinSet" for retrieve all profiles and permission sets. "Profile:Admin" for retrieve the admin profile. "RecordType:Account:RecordType1" for  retrieve the RecordType1 for the object Account or "RecordType:Account" for retrieve all Record Types for Account')
         .option('-o, --org-namespace', 'Option for retrieve only the data from your org namespace or retrieve all data')
         .option('-c, --compress', 'Compress the retrieved files.')
@@ -84,7 +76,7 @@ async function run(args) {
         }
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -99,18 +91,9 @@ async function run(args) {
             return;
         }
     }
-    let types = {};
-    if (args.all) {
-        Object.keys(AppUtils.getSpecialMetadata()).forEach(function (key) {
-            if (!types[key])
-                types[key] = {};
-            for (let child of AppUtils.getSpecialMetadata()[key]) {
-                if (!types[key][child])
-                    types[key][child] = ['*']
-            }
-        });
-    } else {
-        types = AppUtils.getAdvanceTypes(args.type);
+    let types;
+    if (args.type && !args.all) {
+        types = MetadataCommandUtils.getAdvanceTypes(args.type);
     }
     retrieve(args, types).then(function () {
         Output.Printer.printSuccess(Response.success("Retrieve metadata finished successfully"));
@@ -123,112 +106,35 @@ async function run(args) {
 function retrieve(args, types) {
     return new Promise(async function (resolve, reject) {
         try {
-            let dataToRetrieve = [];
-            Object.keys(AppUtils.getSpecialMetadata()).forEach(function (key) {
-                if (!types || types[key]) {
-                    if (!dataToRetrieve.includes(key))
-                        dataToRetrieve.push(key);
-                    for (let child of AppUtils.getSpecialMetadata()[key]) {
-                        if (!dataToRetrieve.includes(child))
-                            dataToRetrieve.push(child);
-                    }
-                }
-            });
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
             connection.setMultiThread();
-            if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Describing Org Metadata Types', args.progress));
-            const metadataDetails = await connection.listMetadataTypes();
-            const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
-            const metadata = await connection.describeMetadataTypes(dataToRetrieve, !args.orgNamespace, (status) => {
-                if (status.stage === 'afterDownload') {
+            const retrieveOut = await connection.retrieveOrgSpecialTypes(PathUtils.getAuraHelperCLITempFilesPath(), types, !args.orgNamespace, args.compress, args.sortOrder, (progress) => {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnOrgLoadingStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                        Output.Printer.printProgress(Response.progress(undefined, 'Describing Org Metadata Types', args.progress));
+                }
+                if (progress.isOnAfterDownloadStage()) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(progress.percentage, 'MetadataType: ' + progress.entityType, args.progress));
+                }
+                if (progress.isOnRetrieveStage()) {
+                    if (args.progress) {
+                        Output.Printer.printProgress(Response.progress(undefined, 'Retriving Metadata Types. This operation can will take several minutes, please wait.', args.progress));
+                        reportRetrieveProgress(args, 2500);
+                    }
+                }
+                if (progress.isOnCopyDataStage()) {
+                    retrievedFinished = true;
+                }
+                if (progress.isOnCopyFileStage()) {
+                    if (args.progress)
+                        Output.Printer.printProgress(Response.progress(undefined, 'Copying ' + PathUtils.getBasename(progress.data) + ' to ' + progress.data, args.progress));
                 }
             });
-            Object.keys(metadata).forEach(function (key) {
-                Object.keys(metadata[key].childs).forEach(function (childsKey) {
-                    metadata[key].childs[childsKey].checked = true;
-                    Object.keys(metadata[key].childs[childsKey].childs).forEach(function (itemKey) {
-                        metadata[key].childs[childsKey].childs[itemKey].checked = true;
-                    });
-                });
-            });
-            let path = PathUtils.getAuraHelperCLITempFilesPath();
-            if (FileChecker.isExists(path))
-                FileWriter.delete(path);
-            FileWriter.createFolderSync(path);
-            let createProjectOut = await connection.createSFDXProject(PROJECT_NAME, path, undefined, true);
-            const packageResult = PackageGenerator.createPackage(metadata, connection.packageFolder, {
-                apiVersion: projectConfig.sourceApiVersion,
-                explicit: true,
-            });
-            const setDefaultOrgOut = await connection.setAuthOrg(username);
-            if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, 'Retriving Metadata Types. This operation can will take several minutes, please wait.', args.progress));
-                reportRetrieveProgress(args, 2500);
-            }
-            let retrieveOut = await connection.retrieve(false);
-            retrievedFinished = true;
-            Object.keys(folderMetadataMap).forEach(function (folder) {
-                let metadataType = folderMetadataMap[folder];
-                if ((!types || types[metadataType.xmlName]) && metadata[metadataType.xmlName] && AppUtils.getSpecialMetadata()[metadataType.xmlName]) {
-                    Object.keys(metadata[metadataType.xmlName].childs).forEach(function (childKey) {
-                        if (metadata[metadataType.xmlName].childs[childKey].childs && Object.keys(metadata[metadataType.xmlName].childs[childKey].childs).length > 0) {
-                            Object.keys(metadata[metadataType.xmlName].childs[childKey].childs).forEach(function (itemKey) {
-                                if (copyType(types, metadataType.xmlName, childKey, itemKey)) {
-                                    let subPath;
-                                    let fileName = itemKey + '.' + metadataType.suffix + '-meta.xml';
-                                    if (SUBFOLDER_BY_METADATA_TYPE[metadataType.xmlName]) {
-                                        subPath = '/force-app/main/default/' + metadataType.directoryName + '/' + childKey + '/' + SUBFOLDER_BY_METADATA_TYPE[metadataType.xmlName] + '/' + fileName;
-                                    } else {
-                                        subPath = '/force-app/main/default/' + metadataType.directoryName + '/' + childKey + '/' + fileName;
-                                    }
-                                    let sourceFile = path + '/' + PROJECT_NAME + subPath;
-                                    let targetFile = args.root + subPath;
-                                    let targetFolder = PathUtils.getDirname(targetFile);
-                                    if (FileChecker.isExists(sourceFile)) {
-                                        if (args.progress)
-                                            Output.Printer.printProgress(Response.progress(undefined, 'Copying ' + fileName + ' to ' + targetFile, args.progress));
-                                        if (!FileChecker.isExists(targetFolder))
-                                            FileWriter.createFolderSync(targetFolder);
-                                        FileWriter.createFileSync(targetFile, FileReader.readFileSync(sourceFile));
-                                        if (args.compress) {
-                                            XMLCompressor.compressSync(targetFile, args.sortOrder);
-                                        }
-                                    }
-                                }
-                            });
-                        } else {
-                            if (copyType(types, metadataType.xmlName, childKey)) {
-                                let subPath;
-                                let fileName = childKey + '.' + metadataType.suffix + '-meta.xml';
-                                if (metadataType.xmlName === MetadataTypes.CUSTOM_OBJECT) {
-                                    subPath = '/force-app/main/default/' + metadataType.directoryName + '/' + childKey + '/' + fileName
-                                } else {
-                                    subPath = '/force-app/main/default/' + metadataType.directoryName + '/' + fileName
-                                }
-                                let sourceFile = path + '/' + PROJECT_NAME + subPath;
-                                let targetFile = args.root + subPath;
-                                let targetFolder = PathUtils.getDirname(targetFile);
-                                if (FileChecker.isExists(sourceFile)) {
-                                    if (args.progress)
-                                        Output.Printer.printProgress(Response.progress(undefined, 'Copying ' + fileName + ' to ' + targetFile, args.progress));
-                                    if (!FileChecker.isExists(targetFolder))
-                                        FileWriter.createFolderSync(targetFolder);
-                                    FileWriter.createFileSync(targetFile, FileReader.readFileSync(sourceFile));
-                                    if (args.compress) {
-                                        XMLCompressor.compressSync(targetFile, args.sortOrder);
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-            resolve();
+            resolve(retrieveOut);
         } catch (error) {
             reject(error);
         }
@@ -244,25 +150,4 @@ function reportRetrieveProgress(args, millis) {
             }
         }, millis);
     }
-}
-
-function copyType(types, metadataType, object, item) {
-    if (!types)
-        return true;
-    if (types[metadataType]) {
-        if (!item) {
-            if (types[metadataType]['*']) {
-                return true;
-            } else if (types[metadataType][object] && (types[metadataType][object].includes(object) || types[metadataType][object].includes('*'))) {
-                return true;
-            }
-        } else {
-            if (types[metadataType]['*']) {
-                return true;
-            } else if (types[metadataType][object] && (types[metadataType][object].includes(item) || types[metadataType][object].includes('*'))) {
-                return true;
-            }
-        }
-    }
-    return false;
 }

@@ -1,15 +1,14 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
 const GitManager = require('@ah/git-manager');
 const Connection = require('@ah/connector');
 const Ignore = require('@ah/ignore');
 const PackageGenerator = require('@ah/package-generator');
-const { ProjectUtils } = require('@ah/core').Utils;
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 const { PathUtils, FileChecker, FileReader } = require('@ah/core').FileSystem;
-const { TypesFactory } = require('@ah/core').Types;
+const TypesFactory = require('@ah/metadata-factory');
 
 const DESTRUCT_BEFORE_FILENAME = 'destructiveChanges.xml';
 const DESTRUCT_AFTER_FILENAME = 'destructiveChangesPost.xml';
@@ -118,7 +117,7 @@ function run(args) {
         Output.Printer.printWarning('WARNING. --use-ignore option selected but not exists the ignore file in (' + args.ignoreFile + '). The selected files will be created but metadata not will be ignored');
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -240,7 +239,7 @@ function createFromGit(args) {
             const gitDiffs = await GitManager.getDiffs(args.root, args.source, args.target);
             //FileWriter.createFileSync('./diffsOut.txt', diffsOut.stdOut);
             //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
             const connection = new Connection(username, undefined, args.root);
@@ -378,6 +377,7 @@ function createFromPackage(args, packages) {
                 const result = PackageGenerator.mergePackages(packages, args.outputPath, {
                     apiVersion: args.apiVersion,
                     mergeDestructives: false,
+                    mergePackages: true,
                     explicit: true,
                     ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,
                 });
@@ -387,7 +387,7 @@ function createFromPackage(args, packages) {
                     Output.Printer.printProgress(Response.progress(undefined, 'Merging Destructive Files', args.progress));
                 const result = PackageGenerator.mergePackages(packages, args.outputPath, {
                     apiVersion: args.apiVersion,
-                    mergeDestructives: false,
+                    mergePackages: false,
                     mergeDestructives: true,
                     beforeDeploy: args.deployOrder === 'before',
                     explicit: true,
@@ -401,7 +401,7 @@ function createFromPackage(args, packages) {
                 const result = PackageGenerator.mergePackages(packages, args.outputPath, {
                     apiVersion: args.apiVersion,
                     mergeDestructives: true,
-                    mergeDestructives: true,
+                    mergePackages: true,
                     beforeDeploy: args.deployOrder === 'before',
                     explicit: true,
                     ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,

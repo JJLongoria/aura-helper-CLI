@@ -1,3 +1,5 @@
+const { ProjectUtils } = require('@ah/core').CoreUtils;
+
 class Utils {
     static getProgressAvailableTypes() {
         return [
@@ -13,16 +15,6 @@ class Utils {
             }
         }
         return nEmpty === argsNames.length;
-    }
-
-    static getApiVersion(apiVersion) {
-        if (apiVersion.match(/^\d+\.\d+$/)) {
-            let integerPart = apiVersion;
-            if (apiVersion.indexOf('.') !== -1)
-                integerPart = apiVersion.split('.')[0];
-            return integerPart + '.0';
-        }
-        return undefined;
     }
 }
 module.exports = Utils;

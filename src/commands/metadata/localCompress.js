@@ -2,8 +2,10 @@ const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
+const MetadataCommandUtils = require('./utils');
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
 const XMLCompressor = require('@ah/xml-compressor');
+const { MathUtils } = require('@ah/core').CoreUtils;
 
 let argsList = [
     "root",
@@ -87,13 +89,13 @@ function compress(args) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong ' + param + ' path. Select a valid path'));
             return;
         }
-        XMLCompressor.compress(path, args.sortOrder, function (file, compressed) {
+        XMLCompressor.compress(path, args.sortOrder, function (file, compressed, nFile, totalFiles) {
             if (compressed) {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'File ' + file + ' compressed succesfully', args.progress));
+                    Output.Printer.printProgress(Response.progress(MathUtils.round((nFile / totalFiles) * 100, 2), 'File ' + file + ' compressed succesfully', args.progress));
             } else {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + file + ' does not support XML compression', args.progress));
+                    Output.Printer.printProgress(Response.progress(MathUtils.round((nFile / totalFiles) * 100, 2), 'The  file ' + file + ' does not support XML compression', args.progress));
             }
         }).then(() => {
             Output.Printer.printSuccess(Response.success('Compress XML files finish successfully'));
@@ -102,7 +104,7 @@ function compress(args) {
         });
     } else {
         try {
-            args.file = PathUtils.getAbsolutePath(args.file);
+            args.file = MetadataCommandUtils.getPaths(args.file);
         } catch (error) {
             Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Select a valid path'));
             return;
@@ -110,10 +112,10 @@ function compress(args) {
         XMLCompressor.compress(args.file, args.sortOrder, function (file, compressed) {
             if (compressed) {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'File ' + file + ' compressed succesfully', args.progress));
+                    Output.Printer.printProgress(Response.progress(100, 'File ' + file + ' compressed succesfully', args.progress));
             } else {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'The  file ' + file + ' does not support XML compression', args.progress));
+                    Output.Printer.printProgress(Response.progress(100, 'The  file ' + file + ' does not support XML compression', args.progress));
             }
         }).then(() => {
             Output.Printer.printSuccess(Response.success('Compress XML files finish successfully'));

@@ -1,11 +1,11 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
-const { TypesFactory } = require('@ah/core').Types;
-const { Utils } = require('@ah/core').Utils;
+const TypesFactory = require('@ah/metadata-factory');
+const { MetadataUtils, ProjectUtils } = require('@ah/core').CoreUtils;
+const { ProgressStatus } = require('@ah/core').Types;
 const Connection = require('@ah/connector');
 
 let argsList = [
@@ -77,7 +77,7 @@ function compareMetadata(args) {
         try {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describe Local Metadata', args.progress));
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, undefined, args.root);
             connection.setMultiThread();
             const metadataDetails = await connection.listMetadataTypes();
@@ -85,15 +85,16 @@ function compareMetadata(args) {
             const typesFromLocal = TypesFactory.createMetadataTypesFromFileSystem(folderMetadataMap, args.root);
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describe Org Metadata', args.progress));
-            const typesFromOrg = await connection.describeMetadataTypes(metadataDetails, false, function (status) {
-                if (status.stage === 'afterDownload') {
+            const typesFromOrg = await connection.describeMetadataTypes(metadataDetails, false, function (progress) {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnAfterDownloadStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                        Output.Printer.printProgress(Response.progress(progress.percentage, 'MetadataType: ' + progress.entityType, args.progress));
                 }
             });
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Comparing Metadata Types', args.progress));
-            const compareResult = Utils.compareMetadata(typesFromOrg, typesFromLocal);
+            const compareResult = MetadataUtils.compareMetadata(typesFromOrg, typesFromLocal);
             resolve(compareResult);
         } catch (error) {
             reject(error);

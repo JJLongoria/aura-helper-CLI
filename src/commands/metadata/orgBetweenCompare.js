@@ -1,11 +1,11 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
 const Connection = require('@ah/connector');
-const { Utils, ProjectUtils } = require('@ah/core').Utils;
+const { Utils, ProjectUtils, MetadataUtils } = require('@ah/core').CoreUtils;
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
+const { ProgressStatus } = require('@ah/core').Types;
 
 
 let argsList = [
@@ -61,7 +61,7 @@ async function run(args) {
         }
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -98,20 +98,23 @@ function compareMetadata(args) {
     return new Promise(async (resolve, reject) => {
         try {
             let username = args.source;
-            if (!username)
-                username = await Config.getAuthUsername(args.root);
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
+            if (!username)
+                username = ProjectUtils.getOrgAlias(args.root);
             const connectionSource = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
             const connectionTarget = new Connection(args.target, args.apiVersion, args.root, projectConfig.namespace);
+            connectionTarget.setMultiThread();
+            connectionSource.setMultiThread();
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting Available types on source (' + username + ')', args.progress));
             const sourceMetadataDetails = await connectionSource.listMetadataTypes();
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describe Metadata from source (' + username + ')', args.progress));
-            const sourceMetadata = await connectionSource.describeMetadataTypes(sourceMetadataDetails, false, function (status) {
-                if (status.stage === 'afterDownload') {
+            const sourceMetadata = await connectionSource.describeMetadataTypes(sourceMetadataDetails, false, function (progress) {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnAfterDownloadStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                        Output.Printer.printProgress(Response.progress(progress.percentage, 'MetadataType: ' + progress.entityType, args.progress));
                 }
             });
             if (args.progress)
@@ -119,15 +122,16 @@ function compareMetadata(args) {
             const targetMetadataDetails = await connectionTarget.listMetadataTypes();
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describe Metadata from target (' + args.target + ')', args.progress));
-            const targetMetadata = await connectionTarget.describeMetadataTypes(targetMetadataDetails, false, function (status) {
-                if (status.stage === 'afterDownload') {
+            const targetMetadata = await connectionTarget.describeMetadataTypes(targetMetadataDetails, false, function (progress) {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnAfterDownloadStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                        Output.Printer.printProgress(Response.progress(progress.percentage, 'MetadataType: ' + progress.entityType, args.progress));
                 }
             });
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Comparing Metadata Types', args.progress));
-            const compareResult = Utils.compareMetadata(sourceMetadata, targetMetadata);
+            const compareResult = MetadataUtils.compareMetadata(sourceMetadata, targetMetadata);
             resolve(compareResult);
         } catch (error) {
             reject(error);

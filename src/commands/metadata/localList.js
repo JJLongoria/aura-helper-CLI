@@ -1,11 +1,10 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
-const { TypesFactory } = require('@ah/core').Types;
-const { ProjectUtils } = require('@ah/core').Utils;
+const TypesFactory = require('@ah/metadata-factory');
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 const Connection = require('@ah/connector');
 
 let argsList = [
@@ -51,7 +50,7 @@ async function run(args) {
         }
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -90,7 +89,7 @@ function listLocalMetadata(args) {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
             let metadata = [];
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, args.apiVersion, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);

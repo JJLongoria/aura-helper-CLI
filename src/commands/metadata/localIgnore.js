@@ -1,10 +1,11 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
-const Utils = require('./utils');
+const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
+const { ProjectUtils } = require('@ah/core').CoreUtils;
+const { ProgressStatus } = require('@ah/core').Types;
 const XMLCompressor = require('@ah/xml-compressor');
 const Connection = require('@ah/connector');
 const Ignore = require('@ah/ignore');
@@ -98,7 +99,7 @@ function run(args) {
     }
     let types;
     if (args.type) {
-        types = Utils.getTypes(args.type);
+        types = MetadataCommandUtils.getTypes(args.type);
     }
     ignoreMetadata(args, types).then(function () {
         Output.Printer.printSuccess(Response.success("Ignore metadata finished successfully"));
@@ -112,17 +113,18 @@ function ignoreMetadata(args, typesForIgnore) {
         try {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             await Ignore.ignoreProjectMetadata(args.root, metadataDetails, args.ignoreFile, {
                 compress: args.compress,
                 sortOrder: args.sortOrder,
                 typesForIgnore: typesForIgnore
-            }, (status) => {
-                if (status.stage === 'type') {
+            }, (progress) => {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnStartTypeStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Processing ' + status.metadataType + ' Metadata Type', args.progress));
+                        Output.Printer.printProgress(Response.progress(undefined, 'Processing ' + progress.entityType + ' Metadata Type', args.progress));
                 }
             });
             resolve();

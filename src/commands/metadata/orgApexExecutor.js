@@ -1,11 +1,10 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
 const Connection = require('@ah/connector');
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
-const { ProjectUtils } = require('@ah/core').Utils;
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 
 
 let argsList = [
@@ -58,14 +57,14 @@ async function run(args) {
         return;
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
         }
     } else {
         let projectConfig = ProjectUtils.getProjectConfig(args.root);
-        args.apiVersion = projectConfig.sourceApiVersion;
+        args.apiVersion = ProjectUtils.getApiAsString(projectConfig.sourceApiVersion);
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
@@ -93,7 +92,7 @@ function executeApex(args) {
         try {
             let iterations = args.iterations;
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);;
             const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
             for (let i = 0; i < iterations; i++) {
                 if (args.progress) {

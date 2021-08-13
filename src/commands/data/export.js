@@ -1,8 +1,7 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
-const { ProjectUtils } = require('@ah/core').Utils;
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
 const Connection = require('@ah/connector');
 const CommandUtils = require('../utils');
@@ -67,7 +66,7 @@ function run(args) {
         }
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -98,13 +97,13 @@ function startExtractingData(args) {
     return new Promise(async function (resolve, reject) {
         try {
             if (!args.username)
-                args.username = await Config.getAuthUsername(args.root);
+                args.username = ProjectUtils.getOrgAlias(args.root);
             if (args.progress) {
                 Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
                 reportExtractingProgress(args, 1000);
             }
             const connection = new Connection(args.username, args.apiVersion, args.root, undefined);
-            const response = await connection.exportTreeData(args.query, args.prefix, args.outputPath);
+            const response = await connection.exportTreeData(args.query, args.outputPath, args.prefix);
             resolve(response);
         } catch (error) {
             extractingFinished = true;
@@ -112,94 +111,6 @@ function startExtractingData(args) {
         }
     });
 }
-/*
-function getBatchesToExport(args) {
-    return new Promise(async (resolve) => {
-        if (args.progress) {
-            Output.Printer.printProgress(Response.progress(undefined, 'Preparing to avoid limits.', args.progress));
-            Output.Printer.printProgress(Response.progress(undefined, 'Count Main Records.', args.progress));
-        }
-        let from = args.query.substring(args.query.toLowerCase().lastIndexOf(' from '));
-        let countResult = await runQuery(args, 'select count(Id) ' + from);
-        if (args.progress)
-            Output.Printer.printProgress(Response.progress(undefined, 'Main Records to process: ' + countResult.records[0].expr0, args.progress));
-        if (countResult.records[0].expr0 > LIMIT) {
-            if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Getting Ids for prepare export batches. Please, wait.', args.progress));
-            let queryResult = await runQuery(args, 'select Id ' + from);
-            let recordIdsGroups = {};
-            let counter = 0;
-            let groupName = 'Batch_';
-            for (let record of queryResult.records) {
-                let groupId = groupName + counter;
-                if (!recordIdsGroups[groupId]) {
-                    recordIdsGroups[groupId] = {
-                        groupId: groupId,
-                        records: [],
-                    };
-                }
-                if (recordIdsGroups[groupId].records.length < LIMIT)
-                    recordIdsGroups[groupId].records.push("'" + record.Id + "'");
-                else {
-                    counter++;
-                    recordIdsGroups[groupId].records.sort();
-                    groupId = groupName + counter;
-                    if (!recordIdsGroups[groupId]) {
-                        recordIdsGroups[groupId] = {
-                            groupId: groupId,
-                            records: ["'" + record.Id + "'"],
-                        };
-                    }
-                }
-            }
-            if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, counter + 1 + ' Batches created to export data', args.progress));
-            resolve(recordIdsGroups);
-        }
-        resolve(undefined);
-    });
-}
-
-function exportWithBatches(args, batchesToExport) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from  Org with username or alias ' + args.username, args.progress));
-                reportExtractingProgress(args, 1000);
-            }
-            for (let batchId of Object.keys(batchesToExport)) {
-                if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Running export batch ' + batchId, args.progress));
-                let ids = batchesToExport[batchId].records;
-                let query = args.query;
-                let lastFromIndex = query.toLowerCase().lastIndexOf(' from ');
-                let from = args.query.substring(lastFromIndex).trim();
-                let splits = from.split(' ');
-                let obj = splits[1];
-                query = query.substring(0, lastFromIndex);
-                query += ' from ' + obj + ' where id >= ' + ids[0] + ' and id <= ' + ids[ids.length - 1];
-                console.log(query);
-                let out = await ProcessManager.exportTreeData(query, args.prefix, args.outputPath, args.username);
-                console.log(out);
-                if (out) {
-                    if (out.stdOut) {
-                        resolve();
-                    } else {
-                        reject(out.stdErr);
-                        break;
-                    }
-                } else {
-                    reject('Unknow Error');
-                    break;
-                }
-            }
-            extractingFinished = true;
-        } catch (error) {
-            reject(error);
-            return;
-        }
-    });
-}*/
 
 function reportExtractingProgress(args, millis) {
     if (!extractingFinished) {
