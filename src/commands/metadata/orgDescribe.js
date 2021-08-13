@@ -1,12 +1,12 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
-const AppUtils = require('./utils');
+const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
+const { ProgressStatus } = require('@ah/core').Types;
 const Connection = require('@ah/connector');
-const { ProjectUtils } = require('@ah/core').Utils;
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 
 
 let argsList = [
@@ -62,7 +62,7 @@ async function run(args) {
         return;
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -99,7 +99,7 @@ async function run(args) {
 function describeMetadata(args) {
     return new Promise(async function (resolve, reject) {
         try {
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
             const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
             connection.setMultiThread();
@@ -113,14 +113,15 @@ function describeMetadata(args) {
                     types.push(type);
                 }
             } else if (args.type) {
-                types = AppUtils.getTypes(args.type);
+                types = MetadataCommandUtils.getTypes(args.type);
             }
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Describing Org Metadata Types', args.progress));
-            const metadata = await connection.describeMetadataTypes(types, !args.orgNamespace, function (status) {
-                if (status.stage === 'afterDownload') {
+            const metadata = await connection.describeMetadataTypes(types, !args.orgNamespace, function (progress) {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnAfterDownloadStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(status.percentage, 'MetadataType: ' + status.typeOrObject, args.progress));
+                        Output.Printer.printProgress(Response.progress(progress.percentage, 'MetadataType: ' + progress.entityType, args.progress));
                 }
             });
             resolve(metadata);

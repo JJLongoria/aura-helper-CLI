@@ -1,13 +1,14 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
-const Utils = require('./utils');
+const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
 const DependenciesManager = require('@ah/dependencies-manager');
 const XMLCompressor = require('@ah/xml-compressor');
 const Connection = require('@ah/connector');
+const { ProjectUtils } = require('@ah/core/').CoreUtils;
+const { ProgressStatus } = require('@ah/core').Types;
 
 const IGNORE_FILE_NAME = '.ahignore.json';
 
@@ -98,8 +99,8 @@ function run(args) {
         Output.Printer.printWarning('WARNING. --use-ignore option selected but not exists the ignore file in (' + args.ignoreFile + '). The selected files will be created but metadata not will be ignored');
     }
     let types;
-    if (args.type) {
-        types = Utils.getAdvanceTypes(args.type);
+    if (args.type && !args.all) {
+        types = MetadataCommandUtils.getAdvanceTypes(args.type);
     }
     if (args.onlyCheck && args.outputFile) {
         try {
@@ -131,7 +132,7 @@ function run(args) {
 function repairDependencies(args, types) {
     return new Promise(async function (resolve, reject) {
         try {
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const result = DependenciesManager.repairDependencies(args.root, metadataDetails, {
@@ -140,14 +141,15 @@ function repairDependencies(args, types) {
                 sortOrder: args.sortOrder,
                 checkOnly: args.checkOnly,
                 ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,
-            }, (status) => {
-                if (status.stage === 'startObject') {
+            }, (progress) => {
+                progress = new ProgressStatus(progress);
+                if (progress.isOnStartObjectStage()) {
                     if (args.progress) {
-                        Output.Printer.printProgress(Response.progress(undefined, 'Processing object ' + status.metadataObject + ' from ' + status.metadataType, args.progress));
+                        Output.Printer.printProgress(Response.progress(undefined, 'Processing object ' + progress.entityObject + ' from ' + progress.entityType, args.progress));
                     }
-                } else if (status.stage === 'startItem') {
+                } else if (progress.isOnStartItemStage()) {
                     if (args.progress) {
-                        Output.Printer.printProgress(Response.progress(undefined, 'Processing item ' + status.metadataItem + '(' + status.metadataObject + ') from ' + status.metadataType, args.progress));
+                        Output.Printer.printProgress(Response.progress(undefined, 'Processing item ' + progress.entityItem + '(' + progress.entityObject + ') from ' + progress.entityType, args.progress));
                     }
                 }
             });

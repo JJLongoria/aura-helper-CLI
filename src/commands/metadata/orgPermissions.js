@@ -1,15 +1,10 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
-const { PathUtils, FileChecker, FileWriter, FileReader } = require('@ah/core').FileSystem;
+const { PathUtils } = require('@ah/core').FileSystem;
 const Connection = require('@ah/connector');
-const { MetadataType, MetadataObject } = require('@ah/core').Types;
-const { MetadataTypes } = require('@ah/core').Values;
-const { XMLUtils, ProjectUtils } = require('@ah/core').Utils;
-const PackageGenerator = require('@ah/package-generator');
-const { XMLParser } = require('@ah/core').Languages;
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 
 const PROJECT_NAME = 'TempProject';
 
@@ -49,7 +44,7 @@ function run(args) {
         return;
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -79,33 +74,15 @@ function loadPermissions(args) {
                 reportRetrieveProgress(args, 2500);
             }
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
-            const username = await Config.getAuthUsername(args.root);
-            const connection = new Connection(username, undefined, args.root, projectConfig.namespace);
-            let metadata = {};
-            const metadataType = new MetadataType(MetadataTypes.PROFILE, true);
-            metadataType.childs["Admin"] = new MetadataObject("Admin", true);
-            metadata[MetadataTypes.PROFILE] = metadataType;
-            let path = PathUtils.getAuraHelperCLITempFilesPath();
-            if (FileChecker.isExists(path))
-                FileWriter.delete(path);
-            FileWriter.createFolderSync(path);
-            const createProjectOut = await connection.createSFDXProject(PROJECT_NAME, path, undefined, true);
-            const packageResult = PackageGenerator.createPackage(metadata, connection.packageFolder, {
-                apiVersion: projectConfig.sourceApiVersion,
-                explicit: true,
+            const username = ProjectUtils.getOrgAlias(args.root);
+            const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
+            connection.loadUserPermissions(PathUtils.getAuraHelperCLITempFilesPath()).then((permissions) => {
+                retrievedFinished = true;
+                resolve(permissions);
+            }).catch((error) => {
+                retrievedFinished = true;
+                reject(error);
             });
-            const setDefaultOrgOut = await connection.setAuthOrg(username);
-            const retrieveOut = await connection.retrieve(false);
-            retrievedFinished = true;
-            let result = [];
-            let xmlRoot = XMLParser.parseXML(FileReader.readFileSync(connection.projectFolder + '/force-app/main/default/profiles/Admin.profile-meta.xml'), true);
-            if (xmlRoot[MetadataTypes.PROFILE] && xmlRoot[MetadataTypes.PROFILE].userPermissions) {
-                let permissions = XMLUtils.forceArray(xmlRoot[MetadataTypes.PROFILE].userPermissions);
-                for (let permission of permissions) {
-                    result.push(permission.name);
-                }
-            }
-            resolve(result);
         } catch (error) {
             retrievedFinished = true;
             reject(error);

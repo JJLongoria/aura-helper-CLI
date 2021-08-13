@@ -1,10 +1,9 @@
 const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
-const Config = require('../../main/config');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileReader, FileWriter } = require('@ah/core').FileSystem;
-const { MathUtils, ProjectUtils } = require('@ah/core').Utils;
+const { MathUtils, ProjectUtils } = require('@ah/core').CoreUtils;
 const Connection = require('@ah/connector');
 
 let argsList = [
@@ -94,7 +93,7 @@ async function run(args) {
         }
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -113,7 +112,7 @@ async function run(args) {
         Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
         return;
     }
-    username = await Config.getAuthUsername(args.root);
+    username = ProjectUtils.getOrgAlias(args.root);
     cleanWorkspace(PathUtils.getAuraHelperCLITempFilesPath() + '/import-export');
     if (args.sourceOrg) {
         let planFile = await startExtractingData(args);
@@ -175,7 +174,7 @@ function startExtractingData(args) {
                 reportExtractingProgress(args, 1000);
             }
             const connection = new Connection(args.sourceOrg, args.apiVersion, args.root, undefined);
-            const response = await connection.exportTreeData(args.query, args.prefix, args.outputPath);
+            const response = await connection.exportTreeData(args.query, args.outputPath, args.prefix);
             resolve(response);
         } catch (error) {
             reject(error);

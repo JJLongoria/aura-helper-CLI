@@ -2,11 +2,10 @@ const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
-const { TypesFactory } = require('@ah/core').Types;
-const { ProjectUtils } = require('@ah/core').Utils;
+const TypesFactory = require('@ah/metadata-factory');
+const { ProjectUtils } = require('@ah/core').CoreUtils;
 const Connection = require('@ah/connector');
-const Config = require('../../main/config');
-const AppUtils = require('./utils');
+const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
 
 let argsList = [
@@ -60,7 +59,7 @@ async function run(args) {
         return;
     }
     if (args.apiVersion) {
-        args.apiVersion = CommandUtils.getApiVersion(args.apiVersion);
+        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
             Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
@@ -99,7 +98,7 @@ function describeLocalMetadata(args) {
         try {
             if (args.progress)
                 Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
-            const username = await Config.getAuthUsername(args.root);
+            const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, args.apiVersion, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
@@ -110,7 +109,7 @@ function describeLocalMetadata(args) {
             if (args.all) {
                 metadata = metadataFromFileSystem;
             } else if (args.type) {
-                const types = AppUtils.getTypes(args.type);
+                const types = MetadataCommandUtils.getTypes(args.type);
                 for (const type of types) {
                     if (metadataFromFileSystem[type])
                         metadata[type] = metadataFromFileSystem[type];

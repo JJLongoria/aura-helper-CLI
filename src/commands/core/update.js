@@ -2,7 +2,7 @@ const Output = require('../../output');
 const Response = require('../response');
 const ErrorCodes = require('../errors');
 const { PathUtils } = require('@ah/core').FileSystem;
-const { StrUtils } = require('@ah/core').Utils;
+const { StrUtils } = require('@ah/core').CoreUtils;
 const { ProcessFactory, ProcessHandler } = require('@ah/core').ProcessManager;
 
 exports.createCommand = function (program) {

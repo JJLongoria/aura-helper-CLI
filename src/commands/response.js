@@ -38,6 +38,7 @@ class Response {
         if (!format || format === 'json') {
             let body = getResponseBody();
             body.status = 0;
+            body.isProgress = true;
             body.result = {
                 message: message,
                 data: {
