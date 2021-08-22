@@ -85,36 +85,36 @@ Metadata commands are the commands for work with your metadata files. You can co
 
 ## [**Local Metadata Commands**](#local-metadata-commands)
 
-  - [**metadata\:local\:compress**](#metadatalocalcompress)
+  - [**metadata&colon;local&colon;compress**](#metadatalocalcompress)
 
     Command for compress XML files for ocuppy less data storage, and make more usefull with SVC systems like Git. With XML Files compressed, the file confilcts on merges are to much easy to resolve.
 
-  - [**metadata\:local\:ignore**](#metadatalocalignore)
+  - [**metadata&colon;local&colon;ignore**](#metadatalocalignore)
 
     Command for ignore some metadata types. If you use git or other SVC systems, you can construct a .gitignore file or similar for ignore some files from your SVC. But salesforce have some metadata that can't be ignored with git because have into other files, like custom labels, workflows or user permissios for example. This command allow to you to ignore this types of metadata. This command support all metadata types to ignore. (Can delete entire files and folders)
 
-  - [**metadata\:local\:list**](#metadatalocallist)
+  - [**metadata&colon;local&colon;list**](#metadatalocallist)
 
     Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
-  - [**metadata\:local\:describe**](#metadatalocaldescribe)
+  - [**metadata&colon;local&colon;describe**](#metadatalocaldescribe)
 
     Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
-  - [**metadata\:local\:repair**](#metadatalocalrepair)
+  - [**metadata&colon;local&colon;repair**](#metadatalocalrepair)
 
     Command for repair your project local dependencies. With this command you cand repair automatically or check if have dependencies errors for repair it (or not, because is possible to detect errors because you don't have all metadata into your local project).
 
-  - [**metadata\:local\:package\:create**](#metadatalocalpackagecreate)
+  - [**metadata&colon;local&colon;package&colon;create**](#metadatalocalpackagecreate)
 
     Command for repair create the package files. You can create the package and destructive files for deploy and delete (before and after deploy) automatically from different sources. You can chose to create from other package files for merge all packages into only one. Also you can create the package files based on a JSON file (See [Metadata JSON Format](#metadata-file) section) or better, you can create the files from a git differences. You can compare two branches, commits, tags... for detect modifies, new files and deleted metadata for create the package and destructive files with a simple command. Also you can ignore metadata types for not include in package according .ahignore.json file.
 
-  - [**metadata\:local\:retrieve\:special**](#metadatalocalretrievespecial)
+  - [**metadata&colon;local&colon;retrieve&colon;special**](#metadatalocalretrievespecial)
 
     Command for retrieve the special metadata types stored in your local project. The special types are the types generated at runtime when retrieving data from org according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
 
 ---
-### [**metadata\:local\:compress**](#metadatalocalcompress)
+### [**metadata&colon;local&colon;compress**](#metadatalocalcompress)
 Command for compress XML files for ocuppy less data storage, and make more usefull with SVC systems like Git. With XML Files compressed, the file confilcts on merges are to much easy to resolve.
 
 ### **Options**:
@@ -143,7 +143,7 @@ Compress Account XML File:
 
     aura-helper metadata:local:compress -f force-app/main/default/objects/Account/Account.object-meta-xml
 
-### [**metadata\:local\:ignore**](#metadatalocalcompress)
+### [**metadata&colon;local&colon;ignore**](#metadatalocalcompress)
 Command for ignore some metadata types. If you use git or other SVC systems, you can construct a .gitignore file or similar for ignore some files from your SVC. But salesforce have some metadata that can't be ignored with git because have into other files, like custom labels, workflows or user permissios for example. This command allow to you to ignore this types of metadata. This command support all metadata types to ignore. (Can delete entire files and folders)
 
 ### **Options**:
@@ -173,7 +173,7 @@ Ignore only Custom Application, Custom Labels and Profiles specified in .ahignor
     aura-helper metadata:local:ignore -t "CustomApplication, Profile, CustomLabels" -i "Path/to/the/file/.myignoreFile.json"
 
 
-### [**metadata\:local\:list**](#metadatalocallist) 
+### [**metadata&colon;local&colon;list**](#metadatalocallist) 
 Command for list all Metadata Types stored in your local project. 
 
 ### **Options**:
@@ -197,7 +197,7 @@ List all types from different project and save the output into a file
     aura-helper metadata:local:list -r "path/to/other/project/root" -s "path/to/the/output/file.txt"
 
 
-### [**metadata\:local\:describe**](#metadatalocaldescribe)
+### [**metadata&colon;local&colon;describe**](#metadatalocaldescribe)
 Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
 ### **Options**:
@@ -224,7 +224,7 @@ Describe Custom Objects, Custom Fields, Profiles and ValidationRules from your l
     aura-helper metadata:local:describe -t "CustomObject, CustomField, Profile, ValidatiionRule" -b                      
 
 
-### [**metadata\:local\:repair**](#metadatalocalrepair)
+### [**metadata&colon;local&colon;repair**](#metadatalocalrepair)
 Command for repair your project local dependencies. With this command you cand repair automatically or check if have dependencies errors for repair it (or not, because is possible to detect errors because you don't have all metadata into your local project).
 
 ### **Options**:
@@ -262,7 +262,7 @@ Check only the errors on profiles and save the output on a file
 
     aura-helper metadata:local:repair -t "Profile" -o -s ""path/to/the/output/errors.txt""
 
-### [**metadata\:local\:package\:create**](#metadatalocalpackagecreate) 
+### [**metadata&colon;local&colon;package&colon;create**](#metadatalocalpackagecreate) 
 Command for repair create the package files. You can create the package and destructive files for deploy and delete (before and after deploy) automatically from different sources. You can chose to create from other package files for merge all packages into only one. Also you can create the package files based on a JSON file (See [Metadata JSON Format](#metadata-file) section) or better, you can create the files from a git differences. You can compare two branches, commits, tags... for detect modifies, new files and deleted metadata for create the package and destructive files with a simple command. Also you can ignore metadata types for not include in package according .ahignore.json file.
 
 ### **Options**:
@@ -312,7 +312,7 @@ Merging other packages and destructive files for create only both files.
     aura-helper metadata:local:package:create -c both -f package -s "path/to/package1/package.xml, path/to/package2/package.xml, path/to/destructive1/destructiveChanges.xml, path/to/destructive2/destructiveChangesPost.xml"
 
 
-### [**metadata\:local\:retrieve\:special**](#metadatalocalretrievespecial)
+### [**metadata&colon;local&colon;retrieve&colon;special**](#metadatalocalretrievespecial)
 Command for retrieve the special metadata types stored in your local project. The special types are the types generated at runtime when retrieving data from org according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
 
 ### **Options**:
@@ -349,15 +349,15 @@ Command for retrieve the special metadata types stored in your local project. Th
 
 ## [**Org Metadata Commands**](#org-metadata-commands)
 
-  - [**metadata\:org\:list**](#metadataorglist)
+  - [**metadata&colon;org&colon;list**](#metadataorglist)
 
     Command for list all Metadata Types stored in your auth org
 
-  - [**metadata\:org\:describe**](#metadataorgdescribe)
+  - [**metadata&colon;org&colon;describe**](#metadataorgdescribe)
 
     Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
 
-  - [**metadata\:org\:compare**](#metadataorgcompare)
+  - [**metadata&colon;org&colon;compare**](#metadataorgcompare)
 
     Command for compare your local project with your auth org for get the differences. The result are the metadata types and objects that you have in your org, but don't have in your local project.
 
@@ -365,20 +365,20 @@ Command for retrieve the special metadata types stored in your local project. Th
 
     Command for compare between two different orgs. The result are the metadata types that exists in on target, but not exists on source.
 
-  - [**metadata\:org\:retrieve\:special**](#metadataorgretrievespecial)
+  - [**metadata&colon;org&colon;retrieve&colon;special**](#metadataorgretrievespecial)
 
     Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
 
-  - [**metadata\:org\:permissions**](#metadataorgpermissions)
+  - [**metadata&colon;org&colon;permissions**](#metadataorgpermissions)
 
     Command for get all available User permisions in your org.
 
-  - [**metadata\:org\:apex\:executor**](#metadataorgapexexecutor)
+  - [**metadata&colon;org&colon;apex&colon;executor**](#metadataorgapexexecutor)
 
     Command for get all available User permisions in your org.
 
 ---
-### [**metadata\:org\:list**](#metadataorglist) 
+### [**metadata&colon;org&colon;list**](#metadataorglist) 
 Command for list all Metadata Types stored in your auth org
 
 ### **Options**:
@@ -402,7 +402,7 @@ List all types from different project and save the output into a file
 
     aura-helper metadata:org:list -r "path/to/other/project/root" -s "path/to/the/output/file.txt"
 
-### [**metadata\:org\:describe**](#metadataorgdescribe)
+### [**metadata&colon;org&colon;describe**](#metadataorgdescribe)
 Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
 
 ### **Options**:
@@ -429,7 +429,7 @@ Describe Custom Objects, Custom Fields, Profiles and ValidationRules from your o
 
     aura-helper metadata:org:describe -t "CustomObject, CustomField, Profile, ValidatiionRule" -b 
 
-### [**metadata\:org\:compare**](#metadataorgcompare)
+### [**metadata&colon;org&colon;compare**](#metadataorgcompare)
 Command for compare your local project with your auth org for get the differences. The result are the metadata types and objects that you have in your org, but don't have in your local project.
 
 ### **Options**:
@@ -471,7 +471,7 @@ Compare between to orgs with report and colorized output.
 
     aura-helper metadata:org:compare:between -s test.username@salesforceOrg.com.uat -t test.username@salesforceOrg.com.qa -p plaintext -b
 
-### [**metadata\:org\:retrieve\:special**](#metadataorgcomparebetween)
+### [**metadata&colon;org&colon;retrieve&colon;special**](#metadataorgcomparebetween)
 Command for retrieve the special metadata types stored in your auth org. The special types are all types generated at runtime when retrieving metadata according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.
 
 ### **Options**:
@@ -506,7 +506,7 @@ Retrieve All Profiles, Perm1 and Perm2 Permission Sets, all Case RecordTypes and
 
     aura-helper metadata:org:retrieve:special -t "Profile, PermissionSet:Perm1, PermissionSet:Perm2, RecordType:Case, RecordType:Account:RtName" -p plaintext -b
 
-### [**metadata\:org\:permissions**](#metadataorgcomparebetween)
+### [**metadata&colon;org&colon;permissions**](#metadataorgcomparebetween)
 Command for get all available User permisions in your org.
 
 ### **Options**:
@@ -528,7 +528,7 @@ Get all user permission from your auth org for a specific api version with color
 
     aura-helper metadata:org:permissions -v 45.0 -b -p plaintext
 
-### [**metadata\:org\:apex\:executor**](#metadataorgapexexecutor)
+### [**metadata&colon;org&colon;apex&colon;executor**](#metadataorgapexexecutor)
 Command for get all available User permisions in your org.
 
 ### **Options**:
