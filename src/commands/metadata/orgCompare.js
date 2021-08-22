@@ -1,10 +1,10 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
 const TypesFactory = require('@ah/metadata-factory');
-const { MetadataUtils, ProjectUtils } = require('@ah/core').CoreUtils;
+const { MetadataUtils, ProjectUtils, Validator } = require('@ah/core').CoreUtils;
 const { ProgressStatus } = require('@ah/core').Types;
 const Connection = require('@ah/connector');
 
@@ -33,42 +33,42 @@ exports.createCommand = function (program) {
 async function run(args) {
     Output.Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
     try {
-        args.root = PathUtils.getAbsolutePath(args.root);
+        args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
         return;
+    }
+    if (!FileChecker.isSFDXRootPath(args.root)) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+        return;
+    }
+    if (args.progress) {
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            return;
+        }
     }
     if (args.outputFile) {
         try {
             args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-file path. Select a valid path'));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --output-file path').exception(error));
             return;
         }
     }
-    if (!FileChecker.isSFDXRootPath(args.root)) {
-        Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
-        return;
-    }
     if (args.apiVersion) {
-        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
-        if (!args.apiVersion) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
-            return;
+        try {
+            args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
+        } catch (error) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error));
         }
     } else {
         let projectConfig = ProjectUtils.getProjectConfig(args.root);
         args.apiVersion = projectConfig.sourceApiVersion;
-    }
-    if (args.progress) {
-        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
-            return;
-        }
     }
     compareMetadata(args).then(function (result) {
         if (args.outputFile) {
@@ -76,11 +76,12 @@ async function run(args) {
             if (!FileChecker.isExists(baseDir))
                 FileWriter.createFolderSync(baseDir);
             FileWriter.createFileSync(args.outputFile, JSON.stringify(result, null, 2));
+            Output.Printer.printSuccess(new ResponseBuilder('Output saved in: ' + args.outputFile));
         } else {
-            Output.Printer.printSuccess(Response.success("Comparing Org with Local finished succesfully", result));
+            Output.Printer.printSuccess(new ResponseBuilder('Comparing Org with Local finished succesfully').data(result));
         }
     }).catch(function (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
     });
 }
 
@@ -88,7 +89,7 @@ function compareMetadata(args) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Describe Local Metadata', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Local Metadata'));
             const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, args.apiVersion, args.root);
             connection.setMultiThread();
@@ -96,16 +97,16 @@ function compareMetadata(args) {
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
             const typesFromLocal = TypesFactory.createMetadataTypesFromFileSystem(folderMetadataMap, args.root);
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Describe Org Metadata', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Org Metadata'));
             const typesFromOrg = await connection.describeMetadataTypes(metadataDetails, false, function (progress) {
                 progress = new ProgressStatus(progress);
                 if (progress.isOnAfterDownloadStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(progress.percentage, 'MetadataType: ' + progress.entityType, args.progress));
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + progress.entityType).increment(progress.increment).percentage(progress.percentage));
                 }
             });
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Comparing Metadata Types', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Comparing Metadata Types'));
             const compareResult = MetadataUtils.compareMetadata(typesFromLocal, typesFromOrg);
             resolve(compareResult);
         } catch (error) {

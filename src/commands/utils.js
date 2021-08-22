@@ -1,5 +1,3 @@
-const { ProjectUtils } = require('@ah/core').CoreUtils;
-
 class Utils {
     static getProgressAvailableTypes() {
         return [

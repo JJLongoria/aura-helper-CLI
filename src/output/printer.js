@@ -1,5 +1,6 @@
 const colors = require('colors');
 const COLORS = require('./colorName');
+const { Utils } = require('@ah/core').CoreUtils;
 
 let colorized = false;
 
@@ -42,19 +43,31 @@ class Printer {
     }
 
     static printError(text) {
-        Printer.print(text, COLORS.RED);
+        if(Utils.isObject(text))
+            Printer.print(text.toString(), COLORS.RED);
+        else
+            Printer.print(text, COLORS.RED);
     }
 
     static printSuccess(text) {
-        Printer.print(text, COLORS.GREEN);
+        if(Utils.isObject(text))
+            Printer.print(text.toString(), COLORS.GREEN);
+        else
+            Printer.print(text, COLORS.GREEN);
     }
 
     static printWarning(text) {
-        Printer.print(text, COLORS.YELLOW);
+        if(Utils.isObject(text))
+            Printer.print(text.toString(), COLORS.YELLOW);
+        else
+            Printer.print(text, COLORS.YELLOW);
     }
 
     static printProgress(text) {
-        Printer.print(text, COLORS.BLUE);
+        if(Utils.isObject(text))
+            Printer.print(text.toString(), COLORS.BLUE);
+        else
+            Printer.print(text, COLORS.BLUE);
     }
 
     static printForHelp(args) {

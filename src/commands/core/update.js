@@ -1,5 +1,5 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const { PathUtils } = require('@ah/core').FileSystem;
 const { StrUtils } = require('@ah/core').CoreUtils;
@@ -28,9 +28,9 @@ function run() {
     }
     if (runNpm) {
         updateNPM().then(function (result) {
-            Output.Printer.printSuccess(Response.success(result));
+            Output.Printer.printSuccess(new ResponseBuilder(result));
         }).catch(function (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.UNKNOWN_ERROR, error));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
         });
     } else {
         update(appPaths[0]);

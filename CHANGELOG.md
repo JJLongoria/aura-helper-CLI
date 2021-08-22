@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 ## [3.0.0 - 2020-03-XX]
 ### Added
-- The v3.0.0 is the biggest Update of Aura Helper CLI. This versión implements the Aura Helper Framework created in nodeJS. This framework are robust, faster and better than the old Aura Helper Code. Aura Helper Framework is an open source framework to provide tools to any developer to create applications for salesforce. Aurra Helper Extension and Aura Helper CLI use it.
+- The v3.0.0 is the biggest Update of Aura Helper CLI. This versión implements the Aura Helper Framework created in nodeJS. This framework are robust, faster and better than the old Aura Helper Code. Aura Helper Framework is an open source framework to provide tools to any developer to create applications for salesforce. Aura Helper Extension and Aura Helper CLI use it.
 
 - Added **Aura Helper Framework Modules** to enhance, reuse and optimize code and processes.
 - Added new command **metadata:org:permissions** to execute anonymous apex scripts N times.
@@ -44,6 +44,8 @@ All notable changes to this project will be documented in this file.
 - Changed **metadata:org:describe** Command for use *Aura Helper Framework Modules*
 - Changed **metadata:org:list** Command for use *Aura Helper Framework Modules*
 - Changed **metadata:org:retrieve:special** Command for use *Aura Helper Framework Modules
+- **IMPORTANT CHANGE**: Change the Response, Progress and Error bodys to a new format (similar but need adapt response threatments). Now use AuraHelperCLIResponse, AuraHelperCLIProgress, AuraHelperCLIError classes to display the response, progress and errors.
+- Changed **README** file to better information order and addapt to Aura Helper Framework Style.
 
 ### Fixed
 - Fixed minor errors on several commands

@@ -1,66 +1,104 @@
-class Response {
+const { AuraHelperCLIResponse, AuraHelperCLIProgress, AuraHelperCLIError } = require('@ah/core').Types;
 
-    static success(message, data) {
-        let body = getResponseBody();
-        body.status = 0;
-        body.result = {
-            message: message,
-            data: data
-        };
-        return JSON.stringify(body, null, 2);
+class ErrorBuilder{
+
+    constructor(errorType){
+        this._status = -1;
+        this._code = errorType.code;
+        this._message = errorType.message;
     }
 
-    static error(error, message) {
-        let body = getResponseBody();
-        let resMessage;
-        if (!message) {
-            resMessage = error.message;
-        }
-        else {
-            if (message.stack) {
-                resMessage = message.name + ': ' + message.message + ' - ' + message.stack;
-            } else {
-                resMessage = message;
-            }
-        }
-        body.status = error.code;
-        body.error = {
-            code: error.code,
-            name: error.name,
-            message: resMessage
-        };
-        return JSON.stringify(body, null, 2);
+    status(status){
+        this._status = status;
+        return this;
     }
 
-    static progress(percentage, message, format) {
-        if (percentage > 100)
-            percentage = 100;
-        if (!format || format === 'json') {
-            let body = getResponseBody();
-            body.status = 0;
-            body.isProgress = true;
-            body.result = {
-                message: message,
-                data: {
-                    percentage: (percentage) ? percentage : -1,
-                }
-            };
+    message(message){
+        this._message = (!this._message) ? message : this._message + '. ' + message;
+        return this;
+    }
+
+    exception(exception){
+        this._message = (!this._message) ? message : this._message + '. Error Message: ' + exception.message;
+        this._name = exception.name;
+        return this;
+    }
+
+    toString(){
+        const body = new AuraHelperCLIError(this._status, this._name, this._code, this._message);
+        return JSON.stringify(body, null, 2);
+    }        
+}
+exports.ErrorBuilder = ErrorBuilder;
+
+class ProgressBuilder{
+
+    constructor(format){
+        this._status = 0;
+        this._format = format;
+        this._increment = -1;
+        this._percentage = -1;
+    }
+
+    increment(increment){
+        this._increment = increment;
+        if(this._increment > 100)
+            this._increment = 100;
+        return this;
+    }
+
+    percentage(percentage){
+        this._percentage = percentage;
+        if(this._percentage > 100)
+            this._percentage = 100;
+        return this;
+    }
+
+    status(statusCode){
+        this._status = statusCode;
+        return this;
+    }
+
+    message(message){
+        this._message = (!this._message) ? message : this._message + '. ' + message;
+        return this;
+    }
+
+    toString(){
+        if (!this._format || this._format === 'json') {
+            const body = new AuraHelperCLIProgress(this._status, this._message, );
             return JSON.stringify(body, null, 2);
-        } else if (format === 'plaintext') {
-            if (percentage)
-                return message + ' (' + percentage + '%)';
+        } else {
+            if (this._percentage)
+                return this._message + ' (' + this._percentage + '%)';
             else
-                return message;
+                return this._message;
         }
+    }        
+}
+exports.ProgressBuilder = ProgressBuilder;
+
+class ResponseBuilder {
+
+    constructor(message){
+        this._status = 0;
+        this._message = message;
+        this._data = {};
     }
 
-}
-module.exports = Response;
-
-function getResponseBody() {
-    return {
-        status: 0,
-        result: undefined,
-        error: undefined
+    message(message){
+        this._message = (!this._message) ? message : this._message + '. ' + message;
+        return this;
     }
+
+    data(data){
+        this._data = data;
+        return this;
+    }
+
+    toString(){
+        const body = new AuraHelperCLIResponse(this._status, this._message, this._data);
+        return JSON.stringify(body, null, 2);
+    } 
 }
+exports.ResponseBuilder = ResponseBuilder;

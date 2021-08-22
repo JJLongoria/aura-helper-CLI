@@ -1,12 +1,13 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
 const GitManager = require('@ah/git-manager');
 const Connection = require('@ah/connector');
 const Ignore = require('@ah/ignore');
 const PackageGenerator = require('@ah/package-generator');
-const { ProjectUtils } = require('@ah/core').CoreUtils;
+const { ProjectUtils, Validator } = require('@ah/core').CoreUtils;
+const { PackageGeneratorResult } = require('@ah/core').Types;
 const { PathUtils, FileChecker, FileReader } = require('@ah/core').FileSystem;
 const TypesFactory = require('@ah/metadata-factory');
 
@@ -76,125 +77,128 @@ exports.createCommand = function (program) {
 function run(args) {
     Output.Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
     try {
-        args.root = PathUtils.getAbsolutePath(args.root);
+        args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
         return;
+    }
+    if (!FileChecker.isSFDXRootPath(args.root)) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+        return;
+    }
+    if (args.progress) {
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            return;
+        }
     }
     try {
         args.outputPath = PathUtils.getAbsolutePath(args.outputPath);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --output-path path. Select a valid path'));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --output-path path').exception(error));
         return;
     }
     if (!createTypeAvailableValues.includes(args.createType)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --create-type selected. Plase select one of this values: ' + createTypeAvailableValues.join(',')));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --create-type selected. Plase select one of this values: ' + createTypeAvailableValues.join(',')));
         return;
     }
     if (!createFromAvailableValues.includes(args.createFrom)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --create-from selected. Plase select one of this values: ' + createFromAvailableValues.join(',')));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --create-from selected. Plase select one of this values: ' + createFromAvailableValues.join(',')));
         return;
     }
     if (!deleteOrderAvailableValues.includes(args.deleteOrder)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --delete-order selected. Plase select one of this values: ' + deleteOrderAvailableValues.join(',')));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --delete-order selected. Plase select one of this values: ' + deleteOrderAvailableValues.join(',')));
         return;
     }
-    if (!args.ignoreFile)
-        args.ignoreFile = args.root + '/' + IGNORE_FILE_NAME;
-    else {
+    if (args.useIgnore) {
+        if (!args.ignoreFile)
+            args.ignoreFile = args.root + '/' + IGNORE_FILE_NAME;
         try {
+            Validator.validateJSONFile(args.ignoreFile);
             args.ignoreFile = PathUtils.getAbsolutePath(args.ignoreFile);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --ignore-file path. Select a valid path'));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --ignore-file path.').exception(error));
             return;
         }
     }
-    if (args.useIgnore && !FileChecker.isExists(args.ignoreFile)) {
-        Output.Printer.printWarning('WARNING. --use-ignore option selected but not exists the ignore file in (' + args.ignoreFile + '). The selected files will be created but metadata not will be ignored');
-    }
     if (args.apiVersion) {
-        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
-        if (!args.apiVersion) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
-            return;
+        try {
+            args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
+        } catch (error) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error));
         }
     } else {
         let projectConfig = ProjectUtils.getProjectConfig(args.root);
         args.apiVersion = projectConfig.sourceApiVersion;
     }
-    if (args.progress) {
-        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
-            return;
-        }
-    }
     switch (args.createFrom) {
         case 'git':
             if (args.source === undefined) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --source. For --create-from git you must select a branch, tag or commit at source'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --source. For --create-from git you must select a branch, tag or commit at source'));
                 return;
             }
             if (args.target === 'this') {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --target. For --create-from git "this" value is only available for --source parameter'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --target. For --create-from git "this" value is only available for --source parameter'));
                 return;
             }
-            createFromGit(args).then(function (result) {
+            createFromGit(args).then((result) => {
                 if (args.raw) {
-                    Output.Printer.printSuccess(Response.success('Metadata extrated successfully for create the package and destructive files', result));
+                    Output.Printer.printSuccess(new ResponseBuilder('Metadata extrated successfully for create the package and destructive files').data(result));
                 } else {
-                    Output.Printer.printSuccess(Response.success(result));
+                    Output.Printer.printSuccess(new ResponseBuilder('File(s) created succesfully').data(result));
                 }
                 return;
-            }).catch(function (error) {
-                Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+            }).catch((error) => {
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
                 return;
             });
             break;
         case 'csv':
             if (args.source === undefined) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --source. For --create-from csv you must select the path to the csv file'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --source. For --create-from csv you must select the path to the csv file'));
                 return;
             }
             try {
                 args.source = PathUtils.getAbsolutePath(args.source);
             } catch (error) {
-                Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --source path. Select a valid path'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --source path. Select a valid path'));
                 return;
             }
             createFromCSV(args).then(function (result) {
-                Output.Printer.printSuccess(Response.success(result));
+                Output.Printer.printSuccess(new ResponseBuilder('File created succesfully').data(result));
                 return;
             }).catch(function (error) {
-                Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
                 return;
             });;
             break;
         case 'json':
             if (args.source === undefined) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --source. For --create-from json you must select the path to the json file'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --source. For --create-from json you must select the path to the json file'));
                 return;
             }
             try {
+                Validator.validateMetadataJSON(args.source);
                 args.source = PathUtils.getAbsolutePath(args.source);
             } catch (error) {
-                Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --source path. Select a valid path'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --source path.').exception(error));
                 return;
             }
             createFromJSON(args).then(function (result) {
-                Output.Printer.printSuccess(Response.success(result));
+                Output.Printer.printSuccess(new ResponseBuilder('File created succesfully').data(result));
                 return;
             }).catch(function (error) {
-                Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
                 return;
             });
             break;
         case 'package':
             if (args.source === undefined) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --source. For --create-from package you must select the path to the json file'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --source. For --create-from package you must select the path to the json file'));
                 return;
             }
             let packageSources = [];
@@ -204,23 +208,23 @@ function run(args) {
                 packageSources = args.source.split(' ');
             }
             if (packageSources.length < 2) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --source. For --create-from package you must select at least two package file paths'));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --source. For --create-from package you must select at least two package file paths'));
                 return;
             }
             let packages = [];
             for (const packageSource of packageSources) {
                 try {
-                    packages.push(PathUtils.getAbsolutePath(packageSource));
+                    packages.push(Validator.validateFilePath(packageSource));
                 } catch (error) {
-                    Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --source path. Select a valid path for ' + packageSource));
+                    Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --source path. Select a valid path for ' + packageSource).exception(error));
                     return;
                 }
             }
             createFromPackage(args, packages).then(function (result) {
-                Output.Printer.printSuccess(Response.success(result));
+                Output.Printer.printSuccess(new ResponseBuilder('File(s) created succesfully').data(result));
                 return;
             }).catch(function (error) {
-                Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
                 return;
             });
             break;
@@ -235,79 +239,80 @@ function createFromGit(args) {
                 args.target = undefined;
             }
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Running Git Diff', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Running Git Diff'));
             const gitDiffs = await GitManager.getDiffs(args.root, args.source, args.target);
             //FileWriter.createFileSync('./diffsOut.txt', diffsOut.stdOut);
             //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
             const username = ProjectUtils.getOrgAlias(args.root);
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));
             const connection = new Connection(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Analyzing Process Diffs for get Metadata changes', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Analyzing Process Diffs for get Metadata changes'));
             const metadataFromGitDiffs = TypesFactory.createMetadataTypesFromGitDiffs(args.root, gitDiffs, folderMetadataMap);
             if (args.useIgnore) {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Ignoring Metadata'));
                 metadataFromGitDiffs.toDeploy = Ignore.ignoreMetadata(metadataFromGitDiffs.toDeploy, args.ignoreFile, undefined, false);
                 metadataFromGitDiffs.toDelete = Ignore.ignoreMetadata(metadataFromGitDiffs.toDelete, args.ignoreFile, undefined, false);
             }
+            let packageResult;
+            let destructiveResult;
             if (args.raw) {
                 resolve(metadataFromGitDiffs);
             } else if (args.createType === 'package') {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
-                const resultPath = PackageGenerator.createPackage(metadataFromGitDiffs.toDeploy, args.outputPath, {
-                    apiVersion: args.apiVersion,
-                    explicit: true,
-                });
-                resolve(PathUtils.getBasename(resultPath) + ' file created succesfully on ' + args.outputPath);
-            } else if (args.createType === 'destructive') {
-                let resultPath;
-                if (args.deployOrder === 'before') {
-                    if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + DESTRUCT_BEFORE_FILENAME, args.progress));
-                    resultPath = PackageGenerator.createBeforeDeployDestructive(metadataFromGitDiffs.toDelete, args.outputPath, {
-                        apiVersion: args.apiVersion,
-                        explicit: true,
-                    });
-                } else {
-                    if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + DESTRUCT_AFTER_FILENAME, args.progress));
-                    resultPath = PackageGenerator.createAfterDeployDestructive(metadataFromGitDiffs.toDelete, args.outputPath, {
-                        apiVersion: args.apiVersion,
-                        explicit: true,
-                    });
-                }
-                resolve(PathUtils.getBasename(resultPath) + ' file created succesfully on ' + args.outputPath);
-            } else {
-                let packageResult;
-                let destructiveResult;
-                if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + PACKAGE_FILENAME));
                 packageResult = PackageGenerator.createPackage(metadataFromGitDiffs.toDeploy, args.outputPath, {
                     apiVersion: args.apiVersion,
                     explicit: true,
                 });
+            } else if (args.createType === 'destructive') {
                 if (args.deployOrder === 'before') {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + DESTRUCT_BEFORE_FILENAME, args.progress));
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_BEFORE_FILENAME));
                     destructiveResult = PackageGenerator.createBeforeDeployDestructive(metadataFromGitDiffs.toDelete, args.outputPath, {
                         apiVersion: args.apiVersion,
                         explicit: true,
                     });
                 } else {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + DESTRUCT_AFTER_FILENAME, args.progress));
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_AFTER_FILENAME));
                     destructiveResult = PackageGenerator.createAfterDeployDestructive(metadataFromGitDiffs.toDelete, args.outputPath, {
                         apiVersion: args.apiVersion,
                         explicit: true,
                     });
                 }
-                resolve(PathUtils.getBasename(packageResult) + ' and ' + PathUtils.getBasename(destructiveResult) + ' files created succesfully on ' + args.outputPath);
+            } else {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + PACKAGE_FILENAME));
+                packageResult = PackageGenerator.createPackage(metadataFromGitDiffs.toDeploy, args.outputPath, {
+                    apiVersion: args.apiVersion,
+                    explicit: true,
+                });
+                if (args.deployOrder === 'before') {
+                    if (args.progress)
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_BEFORE_FILENAME));
+                    destructiveResult = PackageGenerator.createBeforeDeployDestructive(metadataFromGitDiffs.toDelete, args.outputPath, {
+                        apiVersion: args.apiVersion,
+                        explicit: true,
+                    });
+                } else {
+                    if (args.progress)
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_AFTER_FILENAME));
+                    destructiveResult = PackageGenerator.createAfterDeployDestructive(metadataFromGitDiffs.toDelete, args.outputPath, {
+                        apiVersion: args.apiVersion,
+                        explicit: true,
+                    });
+                } 
             }
+            const result = new PackageGeneratorResult();
+            result.package = packageResult !== undefined ? packageResult : undefined;
+            result.destructiveChanges = (args.deployOrder === 'before' && destructiveResult) ? destructiveResult : undefined;
+            result.destructiveChangesPost = (args.deployOrder !== 'before' && destructiveResult) ? destructiveResult : undefined;
+            resolve(result);
         } catch (error) {
             reject(error);
         }
@@ -324,42 +329,44 @@ function createFromJSON(args) {
     return new Promise(function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Reading ' + args.source + ' JSON File', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Reading ' + args.source + ' JSON File'));
             let metadataTypes = JSON.parse(FileReader.readFileSync(args.source));
-            if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Validating JSON Format', args.progress));
             if (args.useIgnore) {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Ignoring Metadata', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Ignoring Metadata'));
                 metadataTypes = Ignore.ignoreMetadata(metadataTypes, args.ignoreFile, undefined, false);
             }
+            let destructiveResult;
+            let packageResult;
             if (args.createType === 'package') {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + PACKAGE_FILENAME, args.progress));
-                const packageResult = PackageGenerator.createPackage(metadataTypes, args.outputPath, {
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + PACKAGE_FILENAME));
+                packageResult = PackageGenerator.createPackage(metadataTypes, args.outputPath, {
                     apiVersion: args.apiVersion,
                     explicit: args.explicit,
                 });
-                resolve(PathUtils.getBasename(packageResult) + ' file created succesfully on ' + args.outputPath);
             } else if (args.createType === 'destructive') {
-                let destructiveResult;
                 if (args.deployOrder === 'before') {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + DESTRUCT_BEFORE_FILENAME, args.progress));
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_BEFORE_FILENAME));
                     destructiveResult = PackageGenerator.createBeforeDeployDestructive(metadataTypes, args.outputPath, {
                         apiVersion: args.apiVersion,
                         explicit: args.explicit,
                     });
                 } else {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Creating ' + DESTRUCT_AFTER_FILENAME, args.progress));
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_AFTER_FILENAME));
                     destructiveResult = PackageGenerator.createAfterDeployDestructive(metadataTypes, args.outputPath, {
                         apiVersion: args.apiVersion,
                         explicit: args.explicit,
                     });
                 }
-                resolve(PathUtils.getBasename(destructiveResult) + ' file created succesfully on ' + args.outputPath);
             }
+            const result = new PackageGeneratorResult();
+            result.package = packageResult !== undefined ? packageResult : undefined;
+            result.destructiveChanges = (args.deployOrder === 'before' && destructiveResult) ? destructiveResult : undefined;
+            result.destructiveChangesPost = (args.deployOrder !== 'before' && destructiveResult) ? destructiveResult : undefined;
+            resolve(result);
         } catch (error) {
             reject(error);
         }
@@ -370,22 +377,22 @@ function createFromPackage(args, packages) {
     return new Promise(function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Processing selected files', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Processing selected files'));
+            let result;
             if (args.createType === 'package') {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Merging Package Files', args.progress));
-                const result = PackageGenerator.mergePackages(packages, args.outputPath, {
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Merging Package Files'));
+                result = PackageGenerator.mergePackages(packages, args.outputPath, {
                     apiVersion: args.apiVersion,
                     mergeDestructives: false,
                     mergePackages: true,
                     explicit: true,
                     ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,
                 });
-                resolve(PathUtils.getBasename(result.package) + ' file created succesfully on ' + args.outputPath);
             } else if (args.createType === 'destructive') {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Merging Destructive Files', args.progress));
-                const result = PackageGenerator.mergePackages(packages, args.outputPath, {
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Merging Destructive Files'));
+                result = PackageGenerator.mergePackages(packages, args.outputPath, {
                     apiVersion: args.apiVersion,
                     mergePackages: false,
                     mergeDestructives: true,
@@ -393,12 +400,10 @@ function createFromPackage(args, packages) {
                     explicit: true,
                     ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,
                 });
-                const resultPath = (args.deployOrder === 'before') ? result.destructiveChanges : result.destructiveChangesPost;
-                resolve(PathUtils.getBasename(resultPath) + ' file created succesfully on ' + args.outputPath);
             } else {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(undefined, 'Merging Package and Destructive Files', args.progress));
-                const result = PackageGenerator.mergePackages(packages, args.outputPath, {
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Merging Package and Destructive Files'));
+                result = PackageGenerator.mergePackages(packages, args.outputPath, {
                     apiVersion: args.apiVersion,
                     mergeDestructives: true,
                     mergePackages: true,
@@ -406,9 +411,8 @@ function createFromPackage(args, packages) {
                     explicit: true,
                     ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,
                 });
-                const destructiveResult = (args.deployOrder === 'before') ? result.destructiveChanges : result.destructiveChangesPost;
-                resolve(PathUtils.getBasename(result.package) + ' and ' + PathUtils.getBasename(destructiveResult) + ' files created succesfully on ' + args.outputPath);
             }
+            resolve(result);
         } catch (error) {
             reject(error);
         }

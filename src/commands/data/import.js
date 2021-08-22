@@ -170,7 +170,7 @@ function startExtractingData(args) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from Org with username or alias ' + args.sourceOrg, args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Start Extracting data from Org with username or alias ' + args.sourceOrg, args.progress));
                 reportExtractingProgress(args, 1000);
             }
             const connection = new Connection(args.sourceOrg, args.apiVersion, args.root, undefined);
@@ -206,7 +206,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Errors found on import, rolling back', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Errors found on import, rolling back', args.progress));
             let idsByType = {};
             Object.keys(savedIdsByReference).forEach(function (reference) {
                 let refData = savedIdsByReference[reference];
@@ -218,7 +218,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
             for (let sobject of Object.keys(idsByType)) {
                 deletingFinished = false;
                 if (args.progress) {
-                    Output.Printer.printProgress(Response.progress(undefined, 'Rolling back ' + sobject + ' record(s)', args.progress));
+                    Output.Printer.printProgress(Response.progress(undefined, undefined, 'Rolling back ' + sobject + ' record(s)', args.progress));
                     reportDeletingProgress(args, 1000);
                 }
                 let csvContent = 'Id\n' + idsByType[sobject].join('\n');
@@ -228,7 +228,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
                 try {
                     const response = await connection.bulkDelete(csvFile, sobject);
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Roll back on ' + sobject + ' record(s) finished succesfully', args.progress));
+                        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Roll back on ' + sobject + ' record(s) finished succesfully', args.progress));
                 } catch (error) {
                     deletingFinished = true;
                     reject(error);
@@ -245,7 +245,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
 
 function createReferencesMap(args, planData, planFolder) {
     if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, 'Saving Reference Map', args.progress));
+        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Saving Reference Map', args.progress));
     for (let plan of planData) {
         for (file of plan.files) {
             let filePath = planFolder + "/" + file;
@@ -266,10 +266,10 @@ function createReferencesMap(args, planData, planFolder) {
 
 function resolveRecordTypeReferences(args, planData, planFolder) {
     if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, 'Resolving Record Types references', args.progress));
+        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving Record Types references', args.progress));
     for (let plan of planData) {
         if (args.progress)
-            Output.Printer.printProgress(Response.progress(undefined, 'Resolving Record Type references on ' + plan.sobject + ' records', args.progress));
+            Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving Record Type references on ' + plan.sobject + ' records', args.progress));
         for (file of plan.files) {
             let filePath = planFolder + "/" + file;
             let fileData = JSON.parse(FileReader.readFileSync(filePath));
@@ -296,7 +296,7 @@ function resolveRecordTypeReferences(args, planData, planFolder) {
 
 function createRecordsHierarchy(args, planData, planFolder) {
     if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, 'Resolving Self references', args.progress));
+        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving Self references', args.progress));
     for (let plan of planData) {
         for (file of plan.files) {
             let filePath = planFolder + "/" + file;
@@ -342,7 +342,7 @@ function createRecordsHierarchy(args, planData, planFolder) {
 
 function createBatches(args, planData) {
     if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, 'Creating Batches to insert data', args.progress));
+        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Creating Batches to insert data', args.progress));
     let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
     totalBatches = 0;
     let totalRecords = 0;
@@ -404,14 +404,14 @@ function createBatches(args, planData) {
         }
     }
     if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, 'Batches to insert data created. Total Records: ' + totalRecords + ' ; Total Batches: ' + totalBatches, args.progress));
+        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Batches to insert data created. Total Records: ' + totalRecords + ' ; Total Batches: ' + totalBatches, args.progress));
 }
 
 function insertBatches(args, planData) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Start job to insert data. This operation can take several minutes. Please wait.', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Start job to insert data. This operation can take several minutes. Please wait.', args.progress));
             let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
             let increment = MathUtils.round(100 / totalBatches, 2);
             let percentage = 0;
@@ -426,13 +426,13 @@ function insertBatches(args, planData) {
                     if (batchFiles.length > 0) {
                         if (Object.keys(savedIdsByReference).length > 0) {
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(undefined, 'Performing insert operation on ' + plan.sobject + ' record(s)', args.progress));
+                                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Performing insert operation on ' + plan.sobject + ' record(s)', args.progress));
                         }
                         for (let batchFile of batchFiles) {
                             percentage += increment;
                             let batchName = batchFile.replace('.json', '');
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(MathUtils.round(percentage, 2), 'Running Batch ' + batchName, args.progress));
+                                Output.Printer.printProgress(Response.progress(increment, percentage, 'Running Batch ' + batchName, args.progress));
                             try {
                                 const response = await connection.importTreeData(mastersFolder + '/' + batchFile);
                                 if (response.results) {
@@ -460,12 +460,12 @@ function insertBatches(args, planData) {
                     if (batchFiles.length > 0) {
                         if (Object.keys(savedIdsByReference).length > 0) {
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(undefined, 'Performing insert operation on ' + plan.sobject + ' child record(s)', args.progress));
+                                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Performing insert operation on ' + plan.sobject + ' child record(s)', args.progress));
                         }
                         for (let batchFile of batchFiles) {
                             percentage += increment;
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(percentage, 'Running Batch ' + batchFile.replace('.json', ''), args.progress));
+                                Output.Printer.printProgress(Response.progress(increment, percentage, 'Running Batch ' + batchFile.replace('.json', ''), args.progress));
                             try {
                                 const response = await connection.importTreeData(childsFolder + '/' + batchFile);
                                 if (response.results) {
@@ -499,7 +499,7 @@ function insertBatches(args, planData) {
 function resolveReferences(args, mastersFolder, childsFolder) {
     if (Object.keys(savedIdsByReference).length > 0) {
         if (args.progress)
-            Output.Printer.printProgress(Response.progress(undefined, 'Resolving References.', args.progress));
+            Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving References.', args.progress));
         if (FileChecker.isExists(mastersFolder)) {
             let batchFiles = FileReader.readDirSync(mastersFolder);
             if (batchFiles.length > 0) {
@@ -555,7 +555,7 @@ function loadStoredRecordTypes(args) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Loading stored Record Types from target org', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Loading stored Record Types from target org', args.progress));
             const connection = new Connection(username, args.apiVersion, undefined, undefined);
             const records = await connection.query("Select Id, Name, DeveloperName, SobjectType from RecordType");
             for (let record of records) {
@@ -568,7 +568,7 @@ function loadStoredRecordTypes(args) {
                 recordTypeByObject[record.SobjectType].recordTypes[record.DeveloperName] = record;
             }
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Record Types Loaded Successfully', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Record Types Loaded Successfully', args.progress));
             resolve();
         } catch (error) {
             reject(error);
@@ -614,7 +614,7 @@ function reportDeletingProgress(args, millis) {
     if (!deletingFinished) {
         setTimeout(function () {
             if (!deletingFinished) {
-                Output.Printer.printProgress(Response.progress(undefined, '(' + new Date().getTime() + ') Roll back in progress. Please wait.', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, '(' + new Date().getTime() + ') Roll back in progress. Please wait.', args.progress));
                 reportDeletingProgress(args, millis);
             }
         }, millis);
@@ -625,7 +625,7 @@ function reportExtractingProgress(args, millis) {
     if (!extractingFinished) {
         setTimeout(function () {
             if (!extractingFinished) {
-                Output.Printer.printProgress(Response.progress(undefined, '(' + new Date().getTime() + ') Extraction in progress. Please wait.', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, '(' + new Date().getTime() + ') Extraction in progress. Please wait.', args.progress));
                 reportExtractingProgress(args, millis);
             }
         }, millis);
