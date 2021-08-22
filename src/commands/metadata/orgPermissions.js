@@ -1,12 +1,10 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
-const { PathUtils } = require('@ah/core').FileSystem;
+const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
 const Connection = require('@ah/connector');
-const { ProjectUtils } = require('@ah/core').CoreUtils;
-
-const PROJECT_NAME = 'TempProject';
+const { ProjectUtils, Validator  } = require('@ah/core').CoreUtils;
 
 let argsList = [
     "root",
@@ -34,35 +32,39 @@ function run(args) {
     retrievedFinished = false;
     Output.Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
     try {
-        args.root = PathUtils.getAbsolutePath(args.root);
+        args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
         return;
     }
-    if (args.apiVersion) {
-        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
-        if (!args.apiVersion) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
+    if (!FileChecker.isSFDXRootPath(args.root)) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+        return;
+    }
+    if (args.progress) {
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
+        }
+    }
+    if (args.apiVersion) {
+        try {
+            args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
+        } catch (error) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error));
         }
     } else {
         let projectConfig = ProjectUtils.getProjectConfig(args.root);
         args.apiVersion = projectConfig.sourceApiVersion;
     }
-    if (args.progress) {
-        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
-            return;
-        }
-    }
     loadPermissions(args).then(function (result) {
-        Output.Printer.printSuccess(Response.success('Available User permissions loaded succesfully', result));
+        Output.Printer.printSuccess(new ResponseBuilder('Available User permissions loaded succesfully').data(result));
     }).catch(function (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
     });
 }
 
@@ -70,7 +72,7 @@ function loadPermissions(args) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, 'Loading user permissions started.', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Loading user permissions started'));
                 reportRetrieveProgress(args, 2500);
             }
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
@@ -94,7 +96,7 @@ function reportRetrieveProgress(args, millis) {
     if (!retrievedFinished) {
         setTimeout(function () {
             if (!retrievedFinished) {
-                Output.Printer.printProgress(Response.progress(undefined, '(' + new Date().getTime() + ') Loading Permissions in progress. Please wait.', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('(' + new Date().getTime() + ') Loading Permissions in progress. Please wait'));
                 reportRetrieveProgress(args, millis);
             }
         }, millis);

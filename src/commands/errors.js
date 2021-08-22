@@ -1,32 +1,38 @@
 module.exports = {
     MISSING_ARGUMENTS: {
-        code: 1,
-        name: 'MISSING_ARGUMENTS_ERROR',
+        code: 'MISSING_ARGUMENTS_ERROR',
         message: "Wrong Command. Missing Arguments"
     },
+    WRONG_ARGUMENTS: {
+        code: 'WRONG_ARGUMENTS_ERROR',
+        message: ""
+    },
     PROJECT_NOT_FOUND: {
-        code: 2,
-        name: 'PROJECT_NOT_FOUND_ERROR',
+        code: 'PROJECT_NOT_FOUND_ERROR',
         message: "Error. Not root folder, sfdx-project.json file not found on "
     },
     FILE_ERROR: {
-        code: 3,
-        name: 'FILE_ERROR',
+        code: 'FILE_ERROR',
         message: ""
     },
+    FOLDER_ERROR: {
+        code: 'FOLDER_ERROR',
+        message: ""
+    },
+    COMMAND_ERROR: {
+        code: 'COMMAND_ERROR',
+        message: "Error thrown when running command"
+    },
     METADATA_ERROR: {
-        code: 4,
-        name: "METADATA_ERROR",
+        code: "METADATA_ERROR",
         message: ""
     },
     DATA_ERROR: {
-        code: 5,
-        name: "DATA_ERROR",
+        code: "DATA_ERROR",
         message: ""
     },
     UNKNOWN_ERROR: {
-        code: 6,
-        name: "UNKNOWN_ERROR",
+        code: "UNKNOWN_ERROR",
         message: ""
     }
 }

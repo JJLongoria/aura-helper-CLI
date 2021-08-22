@@ -1,10 +1,10 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
-const { ProjectUtils } = require('@ah/core').CoreUtils;
+const { ProjectUtils, Validator } = require('@ah/core').CoreUtils;
 const { ProgressStatus } = require('@ah/core').Types;
 const XMLCompressor = require('@ah/xml-compressor');
 const Connection = require('@ah/connector');
@@ -50,50 +50,41 @@ exports.createCommand = function (program) {
 function run(args) {
     Output.Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
-        return;
-    }
-    if (args.all == undefined && args.type === undefined) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select ignore all or ignore specific types"));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
     try {
-        args.root = PathUtils.getAbsolutePath(args.root);
+        args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
+        return;
+    }
+    if (!FileChecker.isSFDXRootPath(args.root)) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+        return;
+    }
+    if (args.progress) {
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            return;
+        }
+    }
+    if (args.all == undefined && args.type === undefined) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message("You must select ignore all or ignore specific types"));
         return;
     }
     if (!args.ignoreFile)
         args.ignoreFile = args.root + '/' + IGNORE_FILE_NAME;
-    else {
-        try {
-            args.ignoreFile = PathUtils.getAbsolutePath(args.ignoreFile);
-        } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --ignore-file path. Select a valid path'));
-            return;
-        }
-    }
-    if (!FileChecker.isSFDXRootPath(args.root)) {
-        Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND + PathUtils.getAbsolutePath(pathToRoot)));
-        return;
-    }
-    if (!FileChecker.isExists(args.ignoreFile)) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, args.ignoreFile + " file not found. Check if file exists or have access permission"));
-        return;
-    }
-    if (args.all == undefined && args.type === undefined) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select ignore all or repair specific types"));
+    try {
+        Validator.validateJSONFile(args.ignoreFile);
+        args.ignoreFile = PathUtils.getAbsolutePath(args.ignoreFile);
+    } catch (error) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --ignore-file path.').exception(error));
         return;
     }
     if (args.sortOrder) {
         if (!sortOrderValues.includes(args.sortOrder)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --sort-order value. Please, select any  of this vales: " + sortOrderValues.join(',')));
-            return;
-        }
-    }
-    if (args.progress) {
-        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value. Please, select any  of this vales: ' + sortOrderValues.join(',')));
             return;
         }
     }
@@ -102,9 +93,9 @@ function run(args) {
         types = MetadataCommandUtils.getTypes(args.type);
     }
     ignoreMetadata(args, types).then(function () {
-        Output.Printer.printSuccess(Response.success("Ignore metadata finished successfully"));
+        Output.Printer.printSuccess(new ResponseBuilder("Ignore metadata finished successfully"));
     }).catch(function (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
     });
 }
 
@@ -112,7 +103,7 @@ function ignoreMetadata(args, typesForIgnore) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, 'Getting All Available Metadata Types', args.progress));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));
             const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
@@ -124,7 +115,7 @@ function ignoreMetadata(args, typesForIgnore) {
                 progress = new ProgressStatus(progress);
                 if (progress.isOnStartTypeStage()) {
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, 'Processing ' + progress.entityType + ' Metadata Type', args.progress));
+                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Processing ' + progress.entityType + ' Metadata Type'));
                 }
             });
             resolve();

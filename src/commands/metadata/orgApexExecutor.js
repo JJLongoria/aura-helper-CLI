@@ -1,10 +1,10 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
 const Connection = require('@ah/connector');
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
-const { ProjectUtils } = require('@ah/core').CoreUtils;
+const { ProjectUtils, Validator } = require('@ah/core').CoreUtils;
 
 
 let argsList = [
@@ -36,54 +36,54 @@ exports.createCommand = function (program) {
 async function run(args) {
     Output.Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
         return;
     }
     try {
-        args.root = PathUtils.getAbsolutePath(args.root);
+        args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
-        return;
-    }
-    if (args.file) {
-        try {
-            args.file = PathUtils.getAbsolutePath(args.file);
-        } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Select a valid path'));
-            return;
-        }
-    } else {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Missing --file path. Apex Script file is required'));
-        return;
-    }
-    if (args.apiVersion) {
-        args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
-        if (!args.apiVersion) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
-            return;
-        }
-    } else {
-        let projectConfig = ProjectUtils.getProjectConfig(args.root);
-        args.apiVersion = ProjectUtils.getApiAsString(projectConfig.sourceApiVersion);
-    }
-    if (args.progress) {
-        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
-            return;
-        }
-    }
-    if (args.iterations <= 0) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --iterations option. Select a value greater than 0'));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
         return;
     }
     if (!FileChecker.isSFDXRootPath(args.root)) {
-        Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+        return;
+    }
+    if (args.progress) {
+        if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            return;
+        }
+    }
+    if (args.file) {
+        try {
+            args.file = Validator.validateFilePath(args.file);
+        } catch (error) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --file path').exception(error));
+            return;
+        }
+    } else {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Missing --file path. Apex Script file is required'));
+        return;
+    }
+    if (args.apiVersion) {
+        try {
+            args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
+        } catch (error) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error));
+        }
+    } else {
+        let projectConfig = ProjectUtils.getProjectConfig(args.root);
+        args.apiVersion = projectConfig.sourceApiVersion;
+    }
+    if (args.iterations <= 0) {
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('Wrong --iterations option. Select a value greater than 0'));
         return;
     }
     executeApex(args).then(function () {
-        Output.Printer.printSuccess(Response.success("Apex execution finished succesfully"));
+        Output.Printer.printSuccess(new ResponseBuilder("Apex execution finished succesfully"));
     }).catch(function (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
     });
 }
 
@@ -96,14 +96,14 @@ function executeApex(args) {
             const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
             for (let i = 0; i < iterations; i++) {
                 if (args.progress) {
-                    Output.Printer.printProgress(Response.progress(undefined, 'Executing Script. Iteration: ' + (i + 1) + '/' + iterations, args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder('plaintext').message('Executing Script. Iteration: ' + (i + 1) + '/' + iterations));
                 }
                 let result = await connection.executeApexAnonymous(args.file);
                 if (args.progress) {
-                    Output.Printer.printProgress(Response.progress(undefined, 'Iteration: ' + (i + 1) + '/' + iterations + ' finished. ', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder('plaintext').message('Iteration: ' + (i + 1) + '/' + iterations + ' finished. '));
                 }
                 if (args.printLog) {
-                    Output.Printer.printProgress(Response.progress(undefined, result, 'plaintext'));
+                    Output.Printer.printProgress(new ProgressBuilder('plaintext').message(result));
                 }
             }
             resolve();

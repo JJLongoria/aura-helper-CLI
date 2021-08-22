@@ -99,7 +99,7 @@ function startExtractingData(args) {
             if (!args.username)
                 args.username = ProjectUtils.getOrgAlias(args.root);
             if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org'), args.progress));
                 reportExtractingProgress(args, 1000);
             }
             const connection = new Connection(args.username, args.apiVersion, args.root, undefined);
@@ -116,7 +116,7 @@ function reportExtractingProgress(args, millis) {
     if (!extractingFinished) {
         setTimeout(function () {
             if (!extractingFinished) {
-                Output.Printer.printProgress(Response.progress(undefined, '(' + new Date().getTime() + ') Extraction in progress. Please wait.', args.progress));
+                Output.Printer.printProgress(Response.progress(undefined, undefined, '(' + new Date().getTime() + ') Extraction in progress. Please wait.', args.progress));
                 reportExtractingProgress(args, millis);
             }
         }, millis);

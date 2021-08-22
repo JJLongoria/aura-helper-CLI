@@ -1,4 +1,5 @@
 const { MetadataType, MetadataObject, MetadataItem } = require('@ah/core').Types;
+const { Validator } = require('@ah/core').CoreUtils;
 
 class Utils {
 
@@ -8,7 +9,7 @@ class Utils {
         if (paths.indexOf(',') !== -1)
             resultTmp = paths.split(',');
         for (const typeTmp of resultTmp) {
-            result.push(typeTmp.trim());
+            result.push(Validator.validateFilePath(typeTmp.trim()));
         }
         return result;
     }

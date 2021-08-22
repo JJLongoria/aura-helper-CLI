@@ -1,23 +1,23 @@
 const Output = require('../../output');
-const Response = require('../response');
+const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
 const MetadataCommandUtils = require('./utils');
 const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
 const XMLCompressor = require('@ah/xml-compressor');
-const { MathUtils } = require('@ah/core').CoreUtils;
+const { MathUtils, Validator } = require('@ah/core').CoreUtils;
 
-let argsList = [
+const argsList = [
     "root",
     "all",
     "directory",
     "file",
     "progress",
     "beautify",
-    "sorOrder"
+    "sorOrder",
 ];
 
-let sortOrderValues = [
+const sortOrderValues = [
     XMLCompressor.SORT_ORDER.SIMPLE_FIRST,
     XMLCompressor.SORT_ORDER.COMPLEX_FIRST,
     XMLCompressor.SORT_ORDER.ALPHABET_ASC,
@@ -44,38 +44,38 @@ function run(args) {
     Output.Printer.setColorized(args.beautify);
     try {
         if (CommandUtils.hasEmptyArgs(args, argsList)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
             return;
         }
         try {
-            args.root = PathUtils.getAbsolutePath(args.root);
+            args.root = Validator.validateFolderPath(args.root);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
             return;
         }
-        if (args.all == undefined && args.directory === undefined && args.file === undefined) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "You must select compress all, entire directory or single file"));
+        if (!FileChecker.isSFDXRootPath(args.root)) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
             return;
         }
         if (args.progress) {
             if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any  of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
                 return;
             }
+        }
+        if (args.all == undefined && args.directory === undefined && args.file === undefined) {
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('You must select compress all, entire directory or single file'));
+            return;
         }
         if (args.sortOrder) {
             if (!sortOrderValues.includes(args.sortOrder)) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --sort-order value. Please, select any  of this vales: " + sortOrderValues.join(',')));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value. Please, select any  of this vales: ' + sortOrderValues.join(',')));
                 return;
             }
         }
-        if (!FileChecker.isSFDXRootPath(args.root)) {
-            Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
-            return;
-        }
         compress(args);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.METADATA_ERROR, error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
     }
 }
 
@@ -84,43 +84,43 @@ function compress(args) {
         let param = (args.all) ? '--root' : '--directory';
         let path = (args.all) ? args.root : args.directory;
         try {
-            path = PathUtils.getAbsolutePath(path);
+            path = Validator.validateFolderPath(path);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong ' + param + ' path. Select a valid path'));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong ' + param + ' path. Select a valid path').exception(error));
             return;
         }
         XMLCompressor.compress(path, args.sortOrder, function (file, compressed, nFile, totalFiles) {
             if (compressed) {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(MathUtils.round((nFile / totalFiles) * 100, 2), 'File ' + file + ' compressed succesfully', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('File ' + file + ' compressed succesfully').increment(MathUtils.round(100 / totalFiles, 2)).percentage(MathUtils.round((nFile / totalFiles) * 100, 2)));
             } else {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(MathUtils.round((nFile / totalFiles) * 100, 2), 'The  file ' + file + ' does not support XML compression', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('The  file ' + file + ' does not support XML compression').increment(MathUtils.round(100 / totalFiles, 2)).percentage(MathUtils.round((nFile / totalFiles) * 100, 2)));
             }
         }).then(() => {
-            Output.Printer.printSuccess(Response.success('Compress XML files finish successfully'));
+            Output.Printer.printSuccess(new ResponseBuilder('Compress XML files finish successfully'));
         }).catch((error) => {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, error));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).exception(error));
         });
     } else {
         try {
             args.file = MetadataCommandUtils.getPaths(args.file);
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Select a valid path'));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --file path. Select a valid path').exception(error));
             return;
         }
-        XMLCompressor.compress(args.file, args.sortOrder, function (file, compressed) {
+        XMLCompressor.compress(args.file, args.sortOrder, function (file, compressed, nFile, totalFiles) {
             if (compressed) {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(100, 'File ' + file + ' compressed succesfully', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('File ' + file + ' compressed succesfully').increment(MathUtils.round(100 / totalFiles, 2)).percentage(MathUtils.round((nFile / totalFiles) * 100, 2)));
             } else {
                 if (args.progress)
-                    Output.Printer.printProgress(Response.progress(100, 'The  file ' + file + ' does not support XML compression', args.progress));
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('The  file ' + file + ' does not support XML compression').increment(MathUtils.round(100 / totalFiles, 2)).percentage(MathUtils.round((nFile / totalFiles) * 100, 2)));
             }
         }).then(() => {
-            Output.Printer.printSuccess(Response.success('Compress XML files finish successfully'));
+            Output.Printer.printSuccess(new ResponseBuilder('Compress XML files finish successfully'));
         }).catch((error) => {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, error));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).exception(error));
         });
     }
 }
