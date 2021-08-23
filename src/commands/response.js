@@ -70,7 +70,7 @@ class ProgressBuilder{
 
     toString(){
         if (!this._format || this._format === 'json') {
-            const body = new AuraHelperCLIProgress(this._status, this._message, );
+            const body = new AuraHelperCLIProgress(this._status, this._message, this._increment, this._percentage);
             return JSON.stringify(body, null, 2);
         } else {
             if (this._percentage)
