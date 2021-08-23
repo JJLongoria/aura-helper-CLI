@@ -133,6 +133,9 @@ function retrieve(args, types) {
                             reportRetrieveProgress(args, 2500);
                         }
                     }
+                    if (progress.isOnCopyDataStage()) {
+                        retrievedFinished = true;
+                    }
                     if (progress.isOnCopyFileStage()) {
                         if (args.progress)
                             Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Copying ' + PathUtils.getBasename(progress.data) + ' to ' + progress.data));
