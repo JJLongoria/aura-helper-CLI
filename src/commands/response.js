@@ -44,6 +44,8 @@ class ProgressBuilder{
         this._increment = increment;
         if(this._increment > 100)
             this._increment = 100;
+        if(this._increment == 0)
+            this._increment = -1;
         return this;
     }
 
@@ -51,6 +53,8 @@ class ProgressBuilder{
         this._percentage = percentage;
         if(this._percentage > 100)
             this._percentage = 100;
+        if(!this._percentage)
+            this._percentage = -1;
         return this;
     }
 
