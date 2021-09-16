@@ -26,12 +26,7 @@ let argsList = [
     "sorOrder"
 ];
 
-let sortOrderValues = [
-    XMLCompressor.SORT_ORDER.SIMPLE_FIRST,
-    XMLCompressor.SORT_ORDER.COMPLEX_FIRST,
-    XMLCompressor.SORT_ORDER.ALPHABET_ASC,
-    XMLCompressor.SORT_ORDER.ALPHABET_DESC,
-]
+const sortOrderValues = Object.values(XMLCompressor.getSortOrderValues());
 
 exports.createCommand = function (program) {
     program
@@ -42,7 +37,7 @@ exports.createCommand = function (program) {
         .option('-t, --type <MetadataTypeNames>', 'Repair specified metadata types. You can choose single type or a list separated by commas,  also you can choose to repair a specified objects like "MetadataTypeAPIName:MetadataObjectAPIName". For example, "CustomApplication:AppName1" for repair only AppName1 Custom App. This option does not take effet if select repair all')
         .option('-o, --only-check', 'If you select this options, the command not repair dependencies, instead return the errors on the files for repair manually', false)
         .option('-c, --compress', 'Add this option for compress modifieds files for repair operation.', false)
-        .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.SORT_ORDER.SIMPLE_FIRST)
+        .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.getSortOrderValues().SIMPLE_FIRST)
         .option('-u, --use-ignore', 'Option for ignore the metadata included in ignore file from the repair command')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
         .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
@@ -62,7 +57,7 @@ function run(args) {
     try {
         args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
         return;
     }
     if (!FileChecker.isSFDXRootPath(args.root)) {
@@ -71,7 +66,7 @@ function run(args) {
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -81,7 +76,7 @@ function run(args) {
     }
     if (args.sortOrder) {
         if (!sortOrderValues.includes(args.sortOrder)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value. Please, select any  of this vales: ' + sortOrderValues.join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value (' + args.sortOrder + '). Please, select any of this values: ' + sortOrderValues.join(',')));
             return;
         }
     }
@@ -133,22 +128,21 @@ function repairDependencies(args, types) {
             const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
-            const result = DependenciesManager.repairDependencies(args.root, metadataDetails, {
-                typesToRepair: types,
-                compress: args.compress,
-                sortOrder: args.sortOrder,
-                checkOnly: args.checkOnly,
-                ignoreFile: (args.useIgnore) ? args.ignoreFile : undefined,
-            }, (progress) => {
-                progress = new ProgressStatus(progress);
-                if (progress.isOnStartObjectStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Processing object ' + progress.entityObject + ' from ' + progress.entityType));
-                } else if (progress.isOnStartItemStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Processing item ' + progress.entityItem + '(' + progress.entityObject + ') from ' + progress.entityType));
-                }
+            const manager = new DependenciesManager(args.root, metadataDetails);
+            manager.setTypesToRepair(types).setCompress(args.compress).setSortOrder(args.sortOrder).setIgnoreFile((args.useIgnore) ? args.ignoreFile : undefined);
+            manager.onStartObject((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Processing object ' + status.entityObject + ' from ' + status.entityType));
             });
+            manager.onStartItem((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Processing item ' + status.entityItem + '(' + status.entityObject + ') from ' + status.entityType));
+            });
+            let result;
+            if (args.onlyCheck)
+                result = manager.checkErrors();
+            else
+                result = manager.repairDependencies();
             resolve(result);
         } catch (error) {
             reject(error);

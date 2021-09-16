@@ -57,7 +57,7 @@ async function run(args) {
     try {
         args.root = PathUtils.getAbsolutePath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path. Select a valid path'));
+        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path (' + args.root + '). Select a valid path'));
         return;
     }
     if (args.recordsNumber) {
@@ -104,7 +104,7 @@ async function run(args) {
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value. Please, select any of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
+            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value (' + args.progress + '). Please, select any of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
