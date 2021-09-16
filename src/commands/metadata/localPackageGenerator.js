@@ -245,7 +245,7 @@ function createFromGit(args) {
             //FileWriter.createFileSync('./gitDiffs.json', JSON.stringify(gitDiffs, null, 2));
             const username = ProjectUtils.getOrgAlias(args.root);
             if (args.progress)
-                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));
+                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Local Metadata Types'));
             const connection = new Connection(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
