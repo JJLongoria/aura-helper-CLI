@@ -5,7 +5,6 @@ const CommandUtils = require('../utils');
 const Connection = require('@ah/connector');
 const { ProjectUtils, MetadataUtils, Validator } = require('@ah/core').CoreUtils;
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
-const { ProgressStatus } = require('@ah/core').Types;
 
 
 let argsList = [
@@ -42,7 +41,7 @@ async function run(args) {
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -50,7 +49,7 @@ async function run(args) {
         try {
             args.root = Validator.validateFolderPath(args.root);
         } catch (error) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
             return;
         }
         if (!FileChecker.isSFDXRootPath(args.root)) {
@@ -111,25 +110,21 @@ function compareMetadata(args) {
             const sourceMetadataDetails = await connectionSource.listMetadataTypes();
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Metadata from source (' + username + ')'));
-            const sourceMetadata = await connectionSource.describeMetadataTypes(sourceMetadataDetails, false, function (progress) {
-                progress = new ProgressStatus(progress);
-                if (progress.isOnAfterDownloadStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + progress.entityType).increment(progress.increment).percentage(progress.percentage));
-                }
+            connectionSource.onAfterDownloadType((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
             });
+            const sourceMetadata = await connectionSource.describeMetadataTypes(sourceMetadataDetails, false);
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Getting Available types on target (' + args.target + ')'));
             const targetMetadataDetails = await connectionTarget.listMetadataTypes();
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Metadata from target (' + args.target + ')'));
-            const targetMetadata = await connectionTarget.describeMetadataTypes(targetMetadataDetails, false, function (progress) {
-                progress = new ProgressStatus(progress);
-                if (progress.isOnAfterDownloadStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + progress.entityType).increment(progress.increment).percentage(progress.percentage));
-                }
+                connectionTarget.onAfterDownloadType((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
             });
+            const targetMetadata = await connectionTarget.describeMetadataTypes(targetMetadataDetails, false);
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Comparing Metadata Types'));
             const compareResult = MetadataUtils.compareMetadata(sourceMetadata, targetMetadata);

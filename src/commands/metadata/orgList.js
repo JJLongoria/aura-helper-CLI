@@ -38,7 +38,7 @@ async function run(args) {
         try {
             args.root = Validator.validateFolderPath(args.root);
         } catch (error) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
             return;
         }
         if (!FileChecker.isSFDXRootPath(args.root)) {
@@ -47,7 +47,7 @@ async function run(args) {
         }
         if (args.progress) {
             if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-                Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+                Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
                 return;
             }
         }

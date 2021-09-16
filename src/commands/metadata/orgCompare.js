@@ -5,7 +5,6 @@ const CommandUtils = require('../utils');
 const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
 const TypesFactory = require('@ah/metadata-factory');
 const { MetadataUtils, ProjectUtils, Validator } = require('@ah/core').CoreUtils;
-const { ProgressStatus } = require('@ah/core').Types;
 const Connection = require('@ah/connector');
 
 let argsList = [
@@ -39,7 +38,7 @@ async function run(args) {
     try {
         args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
         return;
     }
     if (!FileChecker.isSFDXRootPath(args.root)) {
@@ -48,7 +47,7 @@ async function run(args) {
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -98,13 +97,11 @@ function compareMetadata(args) {
             const typesFromLocal = TypesFactory.createMetadataTypesFromFileSystem(folderMetadataMap, args.root);
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Org Metadata'));
-            const typesFromOrg = await connection.describeMetadataTypes(metadataDetails, false, function (progress) {
-                progress = new ProgressStatus(progress);
-                if (progress.isOnAfterDownloadStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + progress.entityType).increment(progress.increment).percentage(progress.percentage));
-                }
+            connection.onAfterDownloadType((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
             });
+            const typesFromOrg = await connection.describeMetadataTypes(metadataDetails, false);
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Comparing Metadata Types'));
             const compareResult = MetadataUtils.compareMetadata(typesFromLocal, typesFromOrg);

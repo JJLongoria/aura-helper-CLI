@@ -24,12 +24,7 @@ let argsList = [
     "compress"
 ];
 
-let sortOrderValues = [
-    XMLCompressor.SORT_ORDER.SIMPLE_FIRST,
-    XMLCompressor.SORT_ORDER.COMPLEX_FIRST,
-    XMLCompressor.SORT_ORDER.ALPHABET_ASC,
-    XMLCompressor.SORT_ORDER.ALPHABET_DESC,
-]
+const sortOrderValues = Object.values(XMLCompressor.getSortOrderValues());
 
 exports.createCommand = function (program) {
     program
@@ -40,7 +35,7 @@ exports.createCommand = function (program) {
         .option('-t, --type <MetadataTypeNames>', 'Retrieve specifics metadata types. You can choose one or a comma separated list of elements. Also you can choose retrieve a specific profile, object o record type. Schema -> "Type1" or "Type1,Type2" or "Type1:Object1, Type1:Object2" or "Type1:Object1:Item1" for example:  "Profile, PermissionSet" to retrieve all profiles and permission sets. "Profile:Admin" to retrieve the admin profile. "RecordType:Account:RecordType1" to  retrieve the RecordType1 for the object Account or "RecordType:Account" for retrieve all Record Types for Account')
         .option('-o, --org-namespace', 'Option for retrieve only the data from your org namespace or retrieve all data')
         .option('-c, --compress', 'Compress the retrieved files.')
-        .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.SORT_ORDER.SIMPLE_FIRST)
+        .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.getSortOrderValues().SIMPLE_FIRST)
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
@@ -58,7 +53,7 @@ async function run(args) {
     try {
         args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path').exception(error));
+        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
         return;
     }
     if (!FileChecker.isSFDXRootPath(args.root)) {
@@ -67,7 +62,7 @@ async function run(args) {
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value. Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
@@ -77,7 +72,7 @@ async function run(args) {
     }
     if (args.sortOrder) {
         if (!sortOrderValues.includes(args.sortOrder)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value. Please, select any  of this vales: ' + sortOrderValues.join(',')));
+            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value (' + args.sortOrder + '). Please, select any of this values: ' + sortOrderValues.join(',')));
             return;
         }
     }
@@ -110,30 +105,28 @@ function retrieve(args, types) {
             const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
             connection.setMultiThread();
-            const retrieveOut = await connection.retrieveOrgSpecialTypes(PathUtils.getAuraHelperCLITempFilesPath(), types, !args.orgNamespace, args.compress, args.sortOrder, (progress) => {
-                progress = new ProgressStatus(progress);
-                if (progress.isOnOrgLoadingStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Org Metadata Types'));
-                }
-                if (progress.isOnAfterDownloadStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + progress.entityType).increment(progress.increment).percentage(progress.percentage));
-                }
-                if (progress.isOnRetrieveStage()) {
-                    if (args.progress) {
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Retriving Metadata Types. This operation can will take several minutes, please wait.'));
-                        reportRetrieveProgress(args, 2500);
-                    }
-                }
-                if (progress.isOnCopyDataStage()) {
-                    retrievedFinished = true;
-                }
-                if (progress.isOnCopyFileStage()) {
-                    if (args.progress)
-                        Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Copying ' + PathUtils.getBasename(progress.data) + ' to ' + progress.data));
+            connection.onLoadingOrg(() => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Org Metadata Types'));
+            });
+            connection.onAfterDownloadType((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
+            });
+            connection.onRetrieve(() => {
+                if (args.progress) {
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Retriving Metadata Types. This operation can will take several minutes, please wait.'));
+                    reportRetrieveProgress(args, 2500);
                 }
             });
+            connection.onCopyData(() => {
+                retrievedFinished = true;
+            });
+            connection.onCopyFile((status) => {
+                if (args.progress)
+                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Copying ' + PathUtils.getBasename(status.data) + ' to ' + status.data));
+            });
+            const retrieveOut = await connection.retrieveOrgSpecialTypes(PathUtils.getAuraHelperCLITempFilesPath(), types, !args.orgNamespace, args.compress, args.sortOrder);
             resolve(retrieveOut);
         } catch (error) {
             reject(error);
