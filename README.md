@@ -1,6 +1,8 @@
 # **Aura Helper CLI**
 
-Command Line Interface to work with Salesforce Projects and Support Aura Helper Plugin for VSCode. Have powerfull commands for manage your projects. Aura Helper CLI requires [SFDX CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) for work properly. 
+Command Line Interface to work with Salesforce Projects. This application are entire developed using Aura Helper Framework and has powerfull commands to manage your projects, create Continous Integration and DevOps workflows and support developers to make some utils task on every project like import and export data, create package files (including from git differences), compare metadata from two orgs or from your local project and the auth org, and to much more. 
+
+Aura Helper CLI requires [SFDX CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) to work properly. 
 
 ### **Specially Designed for DevOps Workflows**
 
