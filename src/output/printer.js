@@ -1,6 +1,6 @@
 const colors = require('colors');
 const COLORS = require('./colorName');
-const { Utils } = require('@ah/core').CoreUtils;
+const { Utils } = require('@aurahelper/core').CoreUtils;
 
 let colorized = false;
 

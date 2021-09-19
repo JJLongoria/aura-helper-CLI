@@ -1,4 +1,4 @@
-const { FileReader, PathUtils } = require('@ah/core').FileSystem;
+const { FileReader, PathUtils } = require('@aurahelper/core').FileSystem;
 
 exports.createCommand = function (program) {
     program

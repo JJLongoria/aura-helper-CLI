@@ -1,9 +1,9 @@
 const Output = require('../../output');
 const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
-const { PathUtils } = require('@ah/core').FileSystem;
-const { StrUtils } = require('@ah/core').CoreUtils;
-const { ProcessFactory, ProcessHandler } = require('@ah/core').ProcessManager;
+const { PathUtils } = require('@aurahelper/core').FileSystem;
+const { StrUtils } = require('@aurahelper/core').CoreUtils;
+const { ProcessFactory, ProcessHandler } = require('@aurahelper/core').ProcessManager;
 
 exports.createCommand = function (program) {
     program

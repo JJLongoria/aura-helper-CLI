@@ -3,12 +3,12 @@ const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response'
 const ErrorCodes = require('../errors');
 const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
-const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
-const XMLCompressor = require('@ah/xml-compressor');
-const Connection = require('@ah/connector');
-const { ProjectUtils, Validator } = require('@ah/core').CoreUtils;
-const { SpecialMetadata } = require('@ah/core').Values;
-const { ProgressStatus } = require('@ah/core').Types;
+const { PathUtils, FileChecker } = require('@aurahelper/core').FileSystem;
+const XMLCompressor = require('@aurahelper/xml-compressor');
+const Connection = require('@aurahelper/connector');
+const { ProjectUtils, Validator } = require('@aurahelper/core').CoreUtils;
+const { SpecialMetadata } = require('@aurahelper/core').Values;
+const { ProgressStatus } = require('@aurahelper/core').Types;
 
 let retrievedFinished = false;
 

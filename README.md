@@ -373,11 +373,11 @@ Command for retrieve the special metadata types stored in your local project. Th
 
   - [**metadata\:org\:permissions**](#metadataorgpermissions)
 
-    Command for get all available User permisions in your org.
+    Command to get all available User permisions in your org.
 
   - [**metadata\:org\:apex\:executor**](#metadataorgapexexecutor)
 
-    Command for get all available User permisions in your org.
+    Command to execute an Anonymous Apex script from file against the auth org.
 
 ---
 ### [**metadata\:org\:list**](#metadataorglist) 
@@ -509,7 +509,7 @@ Retrieve All Profiles, Perm1 and Perm2 Permission Sets, all Case RecordTypes and
     aura-helper metadata:org:retrieve:special -t "Profile, PermissionSet:Perm1, PermissionSet:Perm2, RecordType:Case, RecordType:Account:RtName" -p plaintext -b
 
 ### [**metadata\:org\:permissions**](#metadataorgcomparebetween)
-Command for get all available User permisions in your org.
+Command to get all available User permisions in your org.
 
 ### **Options**:
 
@@ -531,7 +531,7 @@ Get all user permission from your auth org for a specific api version with color
     aura-helper metadata:org:permissions -v 45.0 -b -p plaintext
 
 ### [**metadata\:org\:apex\:executor**](#metadataorgapexexecutor)
-Command for get all available User permisions in your org.
+Command to execute an Anonymous Apex script from file against the auth org.
 
 ### **Options**:
 
@@ -551,7 +551,7 @@ Execute an script 3 times without printing log with colorized output and progres
 
     aura-helper metadata:org:apex:executor -f "pathh/to/script.apex" -i 3 -b -p plaintext
 
-    Execute an script 10 times wit printing log, colorized output and progress report
+Execute an script 10 times wit printing log, colorized output and progress report
 
     aura-helper metadata:org:apex:executor -f "pathh/to/script.apex" --iterations 3 --print-log -b -p plaintext
 

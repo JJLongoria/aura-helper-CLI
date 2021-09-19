@@ -1,4 +1,4 @@
-const { AuraHelperCLIResponse, AuraHelperCLIProgress, AuraHelperCLIError } = require('@ah/core').Types;
+const { AuraHelperCLIResponse, AuraHelperCLIProgress, AuraHelperCLIError } = require('@aurahelper/core').Types;
 
 class ErrorBuilder{
 
