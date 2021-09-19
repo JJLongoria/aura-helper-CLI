@@ -2,9 +2,9 @@ const Output = require('../../output');
 const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
-const Connection = require('@ah/connector');
-const { ProjectUtils, MetadataUtils, Validator } = require('@ah/core').CoreUtils;
-const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
+const Connection = require('@aurahelper/connector');
+const { ProjectUtils, MetadataUtils, Validator } = require('@aurahelper/core').CoreUtils;
+const { PathUtils, FileChecker, FileWriter } = require('@aurahelper/core').FileSystem;
 
 
 let argsList = [

@@ -1,6 +1,6 @@
 # Change Log
 All notable changes to this project will be documented in this file.
-## [3.0.0 - 2020-03-XX]
+## [3.0.0 - 2021-09-18]
 ### Added
 - The v3.0.0 is the biggest Update of Aura Helper CLI. This versión implements the Aura Helper Framework created in nodeJS. This framework are robust, faster and better than the old Aura Helper Code. Aura Helper Framework is an open source framework to provide tools to any developer to create applications for salesforce. Aura Helper Extension and Aura Helper CLI use it.
 

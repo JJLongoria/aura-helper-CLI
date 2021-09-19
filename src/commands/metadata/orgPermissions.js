@@ -2,9 +2,9 @@ const Output = require('../../output');
 const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
-const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
-const Connection = require('@ah/connector');
-const { ProjectUtils, Validator  } = require('@ah/core').CoreUtils;
+const { PathUtils, FileChecker } = require('@aurahelper/core').FileSystem;
+const Connection = require('@aurahelper/connector');
+const { ProjectUtils, Validator  } = require('@aurahelper/core').CoreUtils;
 
 let argsList = [
     "root",
@@ -18,7 +18,7 @@ let retrievedFinished = false;
 exports.createCommand = function (program) {
     program
         .command('metadata:org:permissions')
-        .description('Command for get all User Permissions available in the auth org.')
+        .description('Command to get all User Permissions available in the auth org.')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))

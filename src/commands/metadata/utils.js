@@ -1,5 +1,5 @@
-const { MetadataType, MetadataObject, MetadataItem } = require('@ah/core').Types;
-const { Validator } = require('@ah/core').CoreUtils;
+const { MetadataType, MetadataObject, MetadataItem } = require('@aurahelper/core').Types;
+const { Validator } = require('@aurahelper/core').CoreUtils;
 
 class Utils {
 

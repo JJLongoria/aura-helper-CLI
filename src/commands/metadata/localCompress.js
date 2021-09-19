@@ -3,9 +3,9 @@ const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response'
 const ErrorCodes = require('../errors');
 const CommandUtils = require('../utils');
 const MetadataCommandUtils = require('./utils');
-const { PathUtils, FileChecker } = require('@ah/core').FileSystem;
-const XMLCompressor = require('@ah/xml-compressor');
-const { MathUtils, Validator } = require('@ah/core').CoreUtils;
+const { PathUtils, FileChecker } = require('@aurahelper/core').FileSystem;
+const XMLCompressor = require('@aurahelper/xml-compressor');
+const { MathUtils, Validator } = require('@aurahelper/core').CoreUtils;
 
 const argsList = [
     "root",

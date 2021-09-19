@@ -1,10 +1,10 @@
 const Output = require('../../output');
 const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
 const ErrorCodes = require('../errors');
-const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
-const TypesFactory = require('@ah/metadata-factory');
-const { ProjectUtils, Validator } = require('@ah/core').CoreUtils;
-const Connection = require('@ah/connector');
+const { PathUtils, FileChecker, FileWriter } = require('@aurahelper/core').FileSystem;
+const TypesFactory = require('@aurahelper/metadata-factory');
+const { ProjectUtils, Validator } = require('@aurahelper/core').CoreUtils;
+const Connection = require('@aurahelper/connector');
 const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
 

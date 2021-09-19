@@ -3,12 +3,12 @@ const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response'
 const ErrorCodes = require('../errors');
 const MetadataCommandUtils = require('./utils');
 const CommandUtils = require('../utils');
-const { PathUtils, FileChecker, FileWriter } = require('@ah/core').FileSystem;
-const DependenciesManager = require('@ah/dependencies-manager');
-const XMLCompressor = require('@ah/xml-compressor');
-const Connection = require('@ah/connector');
-const { ProjectUtils, Validator } = require('@ah/core/').CoreUtils;
-const { ProgressStatus } = require('@ah/core').Types;
+const { PathUtils, FileChecker, FileWriter } = require('@aurahelper/core').FileSystem;
+const DependenciesManager = require('@aurahelper/dependencies-manager');
+const XMLCompressor = require('@aurahelper/xml-compressor');
+const Connection = require('@aurahelper/connector');
+const { ProjectUtils, Validator } = require('@aurahelper/core/').CoreUtils;
+const { ProgressStatus } = require('@aurahelper/core').Types;
 
 const IGNORE_FILE_NAME = '.ahignore.json';
 
