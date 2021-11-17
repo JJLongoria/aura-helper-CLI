@@ -97,11 +97,11 @@ Metadata commands are the commands for work with your metadata files. You can co
 
   - [**metadata\:local\:list**](#metadatalocallist)
 
-    Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
+    Command to describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
   - [**metadata\:local\:describe**](#metadatalocaldescribe)
 
-    Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
+    Command to describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
   - [**metadata\:local\:repair**](#metadatalocalrepair)
 
@@ -200,7 +200,7 @@ List all types from different project and save the output into a file
 
 
 ### [**metadata\:local\:describe**](#metadatalocaldescribe)
-Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
+Command to describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
 ### **Options**:
 
@@ -208,6 +208,7 @@ Command for describe all or specific Metadata Types like Custom Objects, Custom 
     -a | --all                                      Describe all metadata types stored in your local project.
     -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                     option does not take effect if you choose describe all.
+    -g | --group                                    Option to group global Quick Actions into GlobalActions group, false to list as object and item
     -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
                                                     sfdx-project. json file
     --output-file <path/to/output/file>             Path to file for redirect the output.
@@ -357,7 +358,7 @@ Command for retrieve the special metadata types stored in your local project. Th
 
   - [**metadata\:org\:describe**](#metadataorgdescribe)
 
-    Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
+    Command to describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
 
   - [**metadata\:org\:compare**](#metadataorgcompare)
 
@@ -405,7 +406,7 @@ List all types from different project and save the output into a file
     aura-helper metadata:org:list -r "path/to/other/project/root" -s "path/to/the/output/file.txt"
 
 ### [**metadata\:org\:describe**](#metadataorgdescribe)
-Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
+Command to describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
 
 ### **Options**:
 
@@ -414,6 +415,7 @@ Command for describe all or specific Metadata Types likes Custom Objects, Custom
     -t | --type <MetadataTypeNames>                 Describe the specified metadata types. You can select a single metadata or a list separated by commas. This 
                                                     option does not take effect if you choose describe all.
     -o | --org-namespace                            Describe only metadata types from your org namespace.
+    -g | --group                                    Option to group global Quick Actions into GlobalActions group, false to list as object and item
     --output-file <path/to/output/file>             Path to file for redirect the output.
     -v | --api-version <apiVersion>                 Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the 
                                                     sfdx-project. json file
