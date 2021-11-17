@@ -16,17 +16,19 @@ let argsList = [
     "outputFile",
     "apiVersion",
     "progress",
-    "beautify"
+    "beautify",
+    "group",
 ];
 
 exports.createCommand = function (program) {
     program
         .command('metadata:org:describe')
-        .description('Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org')
+        .description('Command to describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-a, --all', 'Describe all metadata types')
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
         .option('-o, --org-namespace', 'Describe only metadata types from your org namespace')
+        .option('-g, --group', 'Option to group global Quick Actions into GlobalActions group, false to list as object and item')
         .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
@@ -121,7 +123,7 @@ function describeMetadata(args) {
                 if (args.progress)
                     Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
             });
-            const metadata = await connection.describeMetadataTypes(types, !args.orgNamespace);
+            const metadata = await connection.describeMetadataTypes(types, !args.orgNamespace, args.group);
             resolve(metadata);
         } catch (error) {
             reject(error);

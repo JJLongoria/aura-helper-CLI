@@ -15,16 +15,18 @@ let argsList = [
     "outputFile",
     "apiVersion",
     "progress",
-    "beautify"
+    "beautify",
+    'group'
 ];
 
 exports.createCommand = function (program) {
     program
         .command('metadata:local:describe')
-        .description('Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.')
+        .description('Command to describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-a, --all', 'Describe all metadata types stored in your local project')
         .option('-t, --type <MetadataTypeNames>', 'Describe the specified metadata types. You can select a single metadata or a list separated by commas. This option does not take effect if you choose describe all')
+        .option('-g, --group', 'Option to group global Quick Actions into GlobalActions group, false to list as object and item')
         .option('--output-file <path/to/output/file>', 'Path to file for redirect the output')
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
@@ -104,7 +106,7 @@ function describeLocalMetadata(args) {
             const folderMetadataMap = TypesFactory.createFolderMetadataMap(metadataDetails);
             if (args.progress)
                 Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Local Metadata Types'));
-            const metadataFromFileSystem = TypesFactory.createMetadataTypesFromFileSystem(folderMetadataMap, args.root);
+            const metadataFromFileSystem = TypesFactory.createMetadataTypesFromFileSystem(folderMetadataMap, args.root, args.group);
             let metadata = {};
             if (args.all) {
                 metadata = metadataFromFileSystem;

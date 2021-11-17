@@ -1,5 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## [3.0.1 - 2021-09-18]
+### Added
+- Update package references
+- Added new option (-g or --group) on **metadata:local:describe** and **metadata:org:describe** commands to allow to group global actions on GlobalActions group
+
 ## [3.0.0 - 2021-09-18]
 ### Added
 - The v3.0.0 is the biggest Update of Aura Helper CLI. This versión implements the Aura Helper Framework created in nodeJS. This framework are robust, faster and better than the old Aura Helper Code. Aura Helper Framework is an open source framework to provide tools to any developer to create applications for salesforce. Aura Helper Extension and Aura Helper CLI use it.
@@ -104,7 +109,7 @@ All notable changes to this project will be documented in this file.
 
 - metadata:local:list - Command for list all Metadata Types stored in your local project. 
 
-- metadata:local:describe - Command for describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
+- metadata:local:describe - Command to describe all or specific Metadata Types like Custom Objects, Custom Fields, Apex Classes... that you have in your local project.
 
 - metadata:local:repair - Command for repair your project local dependencies. With this command you cand repair automatically or check if have dependencies errors for repair it (or not, because is possible to detect errors because you don't have all metadata into your local project).
 
@@ -114,7 +119,7 @@ All notable changes to this project will be documented in this file.
 
 - metadata:org:list - Command for list all Metadata Types stored in your auth org
 
-- metadata:org:describe - Command for describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
+- metadata:org:describe - Command to describe all or specific Metadata Types likes Custom Objects, Custom Fields, Apex Classes... that you have in your auth org
 
 - metadata:org:compare - Command for compare your local project with your auth org for get the differences. The result are the metadata types and objects that you have in your org, but don't have in your local project.
 
