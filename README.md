@@ -1,5 +1,13 @@
 # **Aura Helper CLI**
 
+[![Version](https://img.shields.io/npm/v/aura-helper-cli?logo=npm)](https://www.npmjs.com/package/aura-helper-cli)
+[![Total Downloads](https://img.shields.io/npm/dt/aura-helper-cli?logo=npm)](https://www.npmjs.com/package/aura-helper-cli)
+[![Downloads/Month](https://img.shields.io/npm/dm/aura-helper-cli?logo=npm)](https://www.npmjs.com/package/aura-helper-cli)
+[![Issues](https://img.shields.io/github/issues/jjlongoria/aura-helper-cli)](https://github.com/JJLongoria/aura-helper-cli/issues)
+[![Known Vulnerabilities](https://snyk.io/test/github/JJLongoria/aura-helper-cli/badge.svg)](https://snyk.io/test/github/JJLongoria/aura-helper-cli)
+[![Code Size](https://img.shields.io/github/languages/code-size/jjlongoria/aura-helper-cli)](https://github.com/JJLongoria/aura-helper-cli)
+[![License](https://img.shields.io/github/license/jjlongoria/aura-helper-cli?logo=github)](https://github.com/JJLongoria/aura-helper-cli/blob/master/LICENSE)
+
 Command Line Interface to work with Salesforce Projects. This application are entire developed using Aura Helper Framework and has powerfull commands to manage your projects, create Continous Integration and DevOps workflows and support developers to make some utils task on every project like import and export data, create package files (including from git differences), compare metadata from two orgs or from your local project and the auth org, and to much more. 
 
 Aura Helper CLI requires [SFDX CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) to work properly. 
@@ -663,27 +671,27 @@ Update Aura Helper CLI to the latest version
 # [**AH CLI JSON Responses**](#ah-cli-json-responses)
 
 Aura Helper CLI has the same base JSON structure to all response but the error and progress responses has additional fields.
-
+```json
     {
         status: value, // Number Value
         message: value, // String value 
         result: value, // Object or Array value
     }
-
+```
 ## [**AH CLI OK Response**](#ah-cli-ok-response)
 
 The response when commands run successfully and not throw any error has the status value always with value 0 and the result object can ben an Object or Array with the command data response.
-
+```json
     {
         status: 0, // ALWAYS
         message: value, // String value 
         result: value, // Object or Array value
     }
-
+```
 ## [**AH CLI Progress Response**](#ah-cli-progress-response)
 
 If you choose *JSON (json)* format to show the progress, the response is similar to OK response, but have inProgress flag field and the increment and progress into the result object. If can't calculate the percetage progress, increment and percentage has -1 value.
-
+```json
     {
         status: 0, // ALWAYS
         message: value, // String value
@@ -693,11 +701,11 @@ If you choose *JSON (json)* format to show the progress, the response is similar
             percentage: value,    // Decimal value
         }
     }
-
+```
 ## [**AH CLI Error Response**](#ah-cli-error-response)
 
 When Aura Helper CLI throw any error when running commands, return a similar response to OK but with status value -1. 
-    
+```json
     {
         status: -1, // ALWAYS
         code: 'ERROR_CODE_VALUE', // String value
@@ -705,13 +713,13 @@ When Aura Helper CLI throw any error when running commands, return a similar res
         message: value, // String value
         result: {}
     }
-
+```
 # [**Ignore File**](#ignore-file)
 
 The ignore file is a JSON file used on ignore and create package commands. On this file you can specify metadata types, objects and elements for ignore or delete from your local project or package files. You can have a main ignore file on your root project (like gitignore) named .ahignore.json for use automatically, or have different ignore files and specify it on the commands when you need tou use.
 
 The ignore file have the next structure
-
+```json
     {
         // Basic structure
         "MetadataTypeAPIName": {
@@ -735,9 +743,9 @@ The ignore file have the next structure
             "UserPermission:*:PermissionName"
         }
     }
-
-*Example*:
-
+```
+### Example:
+```json
     {
         "CustomLabels": {
             "labelName1",                   // Ignore or remove the custom label "labelName1"
@@ -777,7 +785,7 @@ The ignore file have the next structure
             "*"                             // Ignore or remove all profiles
         }
     }
-
+```
 #### IMPORTANT
 
     Some Metadata Types have singular and plural name like CustomLabels, MatchingRules, EscalationRules... For ignore or remove this types you must use the plural name, if use the singular name the ignore process not take effect with this types.
@@ -787,7 +795,7 @@ The ignore file have the next structure
 # [**Metadata JSON Format**](#metadata-file)
 
 The describe metadata commands and compare commands return the metadata in a JSON format, the same format for create the package througth a JSON file. This means that the output of the describe or compare commands can be used as input for create the package from JSON file. The next structure are the full JSON structure file:
-
+```json
     {
         "MetadataAPIName": {
             "name": "MetadataAPIName",                                  // Required. Contains the Metadata Type API Name (like object Key)
@@ -822,10 +830,10 @@ The describe metadata commands and compare commands return the metadata in a JSO
             }
         }
     }
+```
 
-
-*Example*:
-
+### Example:
+```json
     {
         "CustomObject": {
             "name": "CustomObject",
@@ -892,6 +900,6 @@ The describe metadata commands and compare commands return the metadata in a JSO
             }
         }
     }
-
+```
 
 
