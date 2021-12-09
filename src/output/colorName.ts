@@ -1,4 +1,4 @@
-module.exports = {
+export const Color: { [key: string]: number } = {
     WHITE: 1,
     GREEN: 2,
     BLUE: 3,
