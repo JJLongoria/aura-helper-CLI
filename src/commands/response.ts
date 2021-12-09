@@ -24,7 +24,7 @@ export class ErrorBuilder {
     }
 
     exception(exception: Error): ErrorBuilder {
-        this._message = this._message + '. Error Message: ' + exception.message;
+        this._message = ((this._message) ? this._message : '') + '. Error Message: ' + exception.message;
         this._name = exception.name;
         return this;
     }

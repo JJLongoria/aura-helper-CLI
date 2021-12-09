@@ -1,4 +1,4 @@
-export class Utils {
+export class CommandUtils {
     static getProgressAvailableTypes(): string[] {
         return [
             'plaintext',
