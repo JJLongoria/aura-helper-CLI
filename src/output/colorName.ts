@@ -4,6 +4,5 @@ export const Color: { [key: string]: number } = {
     BLUE: 3,
     RED: 4,
     YELLOW: 5,
-    GRAY: 6,
-    
-}
+    GRAY: 6,  
+};

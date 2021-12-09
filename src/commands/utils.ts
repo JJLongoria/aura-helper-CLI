@@ -1,11 +1,11 @@
-class Utils {
-    static getProgressAvailableTypes() {
+export class Utils {
+    static getProgressAvailableTypes(): string[] {
         return [
             'plaintext',
             'json'];
     }
 
-    static hasEmptyArgs(args, argsNames){
+    static hasEmptyArgs(args: any[], argsNames: string[]): boolean{
         let nEmpty = 0;
         for(let argName of argsNames){
             if(args[argName] === undefined){
@@ -15,4 +15,3 @@ class Utils {
         return nEmpty === argsNames.length;
     }
 }
-module.exports = Utils;
