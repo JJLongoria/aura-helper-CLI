@@ -1,12 +1,13 @@
-const Output = require('../../output');
-const Response = require('../response');
-const ErrorCodes = require('../errors');
-const CommandUtils = require('../utils');
-const { PathUtils, FileChecker, FileReader, FileWriter } = require('@aurahelper/core').FileSystem;
-const { MathUtils, ProjectUtils } = require('@aurahelper/core').CoreUtils;
-const Connection = require('@aurahelper/connector');
+import { Printer } from "../../output";
+import { Errors } from "../errors";
+import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from "../response";
+import { CommandUtils } from "../utils";
+import { CoreUtils, PathUtils, FileChecker, FileWriter, FileReader } from "@aurahelper/core";
+import { Connection } from "@aurahelper/connector";
+const ProjectUtils = CoreUtils.ProjectUtils;
+const MathUtils = CoreUtils.MathUtils;
 
-let argsList = [
+let argsList: string[] = [
     "root",
     "file",
     "query",
@@ -17,16 +18,16 @@ let argsList = [
     "beautify"
 ];
 
-let extractingFinished = false;
-let deletingFinished = false;
-let refsByObjectType = {};
-let recordTypeByObject = {};
-let objectsHierarchyByType = {};
-let savedIdsByReference = {};
-let totalBatches = 0;
-let username;
+let extractingFinished: boolean = false;
+let deletingFinished: boolean = false;
+let refsByObjectType: any = {};
+let recordTypeByObject: any = {};
+let objectsHierarchyByType: any = {};
+let savedIdsByReference: any = {};
+let totalBatches: number = 0;
+let username: string | undefined;
 
-exports.createCommand = function (program) {
+exports.createCommand = function (program: any) {
     program
         .command('data:import')
         .description('Command for import the data extracted with data:export command into the selected org')
@@ -38,37 +39,37 @@ exports.createCommand = function (program) {
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
-        .action(function (args) {
+        .action(function (args: any) {
             run(args);
         });
 }
 
-async function run(args) {
+async function run(args: any) {
     extractingFinished = false;
-    Output.Printer.setColorized(args.beautify);
+    Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS));
+        Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS));
         return;
     }
     if (args.sourceOrg && !args.query) {
-        Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --query. Query are required for extract data from --source-org"));
+        Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message("Wrong --query. Query are required for extract data from --source-org"));
         return;
     }
     try {
         args.root = PathUtils.getAbsolutePath(args.root);
     } catch (error) {
-        Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --root path (' + args.root + '). Select a valid path'));
+        Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message('Wrong --root path (' + args.root + '). Select a valid path'));
         return;
     }
     if (args.recordsNumber) {
         try {
             let integerValue = parseInt(args.recordsNumber);
             if (integerValue < 1 || integerValue > 200) {
-                Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --records-number selected. Please, select an integer number between 1 and 200'));
+                Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('Wrong --records-number selected. Please, select an integer number between 1 and 200'));
                 return;
             }
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --records-number selected. Please, select an integer number between 1 and 200'));
+            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('Wrong --records-number selected. Please, select an integer number between 1 and 200'));
             return;
         }
     }
@@ -76,40 +77,42 @@ async function run(args) {
         try {
             args.file = PathUtils.getAbsolutePath(args.file);
             if (!args.file.endsWith('-plan.json')) {
-                Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Please, select a plan file (File ended with -plan.json)'));
+                Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message('Wrong --file path. Please, select a plan file (File ended with -plan.json)'));
                 return;
             } else if (!FileChecker.isExists(args.file)) {
-                Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. The selected plan file not exists or do not has permissions to access.'));
+                Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message('Wrong --file path. The selected plan file not exists or do not has permissions to access.'));
                 return;
             }
         } catch (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, 'Wrong --file path. Select a valid path'));
+            Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message('Wrong --file path. Select a valid path'));
             return;
         }
     } else {
         if (!args.query) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --query. If you select a source org, you must include a query for export data'));
+            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('Wrong --query. If you select a source org, you must include a query for export data'));
             return;
         }
     }
     if (args.apiVersion) {
         args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         if (!args.apiVersion) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, 'Wrong --api-version selected. Please, select a positive integer or decimal number'));
+            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('Wrong --api-version selected. Please, select a positive integer or decimal number'));
             return;
         }
     } else {
-        let projectConfig = ProjectUtils.getProjectConfig(args.root);
-        args.apiVersion = projectConfig.sourceApiVersion;
+        const projectConfig = ProjectUtils.getProjectConfig(args.root);
+        if (projectConfig) {
+            args.apiVersion = projectConfig.sourceApiVersion;
+        }
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(Response.error(ErrorCodes.MISSING_ARGUMENTS, "Wrong --progress value (' + args.progress + '). Please, select any of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
+            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message("Wrong --progress value (' + args.progress + '). Please, select any of this vales: " + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
     if (!FileChecker.isSFDXRootPath(args.root)) {
-        Output.Printer.printError(Response.error(ErrorCodes.PROJECT_NOT_FOUND, ErrorCodes.PROJECT_NOT_FOUND.message + args.root));
+        Printer.printError(new ErrorBuilder(Errors.PROJECT_NOT_FOUND).message(Errors.PROJECT_NOT_FOUND.message + args.root));
         return;
     }
     username = ProjectUtils.getOrgAlias(args.root);
@@ -119,32 +122,34 @@ async function run(args) {
         args.file = planFile;
     }
     isCorrectPlan(args.file).then(function (planData) {
-        startImportingData(args, planData).then(function (insertErrorsByBatch) {
+        startImportingData(args, planData).then((insertErrorsByBatch: any) => {
             if (Object.keys(insertErrorsByBatch).length > 0) {
                 let folder = PathUtils.getDirname(args.file) + '/errors';
-                if (FileChecker.isExists(folder))
+                if (FileChecker.isExists(folder)) {
                     FileWriter.delete(folder);
+                }
                 FileWriter.createFolderSync(folder);
                 Object.keys(insertErrorsByBatch).forEach(function (batchName) {
                     FileWriter.createFileSync(folder + '/' + batchName + '_errors.json', JSON.stringify(insertErrorsByBatch[batchName], null, 2));
                 });
-                Output.Printer.printSuccess(Response.success("Data does not import because found errors. Go to " + folder + " for see the errors by batch"));
+                Printer.printSuccess(new ResponseBuilder("Data does not import because found errors. Go to " + folder + " for see the errors by batch"));
             }
             else
-                Output.Printer.printSuccess(Response.success("Data imported succesfully into your Auth Org"));
+                Printer.printSuccess(new ResponseBuilder("Data imported succesfully into your Auth Org"));
         }).catch(function (error) {
-            Output.Printer.printError(Response.error(ErrorCodes.DATA_ERROR, error));
+            Printer.printError(new ErrorBuilder(Errors.DATA_ERROR).exception(error));
         });
     }).catch(function (result) {
-        if (Array.isArray(result))
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, "The next files does not exists or do not has access permission: " + result.join(", ")));
-        else
-            Output.Printer.printError(Response.error(ErrorCodes.FILE_ERROR, result));
+        if (Array.isArray(result)) {
+            Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message("The next files does not exists or do not has access permission: " + result.join(", ")));
+        } else {
+            Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message(result));
+        }
     });
 
 }
 
-function startImportingData(args, planData) {
+function startImportingData(args: any, planData: any) {
     return new Promise(async function (resolve, reject) {
         let tempFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
         try {
@@ -154,7 +159,7 @@ function startImportingData(args, planData) {
             resolveRecordTypeReferences(args, planData, planFolder);
             createRecordsHierarchy(args, planData, planFolder);
             createBatches(args, planData);
-            let insertErrorsByBatch = await insertBatches(args, planData);
+            let insertErrorsByBatch: any = await insertBatches(args, planData);
             if (Object.keys(insertErrorsByBatch).length > 0) {
                 await cleanInsertedRecords(args, tempFolder);
             }
@@ -166,11 +171,11 @@ function startImportingData(args, planData) {
     });
 }
 
-function startExtractingData(args) {
+function startExtractingData(args: any) {
     return new Promise(async function (resolve, reject) {
         try {
             if (args.progress) {
-                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Start Extracting data from Org with username or alias ' + args.sourceOrg, args.progress));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('Start Extracting data from Org with username or alias ' + args.sourceOrg));
                 reportExtractingProgress(args, 1000);
             }
             const connection = new Connection(args.sourceOrg, args.apiVersion, args.root, undefined);
@@ -182,7 +187,7 @@ function startExtractingData(args) {
     });
 }
 
-function formatBatchCounter(counter) {
+function formatBatchCounter(counter: number) {
     if (counter < 10) {
         return '0000' + counter;
     } else if (counter < 100) {
@@ -196,18 +201,20 @@ function formatBatchCounter(counter) {
     }
 }
 
-function cleanWorkspace(tempFolder) {
-    if (FileChecker.isExists(tempFolder))
+function cleanWorkspace(tempFolder: string) {
+    if (FileChecker.isExists(tempFolder)) {
         FileWriter.delete(tempFolder);
+    }
     FileWriter.createFolderSync(tempFolder);
 }
 
-function cleanInsertedRecords(args, tempFolder, callback) {
-    return new Promise(async function (resolve, reject) {
+function cleanInsertedRecords(args: any, tempFolder: string): Promise<void> {
+    return new Promise<void>(async function (resolve, reject) {
         try {
-            if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Errors found on import, rolling back', args.progress));
-            let idsByType = {};
+            if (args.progress) {
+                Printer.printProgress(new ProgressBuilder(args.progress).message('Errors found on import, rolling back'));
+            }
+            let idsByType: any = {};
             Object.keys(savedIdsByReference).forEach(function (reference) {
                 let refData = savedIdsByReference[reference];
                 if (!idsByType[refData.sobject]) {
@@ -218,7 +225,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
             for (let sobject of Object.keys(idsByType)) {
                 deletingFinished = false;
                 if (args.progress) {
-                    Output.Printer.printProgress(Response.progress(undefined, undefined, 'Rolling back ' + sobject + ' record(s)', args.progress));
+                    Printer.printProgress(new ProgressBuilder(args.progress).message('Rolling back ' + sobject + ' record(s)'));
                     reportDeletingProgress(args, 1000);
                 }
                 let csvContent = 'Id\n' + idsByType[sobject].join('\n');
@@ -228,7 +235,7 @@ function cleanInsertedRecords(args, tempFolder, callback) {
                 try {
                     const response = await connection.bulkDelete(csvFile, sobject);
                     if (args.progress)
-                        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Roll back on ' + sobject + ' record(s) finished succesfully', args.progress));
+                        Printer.printProgress(new ProgressBuilder(args.progress).message('Roll back on ' + sobject + ' record(s) finished succesfully'));
                 } catch (error) {
                     deletingFinished = true;
                     reject(error);
@@ -243,11 +250,12 @@ function cleanInsertedRecords(args, tempFolder, callback) {
     });
 }
 
-function createReferencesMap(args, planData, planFolder) {
-    if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Saving Reference Map', args.progress));
+function createReferencesMap(args: any, planData: any[], planFolder: string): void {
+    if (args.progress) {
+        Printer.printProgress(new ProgressBuilder(args.progress).message('Saving Reference Map'));
+    }
     for (let plan of planData) {
-        for (file of plan.files) {
+        for (const file of plan.files) {
             let filePath = planFolder + "/" + file;
             let fileData = JSON.parse(FileReader.readFileSync(filePath));
             for (let record of fileData.records) {
@@ -264,19 +272,22 @@ function createReferencesMap(args, planData, planFolder) {
     }
 }
 
-function resolveRecordTypeReferences(args, planData, planFolder) {
-    if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving Record Types references', args.progress));
+function resolveRecordTypeReferences(args: any, planData: any[], planFolder: string): void {
+    if (args.progress) {
+        Printer.printProgress(new ProgressBuilder(args.progress).message('Resolving Record Types references'));
+    }
     for (let plan of planData) {
-        if (args.progress)
-            Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving Record Type references on ' + plan.sobject + ' records', args.progress));
-        for (file of plan.files) {
+        if (args.progress) {
+            Printer.printProgress(new ProgressBuilder(args.progress).message('Resolving Record Type references on ' + plan.sobject + ' records'));
+        }
+        for (const file of plan.files) {
             let filePath = planFolder + "/" + file;
             let fileData = JSON.parse(FileReader.readFileSync(filePath));
             for (let record of fileData.records) {
                 if (record.RecordType) {
-                    if (!record.RecordType.DeveloperName)
+                    if (!record.RecordType.DeveloperName) {
                         throw new Error("DeveloperName not found on RecordType data. Please, put Recordtype.DeveloperName into the query for correct mapping of record types");
+                    }
                     if (recordTypeByObject[plan.sobject]) {
                         if (recordTypeByObject[plan.sobject].recordTypes[record.RecordType.DeveloperName]) {
                             record.RecordTypeId = recordTypeByObject[plan.sobject].recordTypes[record.RecordType.DeveloperName].Id;
@@ -294,11 +305,12 @@ function resolveRecordTypeReferences(args, planData, planFolder) {
     }
 }
 
-function createRecordsHierarchy(args, planData, planFolder) {
-    if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving Self references', args.progress));
+function createRecordsHierarchy(args: any, planData: any[], planFolder: string): void {
+    if (args.progress) {
+        Printer.printProgress(new ProgressBuilder(args.progress).message('Resolving Self references'));
+    }
     for (let plan of planData) {
-        for (file of plan.files) {
+        for (const file of plan.files) {
             let filePath = planFolder + "/" + file;
             let fileData = JSON.parse(FileReader.readFileSync(filePath));
             for (let record of fileData.records) {
@@ -340,9 +352,10 @@ function createRecordsHierarchy(args, planData, planFolder) {
     }
 }
 
-function createBatches(args, planData) {
-    if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Creating Batches to insert data', args.progress));
+function createBatches(args: any, planData: any[]): void {
+    if (args.progress) {
+        Printer.printProgress(new ProgressBuilder(args.progress).message('Creating Batches to insert data'));
+    }
     let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
     totalBatches = 0;
     let totalRecords = 0;
@@ -403,19 +416,20 @@ function createBatches(args, planData) {
             }
         }
     }
-    if (args.progress)
-        Output.Printer.printProgress(Response.progress(undefined, undefined, 'Batches to insert data created. Total Records: ' + totalRecords + ' ; Total Batches: ' + totalBatches, args.progress));
+    if (args.progress) {
+        Printer.printProgress(new ProgressBuilder(args.progress).message('Batches to insert data created. Total Records: ' + totalRecords + ' ; Total Batches: ' + totalBatches));
+    }
 }
 
-function insertBatches(args, planData) {
-    return new Promise(async function (resolve, reject) {
+function insertBatches(args: any, planData: any[]): Promise<any> {
+    return new Promise<void>(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Start job to insert data. This operation can take several minutes. Please wait.', args.progress));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('Start job to insert data. This operation can take several minutes. Please wait.'));
             let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
             let increment = MathUtils.round(100 / totalBatches, 2);
             let percentage = 0;
-            let insertErrosByBatch = {};
+            let insertErrosByBatch: any = {};
             const connection = new Connection(username, args.apiVersion, batchFolder, undefined);
             for (let plan of planData) {
                 let mastersFolder = plan.sobject + '/masters';
@@ -426,13 +440,13 @@ function insertBatches(args, planData) {
                     if (batchFiles.length > 0) {
                         if (Object.keys(savedIdsByReference).length > 0) {
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Performing insert operation on ' + plan.sobject + ' record(s)', args.progress));
+                                Printer.printProgress(new ProgressBuilder(args.progress).message('Performing insert operation on ' + plan.sobject + ' record(s)'));
                         }
                         for (let batchFile of batchFiles) {
                             percentage += increment;
                             let batchName = batchFile.replace('.json', '');
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(increment, percentage, 'Running Batch ' + batchName, args.progress));
+                                Printer.printProgress(new ProgressBuilder(args.progress).increment(increment).percentage(percentage).message('Running Batch ' + batchName));
                             try {
                                 const response = await connection.importTreeData(mastersFolder + '/' + batchFile);
                                 if (response.results) {
@@ -460,12 +474,13 @@ function insertBatches(args, planData) {
                     if (batchFiles.length > 0) {
                         if (Object.keys(savedIdsByReference).length > 0) {
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Performing insert operation on ' + plan.sobject + ' child record(s)', args.progress));
+                                Printer.printProgress(new ProgressBuilder(args.progress).message('Performing insert operation on ' + plan.sobject + ' child record(s)'));
                         }
                         for (let batchFile of batchFiles) {
                             percentage += increment;
+                            let batchName = batchFile.replace('.json', '');
                             if (args.progress)
-                                Output.Printer.printProgress(Response.progress(increment, percentage, 'Running Batch ' + batchFile.replace('.json', ''), args.progress));
+                                Printer.printProgress(new ProgressBuilder(args.progress).increment(increment).percentage(percentage).message('Running Batch ' + batchName));
                             try {
                                 const response = await connection.importTreeData(childsFolder + '/' + batchFile);
                                 if (response.results) {
@@ -496,10 +511,10 @@ function insertBatches(args, planData) {
     });
 }
 
-function resolveReferences(args, mastersFolder, childsFolder) {
+function resolveReferences(args: any, mastersFolder: string, childsFolder: string) {
     if (Object.keys(savedIdsByReference).length > 0) {
         if (args.progress)
-            Output.Printer.printProgress(Response.progress(undefined, undefined, 'Resolving References.', args.progress));
+            Printer.printProgress(new ProgressBuilder(args.progress).message('Resolving References.'));
         if (FileChecker.isExists(mastersFolder)) {
             let batchFiles = FileReader.readDirSync(mastersFolder);
             if (batchFiles.length > 0) {
@@ -535,7 +550,7 @@ function resolveReferences(args, mastersFolder, childsFolder) {
     }
 }
 
-function isCorrectPlan(planFile) {
+function isCorrectPlan(planFile: string) {
     return new Promise(function (resolve, reject) {
         try {
             let planData = JSON.parse(FileReader.readFileSync(planFile));
@@ -551,11 +566,11 @@ function isCorrectPlan(planFile) {
     });
 }
 
-function loadStoredRecordTypes(args) {
-    return new Promise(async function (resolve, reject) {
+function loadStoredRecordTypes(args: any): Promise<void> {
+    return new Promise<void>(async function (resolve, reject) {
         try {
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Loading stored Record Types from target org', args.progress));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('Loading stored Record Types from target org'));
             const connection = new Connection(username, args.apiVersion, undefined, undefined);
             const records = await connection.query("Select Id, Name, DeveloperName, SobjectType from RecordType");
             for (let record of records) {
@@ -568,7 +583,7 @@ function loadStoredRecordTypes(args) {
                 recordTypeByObject[record.SobjectType].recordTypes[record.DeveloperName] = record;
             }
             if (args.progress)
-                Output.Printer.printProgress(Response.progress(undefined, undefined, 'Record Types Loaded Successfully', args.progress));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('Record Types Loaded Successfully'));
             resolve();
         } catch (error) {
             reject(error);
@@ -576,10 +591,10 @@ function loadStoredRecordTypes(args) {
     });
 }
 
-function getNotExistingFiles(planData, planFolder) {
-    let notExistingFiles = [];
+function getNotExistingFiles(planData: any, planFolder: string): string[] {
+    let notExistingFiles: string[] = [];
     for (let plan of planData) {
-        for (file of plan.files) {
+        for (const file of plan.files) {
             let filePath = planFolder + "/" + file;
             if (!FileChecker.isExists(filePath)) {
                 notExistingFiles.push(filePath);
@@ -589,43 +604,22 @@ function getNotExistingFiles(planData, planFolder) {
     return notExistingFiles;
 }
 
-function getRecordBatches(records, nRecords) {
-    let batch = {};
-    let batchId = "batch_";
-    let counter = 0;
-    for (let record of records) {
-        let id = batchId + counter;
-        if (!batch[id]) {
-            batch[id] = {
-                batchId: id,
-                records: [],
-            };
-        }
-        if (batch[id].records.length < nRecords) {
-            batch[id].records.push(record);
-        } else {
-            counter++;
-        }
-    }
-    return batch;
-}
-
-function reportDeletingProgress(args, millis) {
+function reportDeletingProgress(args: any, millis: number) {
     if (!deletingFinished) {
         setTimeout(function () {
             if (!deletingFinished) {
-                Output.Printer.printProgress(Response.progress(undefined, undefined, '(' + new Date().getTime() + ') Roll back in progress. Please wait.', args.progress));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('(' + new Date().getTime() + ') Roll back in progress. Please wait.'));
                 reportDeletingProgress(args, millis);
             }
         }, millis);
     }
 }
 
-function reportExtractingProgress(args, millis) {
+function reportExtractingProgress(args: any, millis: number) {
     if (!extractingFinished) {
         setTimeout(function () {
             if (!extractingFinished) {
-                Output.Printer.printProgress(Response.progress(undefined, undefined, '(' + new Date().getTime() + ') Extraction in progress. Please wait.', args.progress));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('(' + new Date().getTime() + ') Extraction in progress. Please wait.'));
                 reportExtractingProgress(args, millis);
             }
         }, millis);
