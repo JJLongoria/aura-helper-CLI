@@ -2,15 +2,19 @@
   "name": "aura-helper-cli",
   "productName": "Aura Helper CLI",
   "displayName": "Aura Helper CLI",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "description": "Command Line Interface Application for support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects. Specially designed for DevOps workflows",
-  "main": "src/aura-helper.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\""
+    "compile": "tsc -p ./ ",
+    "lint": "eslint src --ext ts",
+    "lint-fix": "eslint src --ext ts --fix",
+    "watch": "tsc -watch -p ./"
   },
   "bin": {
-    "aura-helper": "src/aura-helper.js",
-    "ah": "src/aura-helper.js"
+    "aura-helper": "dist/index.js",
+    "ah": "dist/index.js"
   },
   "keywords": [
     "aura-helper-framework",
@@ -62,21 +66,26 @@
     "email": "juanjoselongoria@gmail.com"
   },
   "dependencies": {
-    "@aurahelper/connector": "^1.1.2",
-    "@aurahelper/core": "^1.0.13",
-    "@aurahelper/dependencies-manager": "^1.0.0",
-    "@aurahelper/git-manager": "^1.0.0",
-    "@aurahelper/ignore": "^1.0.1",
-    "@aurahelper/metadata-factory": "^1.0.10",
-    "@aurahelper/package-generator": "^1.0.2",
-    "@aurahelper/xml-compressor": "^1.0.0",
+    "@aurahelper/connector": "file:../ah-connector",
+    "@aurahelper/core": "file:../ah-core",
+    "@aurahelper/dependencies-manager": "file:../ah-dependencies-manager",
+    "@aurahelper/git-manager": "file:../ah-git-manager",
+    "@aurahelper/ignore": "file:../ah-ignore",
+    "@aurahelper/metadata-factory": "file:../ah-metadata-factory",
+    "@aurahelper/package-generator": "file:../ah-package-generator",
+    "@aurahelper/xml-compressor": "file:../ah-xml-compressor",
     "colors": "^1.4.0",
     "commander": "^5.1.0",
     "inquirer": "^7.3.3"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.20",
-    "@types/node": "^13.13.47",
-    "jest": "^26.6.3"
+    "@types/jest": "^27.0.3",
+    "@types/node": "^12.12.47",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.3.0",
+    "jest": "^27.4.3",
+    "ts-jest": "^27.0.7",
+    "typescript": "^3.9.6"
   }
 }
