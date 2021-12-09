@@ -43,28 +43,28 @@ export class Printer {
 
     }
 
-    static printError(text: string): void {
+    static printError(text: string | any): void {
         if (Utils.isObject(text))
             Printer.print(text.toString(), Color.RED);
         else
             Printer.print(text, Color.RED);
     }
 
-    static printSuccess(text: string): void {
+    static printSuccess(text: string | any): void {
         if (Utils.isObject(text))
             Printer.print(text.toString(), Color.GREEN);
         else
             Printer.print(text, Color.GREEN);
     }
 
-    static printWarning(text: string): void {
+    static printWarning(text: string | any): void {
         if (Utils.isObject(text))
             Printer.print(text.toString(), Color.YELLOW);
         else
             Printer.print(text, Color.YELLOW);
     }
 
-    static printProgress(text: string): void {
+    static printProgress(text: string | any): void {
         if (Utils.isObject(text))
             Printer.print(text.toString(), Color.BLUE);
         else

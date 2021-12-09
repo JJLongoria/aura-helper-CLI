@@ -1,16 +1,15 @@
-const Output = require('../../output');
-const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
-const ErrorCodes = require('../errors');
-const { PathUtils } = require('@aurahelper/core').FileSystem;
-const { StrUtils } = require('@aurahelper/core').CoreUtils;
-const { ProcessFactory, ProcessHandler } = require('@aurahelper/core').ProcessManager;
+import { Printer } from "../../output";
+import { CoreUtils, PathUtils, ProcessFactory, ProcessHandler } from "@aurahelper/core";
+import { ErrorBuilder, ResponseBuilder } from "../response";
+import { Errors } from "../errors";
+const StrUtils = CoreUtils.StrUtils;
 
-exports.createCommand = function (program) {
+export function createCommand(program: any) {
     program
         .command('update')
         .description('Command for update Aura Helper CLI to the latest version')
-        .action(function (args) {
-            run(args);
+        .action(function (_args: any) {
+            run();
         });
 }
 
@@ -27,10 +26,10 @@ function run() {
         }
     }
     if (runNpm) {
-        updateNPM().then(function (result) {
-            Output.Printer.printSuccess(new ResponseBuilder(result));
-        }).catch(function (error) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
+        updateNPM().then((result) => {
+            Printer.printSuccess(new ResponseBuilder(result as string));
+        }).catch((error) => {
+            Printer.printError(new ErrorBuilder(Errors.COMMAND_ERROR).exception(error));
         });
     } else {
         update(appPaths[0]);
@@ -38,9 +37,9 @@ function run() {
 }
 
 function updateNPM() {
-    return new Promise(async function (resolve, reject) {
+    return new Promise(async (resolve, reject) => {
         try {
-            const process = ProcessFactory.updateNPM(true);
+            const process = ProcessFactory.updateNPM();
             try {
                 await ProcessHandler.runProcess(process);
                 resolve('Aura Helper Updated Succesfully');
@@ -53,6 +52,6 @@ function updateNPM() {
     });
 }
 
-function update(appPath) {
+function update(_appPath: string) {
 
 }
