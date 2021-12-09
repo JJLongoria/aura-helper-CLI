@@ -1,4 +1,4 @@
-export const Error: { [key: string]: any } = {
+export const Errors: { [key: string]: any } = {
     MISSING_ARGUMENTS: {
         code: 'MISSING_ARGUMENTS_ERROR',
         message: "Wrong Command. Missing Arguments"

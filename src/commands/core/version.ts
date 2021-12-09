@@ -1,11 +1,11 @@
-const { FileReader, PathUtils } = require('@aurahelper/core').FileSystem;
+import { FileReader, PathUtils } from "@aurahelper/core";
 
-exports.createCommand = function (program) {
+export function createCommand(program: any): void {
     program
         .command('version')
         .description('Command for get the installed Aura Helper CLI version')
-        .action(function (args) {
-            run(args);
+        .action(function (_args: any) {
+            run();
         });
 }
 

@@ -5,7 +5,7 @@ export class Utils {
             'json'];
     }
 
-    static hasEmptyArgs(args: any[], argsNames: string[]): boolean{
+    static hasEmptyArgs(args: any, argsNames: string[]): boolean{
         let nEmpty = 0;
         for(let argName of argsNames){
             if(args[argName] === undefined){
