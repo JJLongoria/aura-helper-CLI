@@ -52,19 +52,23 @@ export class ProgressBuilder {
 
     increment(increment: number): ProgressBuilder {
         this._increment = increment;
-        if (this._increment > 100)
+        if (this._increment > 100) {
             this._increment = 100;
-        if (this._increment == 0)
+        }
+        if (this._increment === 0) {
             this._increment = -1;
+        }
         return this;
     }
 
     percentage(percentage: number): ProgressBuilder {
         this._percentage = percentage;
-        if (this._percentage > 100)
+        if (this._percentage > 100) {
             this._percentage = 100;
-        if (!this._percentage)
+        }
+        if (!this._percentage) {
             this._percentage = -1;
+        }
         return this;
     }
 
@@ -79,16 +83,16 @@ export class ProgressBuilder {
     }
 
     toString(): string {
-        if(!this._message){
+        if (!this._message) {
             this._message = '';
         }
         if (!this._format || this._format === 'json') {
             const body = new AuraHelperCLIProgress(this._status, this._message, this._increment, this._percentage);
             return JSON.stringify(body, null, 2);
         } else {
-            if (this._percentage)
+            if (this._percentage) {
                 return this._message + ' (' + this._percentage + '%)';
-            else {
+            } else {
                 return this._message;
             }
         }

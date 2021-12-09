@@ -47,7 +47,7 @@ function updateNPM() {
                 reject(error);
             }
         } catch (error) {
-            reject(error)
+            reject(error);
         }
     });
 }

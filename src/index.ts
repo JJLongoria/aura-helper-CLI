@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-const Commands = require('./commands');
-const program = require('commander');
-const inquirer = require("inquirer");
+import * as Commands from './commands';
+import { program } from 'commander';
 
 // METADATA COMMANDS
 // Local Commands

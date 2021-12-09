@@ -1,12 +1,13 @@
-const Output = require('../../output');
-const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
-const ErrorCodes = require('../errors');
-const CommandUtils = require('../utils');
-const { PathUtils, FileChecker, FileWriter } = require('@aurahelper/core').FileSystem;
-const { ProjectUtils, Validator } = require('@aurahelper/core').CoreUtils;
-const Connection = require('@aurahelper/connector');
+import { CoreUtils, PathUtils, FileChecker, FileWriter } from "@aurahelper/core";
+import { Connection } from "@aurahelper/connector";
+import { CommandUtils } from '../utils';
+import { Printer } from '../../output';
+import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
+import { Errors } from '../errors';
+const ProjectUtils = CoreUtils.ProjectUtils;
+const Validator = CoreUtils.Validator;
 
-let argsList = [
+const argsList: string[] = [
     "root",
     "outputFile",
     "apiVersion",
@@ -14,7 +15,7 @@ let argsList = [
     "beautify"
 ];
 
-exports.createCommand = function (program) {
+export function createCommand(program: any) {
     program
         .command('metadata:org:list')
         .description('Command for list all metadata from the auth org')
@@ -23,31 +24,31 @@ exports.createCommand = function (program) {
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
-        .action(function (args) {
+        .action(function (args: any) {
             run(args);
         });
 }
 
-async function run(args) {
+async function run(args: any) {
     try {
-        Output.Printer.setColorized(args.beautify);
+        Printer.setColorized(args.beautify);
         if (CommandUtils.hasEmptyArgs(args, argsList)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
+            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS));
             return;
         }
         try {
             args.root = Validator.validateFolderPath(args.root);
         } catch (error) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
+            Printer.printError(new ErrorBuilder(Errors.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error as Error));
             return;
         }
         if (!FileChecker.isSFDXRootPath(args.root)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+            Printer.printError(new ErrorBuilder(Errors.PROJECT_NOT_FOUND).message(args.root));
             return;
         }
         if (args.progress) {
             if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-                Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+                Printer.printError(new ErrorBuilder(Errors.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
                 return;
             }
         }
@@ -55,7 +56,7 @@ async function run(args) {
             try {
                 args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
             } catch (error) {
-                Output.Printer.printError(new ErrorBuilder(ErrorCodes.FILE_ERROR).message('Wrong --output-file path. Select a valid path'));
+                Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message('Wrong --output-file path. Select a valid path'));
                 return;
             }
         }
@@ -63,37 +64,40 @@ async function run(args) {
             try {
                 args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
             } catch (error) {
-                Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error));
+                Printer.printError(new ErrorBuilder(Errors.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error as Error));
             }
         } else {
             let projectConfig = ProjectUtils.getProjectConfig(args.root);
-            args.apiVersion = projectConfig.sourceApiVersion;
+            if (projectConfig) {
+                args.apiVersion = projectConfig.sourceApiVersion;
+            }
         }
         listOrgMetadata(args).then(function (result) {
             if (args.outputFile) {
                 args.outputFile = PathUtils.getAbsolutePath(args.outputFile);
                 let baseDir = PathUtils.getDirname(args.outputFile);
-                if (!FileChecker.isExists(baseDir))
+                if (!FileChecker.isExists(baseDir)) {
                     FileWriter.createFolderSync(baseDir);
-                FileWriter.createFileSync(args.outputFile, JSON.stringify(metadataTypes, null, 2));
-                Output.Printer.printSuccess(new ResponseBuilder('Output saved in: ' + args.outputFile));
+                }
+                FileWriter.createFileSync(args.outputFile, JSON.stringify(result, null, 2));
+                Printer.printSuccess(new ResponseBuilder('Output saved in: ' + args.outputFile));
             } else {
-                Output.Printer.printSuccess(new ResponseBuilder('List Metadata Types finished successfully').data(result));
+                Printer.printSuccess(new ResponseBuilder('List Metadata Types finished successfully').data(result));
             }
         }).catch(function (error) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
+            Printer.printError(new ErrorBuilder(Errors.COMMAND_ERROR).exception(error));
         });
     } catch (error) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
+        Printer.printError(new ErrorBuilder(Errors.COMMAND_ERROR).exception(error as Error));
     }
 
 }
 
-function listOrgMetadata(args) {
+function listOrgMetadata(args: any) {
     return new Promise(async function (resolve, reject) {
         try {
-            if (args.progress)
-                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));
+            if (args.progress){
+                Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));}
             const username = ProjectUtils.getOrgAlias(args.root);
             const connection = new Connection(username, args.apiVersion, args.root, undefined);
             const metadataDetails = await connection.listMetadataTypes();

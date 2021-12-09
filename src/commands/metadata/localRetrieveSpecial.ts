@@ -1,23 +1,23 @@
-const Output = require('../../output');
-const { ResponseBuilder, ProgressBuilder, ErrorBuilder } = require('../response');
-const ErrorCodes = require('../errors');
-const MetadataCommandUtils = require('./utils');
-const CommandUtils = require('../utils');
-const { PathUtils, FileChecker } = require('@aurahelper/core').FileSystem;
-const XMLCompressor = require('@aurahelper/xml-compressor');
-const Connection = require('@aurahelper/connector');
-const { ProjectUtils, Validator } = require('@aurahelper/core').CoreUtils;
-const { SpecialMetadata } = require('@aurahelper/core').Values;
+import { CoreUtils, PathUtils, FileChecker, SpecialMetadata, MetadataType } from "@aurahelper/core";
+import { Connection } from "@aurahelper/connector";
+import { CommandUtils } from '../utils';
+import { Printer } from '../../output';
+import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
+import { Errors } from '../errors';
+import { XMLCompressor } from '@aurahelper/xml-compressor';
+import { MTCommandUtils } from './utils';
+const ProjectUtils = CoreUtils.ProjectUtils;
+const Validator = CoreUtils.Validator;
 
 const PROJECT_NAME = 'TempProject';
 
 const SUBFOLDER_BY_METADATA_TYPE = {
     RecordType: 'recordTypes'
-}
+};
 
 let retrievedFinished = false;
 
-let argsList = [
+const argsList: string[] = [
     "root",
     "all",
     "type",
@@ -32,7 +32,7 @@ let argsList = [
 
 const sortOrderValues = Object.values(XMLCompressor.getSortOrderValues());
 
-exports.createCommand = function (program) {
+export function createCommand(program: any) {
     program
         .command('metadata:local:retrieve:special')
         .description('Command for retrieve the special metadata types stored in your local project. The special types are the types generated at runtime when retrieving data from org according the package data. Files like permission sets, profiles or translations. For example, with this command you can retrieve all permissions from a profile without retrieve anything more. Also you can retrieve only the Custom Object XML Files without retrieve anything more.')
@@ -46,41 +46,41 @@ exports.createCommand = function (program) {
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
-        .action(function (args) {
+        .action(function (args: any) {
             run(args);
         });
 }
 
-async function run(args) {
+async function run(args: any) {
     retrievedFinished = false;
-    Output.Printer.setColorized(args.beautify);
+    Printer.setColorized(args.beautify);
     if (CommandUtils.hasEmptyArgs(args, argsList)) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS));
+        Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS));
         return;
     }
     try {
         args.root = Validator.validateFolderPath(args.root);
     } catch (error) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error));
+        Printer.printError(new ErrorBuilder(Errors.FOLDER_ERROR).message('Wrong --root path (' + args.root + ')').exception(error as Error));
         return;
     }
     if (!FileChecker.isSFDXRootPath(args.root)) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.PROJECT_NOT_FOUND).message(args.root));
+        Printer.printError(new ErrorBuilder(Errors.PROJECT_NOT_FOUND).message(args.root));
         return;
     }
     if (args.progress) {
         if (!CommandUtils.getProgressAvailableTypes().includes(args.progress)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
+            Printer.printError(new ErrorBuilder(Errors.WRONG_ARGUMENTS).message('Wrong --progress value (' + args.progress + '). Please, select any of this vales: ' + CommandUtils.getProgressAvailableTypes().join(',')));
             return;
         }
     }
-    if (args.all == undefined && args.type === undefined) {
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.MISSING_ARGUMENTS).message('You must select retrieve all or retrieve specific types'));
+    if (args.all === undefined && args.type === undefined) {
+        Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('You must select retrieve all or retrieve specific types'));
         return;
     }
     if (args.sortOrder) {
         if (!sortOrderValues.includes(args.sortOrder)) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --sort-order value (' + args.sortOrder + '). Please, select any of this values: ' + sortOrderValues.join(',')));
+            Printer.printError(new ErrorBuilder(Errors.WRONG_ARGUMENTS).message('Wrong --sort-order value (' + args.sortOrder + '). Please, select any of this values: ' + sortOrderValues.join(',')));
             return;
         }
     }
@@ -88,47 +88,52 @@ async function run(args) {
         try {
             args.apiVersion = ProjectUtils.getApiAsString(args.apiVersion);
         } catch (error) {
-            Output.Printer.printError(new ErrorBuilder(ErrorCodes.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error));
+            Printer.printError(new ErrorBuilder(Errors.WRONG_ARGUMENTS).message('Wrong --api-version selected').exception(error as Error));
         }
     } else {
         let projectConfig = ProjectUtils.getProjectConfig(args.root);
-        args.apiVersion = projectConfig.sourceApiVersion;
+        if (projectConfig) {
+            args.apiVersion = projectConfig.sourceApiVersion;
+        }
     }
-    let types;
+    let types: { [key: string]: MetadataType } | undefined;
     if (args.type && !args.all) {
-        types = MetadataCommandUtils.getAdvanceTypes(args.type);
+        types = MTCommandUtils.getAdvanceTypes(args.type);
     }
     retrieve(args, types).then(function (retrieveOut) {
-        Output.Printer.printSuccess(new ResponseBuilder('Retrieve metadata finished successfully').data(retrieveOut));
+        Printer.printSuccess(new ResponseBuilder('Retrieve metadata finished successfully').data(retrieveOut));
     }).catch(function (error) {
         retrievedFinished = true;
-        Output.Printer.printError(new ErrorBuilder(ErrorCodes.COMMAND_ERROR).exception(error));
+        Printer.printError(new ErrorBuilder(Errors.COMMAND_ERROR).exception(error));
     });
 }
 
-function retrieve(args, types) {
+function retrieve(args: any, types?: { [key: string]: MetadataType }) {
     return new Promise(async function (resolve, reject) {
         try {
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
             const username = ProjectUtils.getOrgAlias(args.root);;
-            const connection = new Connection(username, args.apiVersion, args.root, projectConfig.namespace);
+            const connection = new Connection(username, args.apiVersion, args.root, projectConfig!.namespace);
             connection.setMultiThread();
             let retrieveOut;
             connection.onLoadingLocal(() => {
-                if (args.progress)
-                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Local Metadata Types'));
+                if (args.progress) {
+                    Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Local Metadata Types'));
+                }
             });
             connection.onLoadingOrg(() => {
-                if (args.progress)
-                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Org Metadata Types'));
+                if (args.progress) {
+                    Printer.printProgress(new ProgressBuilder(args.progress).message('Describing Org Metadata Types'));
+                }
             });
             connection.onAfterDownloadType((status) => {
-                if (args.progress)
-                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
+                if (args.progress) {
+                    Printer.printProgress(new ProgressBuilder(args.progress).message('MetadataType: ' + status.entityType).increment(status.increment).percentage(status.percentage));
+                }
             });
             connection.onRetrieve(() => {
                 if (args.progress) {
-                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Retriving Metadata Types. This operation can will take several minutes, please wait.'));
+                    Printer.printProgress(new ProgressBuilder(args.progress).message('Retriving Metadata Types. This operation can will take several minutes, please wait.'));
                     reportRetrieveProgress(args, 2500);
                 }
             });
@@ -136,13 +141,15 @@ function retrieve(args, types) {
                 retrievedFinished = true;
             });
             connection.onCopyFile((status) => {
-                if (args.progress)
-                    Output.Printer.printProgress(new ProgressBuilder(args.progress).message('Copying ' + PathUtils.getBasename(status.data) + ' to ' + status.data));
+                if (args.progress) {
+                    Printer.printProgress(new ProgressBuilder(args.progress).message('Copying ' + PathUtils.getBasename(status.data) + ' to ' + status.data));
+                }
             });
-            if (!args.includeOrg)
+            if (!args.includeOrg) {
                 retrieveOut = await connection.retrieveLocalSpecialTypes(PathUtils.getAuraHelperCLITempFilesPath(), types, args.compress, args.sortOrder);
-            else
+            } else {
                 retrieveOut = await connection.retrieveMixedSpecialTypes(PathUtils.getAuraHelperCLITempFilesPath(), types, !args.orgNamespace, args.compress, args.sortOrder);
+            }
             resolve(retrieveOut);
         } catch (error) {
             reject(error);
@@ -150,11 +157,11 @@ function retrieve(args, types) {
     });
 }
 
-function reportRetrieveProgress(args, millis) {
+function reportRetrieveProgress(args: any, millis: number) {
     if (!retrievedFinished) {
         setTimeout(function () {
             if (!retrievedFinished) {
-                Output.Printer.printProgress(new ProgressBuilder(args.progress).message('(' + new Date().getTime() + ') Retrieve in progress. Please wait.'));
+                Printer.printProgress(new ProgressBuilder(args.progress).message('(' + new Date().getTime() + ') Retrieve in progress. Please wait.'));
                 reportRetrieveProgress(args, millis);
             }
         }, millis);
