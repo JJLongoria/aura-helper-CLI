@@ -27,7 +27,7 @@ let savedIdsByReference: any = {};
 let totalBatches: number = 0;
 let username: string | undefined;
 
-exports.createCommand = function (program: any) {
+export function createCommand(program: any) {
     program
         .command('data:import')
         .description('Command for import the data extracted with data:export command into the selected org')
@@ -134,8 +134,9 @@ async function run(args: any) {
                 });
                 Printer.printSuccess(new ResponseBuilder("Data does not import because found errors. Go to " + folder + " for see the errors by batch"));
             }
-            else
+            else {
                 Printer.printSuccess(new ResponseBuilder("Data imported succesfully into your Auth Org"));
+            }
         }).catch(function (error) {
             Printer.printError(new ErrorBuilder(Errors.DATA_ERROR).exception(error));
         });
@@ -166,7 +167,7 @@ function startImportingData(args: any, planData: any) {
             resolve(insertErrorsByBatch);
             //cleanWorkspace(tempFolder);
         } catch (error) {
-            reject(error)
+            reject(error);
         }
     });
 }
@@ -234,8 +235,9 @@ function cleanInsertedRecords(args: any, tempFolder: string): Promise<void> {
                 const connection = new Connection(username, args.apiVersion, args.root, undefined);
                 try {
                     const response = await connection.bulkDelete(csvFile, sobject);
-                    if (args.progress)
+                    if (args.progress) {
                         Printer.printProgress(new ProgressBuilder(args.progress).message('Roll back on ' + sobject + ' record(s) finished succesfully'));
+                    }
                 } catch (error) {
                     deletingFinished = true;
                     reject(error);
@@ -372,8 +374,9 @@ function createBatches(args: any, planData: any[]): void {
                     records.push(record);
                 } else {
                     totalBatches++;
-                    if (!FileChecker.isExists(mastersFolder))
+                    if (!FileChecker.isExists(mastersFolder)) {
                         FileWriter.createFolderSync(mastersFolder);
+                    }
                     FileWriter.createFileSync(mastersFolder + '/' + batchFileName, JSON.stringify({ records: records }, null, 2));
                     records = [];
                     counter++;
@@ -383,8 +386,9 @@ function createBatches(args: any, planData: any[]): void {
             }
             if (records.length > 0) {
                 totalBatches++;
-                if (!FileChecker.isExists(mastersFolder))
+                if (!FileChecker.isExists(mastersFolder)) {
                     FileWriter.createFolderSync(mastersFolder);
+                }
                 FileWriter.createFileSync(mastersFolder + '/' + batchFileName, JSON.stringify({ records: records }, null, 2));
                 records = [];
                 counter++;
@@ -396,8 +400,9 @@ function createBatches(args: any, planData: any[]): void {
                     records.push(record);
                 } else {
                     totalBatches++;
-                    if (!FileChecker.isExists(childsFolder))
+                    if (!FileChecker.isExists(childsFolder)) {
                         FileWriter.createFolderSync(childsFolder);
+                    }
                     FileWriter.createFileSync(childsFolder + '/' + batchFileName, JSON.stringify({ records: records }, null, 2));
                     records = [];
                     counter++;
@@ -407,8 +412,9 @@ function createBatches(args: any, planData: any[]): void {
             }
             if (records.length > 0) {
                 totalBatches++;
-                if (!FileChecker.isExists(childsFolder))
+                if (!FileChecker.isExists(childsFolder)) {
                     FileWriter.createFolderSync(childsFolder);
+                }
                 FileWriter.createFileSync(childsFolder + '/' + batchFileName, JSON.stringify({ records: records }, null, 2));
                 records = [];
                 counter++;
@@ -424,8 +430,9 @@ function createBatches(args: any, planData: any[]): void {
 function insertBatches(args: any, planData: any[]): Promise<any> {
     return new Promise<void>(async function (resolve, reject) {
         try {
-            if (args.progress)
+            if (args.progress) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Start job to insert data. This operation can take several minutes. Please wait.'));
+            }
             let batchFolder = PathUtils.getAuraHelperCLITempFilesPath() + '/import-export';
             let increment = MathUtils.round(100 / totalBatches, 2);
             let percentage = 0;
@@ -439,14 +446,16 @@ function insertBatches(args: any, planData: any[]): Promise<any> {
                     let batchFiles = FileReader.readDirSync(batchFolder + '/' + mastersFolder);
                     if (batchFiles.length > 0) {
                         if (Object.keys(savedIdsByReference).length > 0) {
-                            if (args.progress)
+                            if (args.progress) {
                                 Printer.printProgress(new ProgressBuilder(args.progress).message('Performing insert operation on ' + plan.sobject + ' record(s)'));
+                            }
                         }
                         for (let batchFile of batchFiles) {
                             percentage += increment;
                             let batchName = batchFile.replace('.json', '');
-                            if (args.progress)
+                            if (args.progress) {
                                 Printer.printProgress(new ProgressBuilder(args.progress).increment(increment).percentage(percentage).message('Running Batch ' + batchName));
+                            }
                             try {
                                 const response = await connection.importTreeData(mastersFolder + '/' + batchFile);
                                 if (response.results) {
@@ -473,14 +482,16 @@ function insertBatches(args: any, planData: any[]): Promise<any> {
                     let batchFiles = FileReader.readDirSync(batchFolder + '/' + childsFolder);
                     if (batchFiles.length > 0) {
                         if (Object.keys(savedIdsByReference).length > 0) {
-                            if (args.progress)
+                            if (args.progress) {
                                 Printer.printProgress(new ProgressBuilder(args.progress).message('Performing insert operation on ' + plan.sobject + ' child record(s)'));
+                            }
                         }
                         for (let batchFile of batchFiles) {
                             percentage += increment;
                             let batchName = batchFile.replace('.json', '');
-                            if (args.progress)
+                            if (args.progress) {
                                 Printer.printProgress(new ProgressBuilder(args.progress).increment(increment).percentage(percentage).message('Running Batch ' + batchName));
+                            }
                             try {
                                 const response = await connection.importTreeData(childsFolder + '/' + batchFile);
                                 if (response.results) {
@@ -513,8 +524,9 @@ function insertBatches(args: any, planData: any[]): Promise<any> {
 
 function resolveReferences(args: any, mastersFolder: string, childsFolder: string) {
     if (Object.keys(savedIdsByReference).length > 0) {
-        if (args.progress)
+        if (args.progress) {
             Printer.printProgress(new ProgressBuilder(args.progress).message('Resolving References.'));
+        }
         if (FileChecker.isExists(mastersFolder)) {
             let batchFiles = FileReader.readDirSync(mastersFolder);
             if (batchFiles.length > 0) {
@@ -556,10 +568,11 @@ function isCorrectPlan(planFile: string) {
             let planData = JSON.parse(FileReader.readFileSync(planFile));
             let planFolder = PathUtils.getDirname(planFile);
             let notExistingFiles = getNotExistingFiles(planData, planFolder);
-            if (notExistingFiles.length > 0)
+            if (notExistingFiles.length > 0) {
                 reject(notExistingFiles);
-            else
+            } else {
                 resolve(planData);
+            }
         } catch (error) {
             reject(error);
         }
@@ -569,8 +582,9 @@ function isCorrectPlan(planFile: string) {
 function loadStoredRecordTypes(args: any): Promise<void> {
     return new Promise<void>(async function (resolve, reject) {
         try {
-            if (args.progress)
+            if (args.progress) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Loading stored Record Types from target org'));
+            }
             const connection = new Connection(username, args.apiVersion, undefined, undefined);
             const records = await connection.query("Select Id, Name, DeveloperName, SobjectType from RecordType");
             for (let record of records) {
@@ -582,8 +596,9 @@ function loadStoredRecordTypes(args: any): Promise<void> {
                 }
                 recordTypeByObject[record.SobjectType].recordTypes[record.DeveloperName] = record;
             }
-            if (args.progress)
+            if (args.progress) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Record Types Loaded Successfully'));
+            }
             resolve();
         } catch (error) {
             reject(error);

@@ -36,39 +36,44 @@ export class Printer {
                 selectedColor = colors.white;
                 break;
         }
-        if (colorized)
+        if (colorized) {
             console.log(selectedColor(text));
-        else
+        } else {
             console.log(text);
+        }
 
     }
 
     static printError(text: string | any): void {
-        if (Utils.isObject(text))
+        if (Utils.isObject(text)) {
             Printer.print(text.toString(), Color.RED);
-        else
+        } else {
             Printer.print(text, Color.RED);
+        }
     }
 
     static printSuccess(text: string | any): void {
-        if (Utils.isObject(text))
+        if (Utils.isObject(text)) {
             Printer.print(text.toString(), Color.GREEN);
-        else
+        } else {
             Printer.print(text, Color.GREEN);
+        }
     }
 
     static printWarning(text: string | any): void {
-        if (Utils.isObject(text))
+        if (Utils.isObject(text)) {
             Printer.print(text.toString(), Color.YELLOW);
-        else
+        } else {
             Printer.print(text, Color.YELLOW);
+        }
     }
 
     static printProgress(text: string | any): void {
-        if (Utils.isObject(text))
+        if (Utils.isObject(text)) {
             Printer.print(text.toString(), Color.BLUE);
-        else
+        } else {
             Printer.print(text, Color.BLUE);
+        }
     }
 
     static printForHelp(args: any) {

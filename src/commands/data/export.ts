@@ -98,8 +98,9 @@ function run(args: any): void {
 function startExtractingData(args: any) {
     return new Promise(async function (resolve, reject) {
         try {
-            if (!args.username)
+            if (!args.username) {
                 args.username = ProjectUtils.getOrgAlias(args.root);
+            }
             if (args.progress) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org')));
                 reportExtractingProgress(args, 1000);
