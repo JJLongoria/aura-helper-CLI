@@ -1,9 +1,9 @@
-import { CoreUtils, FileChecker } from "@aurahelper/core";
+import { CoreUtils, FileChecker, XMLCompressorStatus } from "@aurahelper/core";
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
 import { Errors } from '../errors';
-import { XMLCompressor, XMLCompressorStatus } from '@aurahelper/xml-compressor';
+import { XMLCompressor } from '@aurahelper/xml-compressor';
 import { MTCommandUtils } from './utils';
 const MathUtils = CoreUtils.MathUtils;
 const Validator = CoreUtils.Validator;
