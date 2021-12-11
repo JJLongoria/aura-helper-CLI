@@ -27,8 +27,8 @@ export function createCommand(program: any) {
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder.', './')
         .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.getSortOrderValues().SIMPLE_FIRST)
         .option('-a, --all', 'Compress all XML files with support compression in your project.')
-        .option('-d, --directory <path/to/directory>', 'Compress XML Files from specific directory. This options does not take effect if you choose compress all.')
-        .option('-f, --file <path/to/file>', 'Compress the specified XML file. This options does not take effect if you choose compress directory or all.')
+        .option('-d, --directory <path/to/directory>', 'Compress XML Files from specific directory or directories separated by commas. This options does not take effect if you choose compress all.')
+        .option('-f, --file <path/to/file>', 'Compress the specified XML file or files separated by commas. This options does not take effect if you choose compress directory or all.')
         .option('-p, --progress <format>', 'Option for report the command progress. Available formats: ' + CommandUtils.getProgressAvailableTypes().join(','))
         .option('-b, --beautify', 'Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...)')
         .action(function (args: any) {
@@ -80,17 +80,17 @@ function compress(args: any) {
     compressor.setSortOrder(args.sortOrder);
     if (args.all || args.directory) {
         let param = (args.all) ? '--root' : '--directory';
-        let path = (args.all) ? args.root : args.directory;
+        let path: string[] = [];
         try {
-            path = Validator.validateFolderPath(path);
+            path = (args.all) ? MTCommandUtils.getPaths(args.root, args.root, true) : MTCommandUtils.getPaths(args.directory, args.root, true);
+            compressor.addPaths(path);
         } catch (error) {
             Printer.printError(new ErrorBuilder(Errors.FOLDER_ERROR).message('Wrong ' + param + ' path. Select a valid path').exception(error as Error));
             return;
         }
-        compressor.addPaths(path);
     } else {
         try {
-            args.file = MTCommandUtils.getPaths(args.file);
+            args.file = MTCommandUtils.getPaths(args.file, args.root);
         } catch (error) {
             Printer.printError(new ErrorBuilder(Errors.FILE_ERROR).message('Wrong --file path. Select a valid path').exception(error as Error));
             return;
