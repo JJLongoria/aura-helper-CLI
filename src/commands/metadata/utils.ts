@@ -3,14 +3,23 @@ const Validator = CoreUtils.Validator;
 
 export class MTCommandUtils {
 
-    static getPaths(paths: string): string[] {
+    static getPaths(paths: string, root: string, isFolder?: boolean): string[] {
         const result: string[] = [];
+        if (!root.endsWith('/') && !root.endsWith('\\')) {
+            root += '/';
+        }
         let resultTmp = [paths];
         if (paths.indexOf(',') !== -1) {
             resultTmp = paths.split(',');
         }
-        for (const typeTmp of resultTmp) {
-            result.push(Validator.validateFilePath(typeTmp.trim()));
+        for (let typeTmp of resultTmp) {
+            typeTmp = typeTmp.trim();
+            const path = (typeTmp.startsWith('./') && typeTmp !== root) ? (root + typeTmp.substring(2)) : typeTmp;
+            if (!isFolder) {
+                result.push(Validator.validateFilePath(path.trim()));
+            } else {
+                result.push(Validator.validateFolderPath(path.trim()));
+            }
         }
         return result;
     }

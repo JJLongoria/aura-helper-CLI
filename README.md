@@ -129,15 +129,17 @@ Command for compress XML files for ocuppy less data storage, and make more usefu
 
 ### **Options**:
 
-    -r | --root <path/to/project/root>              Path to project root. By default is your current folder.
-    -s | --sort-order <sortOrder>                   Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML 
-                                                    elements first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
-    -a | --all                                      Compress all XML files with support compression in your project.
-    -d | --directory <path/to/directory>            Compress XML Files from specific directory. This options does not take effect if you choose compress all.
-    -f | --file <path/to/file>                      Compress the specified XML file. This options does not take effect if you choose compress directory or all.
-    -p | --progress <format>                        Option for report the command progress. Available formats: plaintext, json
-    -b | --beautify                                 Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings and Red for 
-                                                    Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
+    -r | --root <path/to/project/root>                                  Path to project root. By default is your current folder.
+    -s | --sort-order <sortOrder>                                       Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements 
+                                                                        first. Values: simpleFirst, complexFirst, alphabetAsc, alphabetDesc
+    -a | --all                                                          Compress all XML files with support compression in your project.
+    -d | --directory <path/to/directory> [, <path/to/directory>...]     Compress XML Files from specific directory or directories separated by commas. This options does not take effect if you 
+                                                                        choose compress all.
+    -f | --file <path/to/file> [, <path/to/file>...]                    Compress the specified XML file or files separated by commas. This options does not take effect if you choose compress 
+                                                                        directory or all.
+    -p | --progress <format>                                            Option for report the command progress. Available formats: plaintext, json
+    -b | --beautify                                                     Option for draw the output with colors. Green for Successfull, Blue for progress, Yellow for Warnings 
+                                                                        and Red for Errors. Only recomended for work with terminals (CMD, Bash, Power Shell...).
 
 ### **Examples**:
 
