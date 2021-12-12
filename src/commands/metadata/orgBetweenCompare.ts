@@ -1,6 +1,6 @@
 import { MetadataFactory } from '@aurahelper/metadata-factory';
 import { CoreUtils, PathUtils, FileChecker, FileWriter } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -110,8 +110,8 @@ function compareMetadata(args: any) {
             if (!username) {
                 username = ProjectUtils.getOrgAlias(args.root);
             }
-            const connectionSource = new Connection(username, args.apiVersion, args.root, projectConfig!.namespace);
-            const connectionTarget = new Connection(args.target, args.apiVersion, args.root, projectConfig!.namespace);
+            const connectionSource = new SFConnector(username, args.apiVersion, args.root, projectConfig!.namespace);
+            const connectionTarget = new SFConnector(args.target, args.apiVersion, args.root, projectConfig!.namespace);
             connectionTarget.setMultiThread();
             connectionSource.setMultiThread();
             if (args.progress) {

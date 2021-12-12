@@ -3,7 +3,7 @@ import { Errors } from "../errors";
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from "../response";
 import { CommandUtils } from "../utils";
 import { CoreUtils, PathUtils, FileChecker, FileWriter, FileReader } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 const ProjectUtils = CoreUtils.ProjectUtils;
 const MathUtils = CoreUtils.MathUtils;
 
@@ -179,7 +179,7 @@ function startExtractingData(args: any) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Start Extracting data from Org with username or alias ' + args.sourceOrg));
                 reportExtractingProgress(args, 1000);
             }
-            const connection = new Connection(args.sourceOrg, args.apiVersion, args.root, undefined);
+            const connection = new SFConnector(args.sourceOrg, args.apiVersion, args.root, undefined);
             const response = await connection.exportTreeData(args.query, args.outputPath, args.prefix);
             resolve(response);
         } catch (error) {
@@ -232,7 +232,7 @@ function cleanInsertedRecords(args: any, tempFolder: string): Promise<void> {
                 let csvContent = 'Id\n' + idsByType[sobject].join('\n');
                 let csvFile = sobject + '_deleteFile.csv';
                 FileWriter.createFileSync(tempFolder + '/' + csvFile, csvContent);
-                const connection = new Connection(username, args.apiVersion, args.root, undefined);
+                const connection = new SFConnector(username, args.apiVersion, args.root, undefined);
                 try {
                     const response = await connection.bulkDelete(csvFile, sobject);
                     if (args.progress) {
@@ -437,7 +437,7 @@ function insertBatches(args: any, planData: any[]): Promise<any> {
             let increment = MathUtils.round(100 / totalBatches, 2);
             let percentage = 0;
             let insertErrosByBatch: any = {};
-            const connection = new Connection(username, args.apiVersion, batchFolder, undefined);
+            const connection = new SFConnector(username, args.apiVersion, batchFolder, undefined);
             for (let plan of planData) {
                 let mastersFolder = plan.sobject + '/masters';
                 let childsFolder = plan.sobject + '/childs';
@@ -585,7 +585,7 @@ function loadStoredRecordTypes(args: any): Promise<void> {
             if (args.progress) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Loading stored Record Types from target org'));
             }
-            const connection = new Connection(username, args.apiVersion, undefined, undefined);
+            const connection = new SFConnector(username, args.apiVersion, undefined, undefined);
             const records = await connection.query("Select Id, Name, DeveloperName, SobjectType from RecordType");
             for (let record of records) {
                 if (!recordTypeByObject[record.SobjectType]) {

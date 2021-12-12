@@ -1,6 +1,6 @@
 import { MetadataFactory } from '@aurahelper/metadata-factory';
 import { CoreUtils, PathUtils, FileChecker, FileWriter } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -96,7 +96,7 @@ function compareMetadata(args: any) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Local Metadata'));
             }
             const username = ProjectUtils.getOrgAlias(args.root);
-            const connection = new Connection(username, args.apiVersion, args.root);
+            const connection = new SFConnector(username, args.apiVersion, args.root);
             connection.setMultiThread();
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataDetails);

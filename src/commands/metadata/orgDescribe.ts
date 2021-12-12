@@ -1,5 +1,5 @@
 import { CoreUtils, PathUtils, FileChecker, FileWriter, MetadataDetail } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -107,7 +107,7 @@ function describeMetadata(args: any) {
         try {
             const username = ProjectUtils.getOrgAlias(args.root);
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
-            const connection = new Connection(username, args.apiVersion, args.root, projectConfig!.namespace);
+            const connection = new SFConnector(username, args.apiVersion, args.root, projectConfig!.namespace);
             connection.setMultiThread();
             let detailTypes: MetadataDetail[] | undefined;
             let strTypes: string[] | undefined;

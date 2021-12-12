@@ -1,5 +1,5 @@
 import { CoreUtils, PathUtils, FileChecker } from "@aurahelper/core";
-import { Connection } from '@aurahelper/connector';
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from "../utils";
 import { Printer } from "../../output";
 import { Errors } from "../errors";
@@ -105,7 +105,7 @@ function startExtractingData(args: any) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Start Extracting data from ' + ((args.username) ? 'Org with username or alias ' + args.username : 'Auth org')));
                 reportExtractingProgress(args, 1000);
             }
-            const connection = new Connection(args.username, args.apiVersion, args.root, undefined);
+            const connection = new SFConnector(args.username, args.apiVersion, args.root, undefined);
             const response = await connection.exportTreeData(args.query, args.outputPath, args.prefix);
             resolve(response);
         } catch (error) {

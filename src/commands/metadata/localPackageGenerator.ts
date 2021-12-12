@@ -1,6 +1,6 @@
 import { MetadataFactory } from '@aurahelper/metadata-factory';
 import { CoreUtils, PathUtils, FileChecker, PackageGeneratorResult } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -251,7 +251,7 @@ function createFromGit(args: any) {
             if (args.progress) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Describe Local Metadata Types'));
             }
-            const connection = new Connection(username, undefined, args.root);
+            const connection = new SFConnector(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataDetails);
             if (args.progress) {
