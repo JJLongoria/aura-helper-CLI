@@ -1,5 +1,5 @@
 import { CoreUtils, PathUtils, FileChecker } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -102,7 +102,7 @@ function ignoreMetadata(args: any, typesToIgnore?: string[]) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));
             }
             const username = ProjectUtils.getOrgAlias(args.root);
-            const connection = new Connection(username, undefined, args.root);
+            const connection = new SFConnector(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const ignore = new Ignore(args.ignoreFile);
             ignore.setCompress(args.compress).setSortOrder(args.sortOrder).setTypesToIgnore(typesToIgnore);

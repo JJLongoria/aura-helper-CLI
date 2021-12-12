@@ -1,5 +1,5 @@
 import { CoreUtils, PathUtils, FileChecker, SpecialMetadata, MetadataType } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -113,7 +113,7 @@ function retrieve(args: any, types?: { [key: string]: MetadataType }) {
         try {
             const projectConfig = ProjectUtils.getProjectConfig(args.root);
             const username = ProjectUtils.getOrgAlias(args.root);;
-            const connection = new Connection(username, args.apiVersion, args.root, projectConfig!.namespace);
+            const connection = new SFConnector(username, args.apiVersion, args.root, projectConfig!.namespace);
             connection.setMultiThread();
             let retrieveOut;
             connection.onLoadingLocal(() => {

@@ -1,5 +1,5 @@
 import { CoreUtils, PathUtils, FileChecker, FileWriter, MetadataType } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -128,7 +128,7 @@ function repairDependencies(args: any, types?: { [key: string]: MetadataType }) 
     return new Promise(async function (resolve, reject) {
         try {
             const username = ProjectUtils.getOrgAlias(args.root);
-            const connection = new Connection(username, undefined, args.root);
+            const connection = new SFConnector(username, undefined, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const manager = new DependenciesManager(args.root, metadataDetails);
             manager.setTypesToRepair(types).setCompress(args.compress).setSortOrder(args.sortOrder).setIgnoreFile((args.useIgnore) ? args.ignoreFile : undefined);

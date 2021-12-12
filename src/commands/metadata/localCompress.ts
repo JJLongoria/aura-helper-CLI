@@ -60,7 +60,7 @@ function run(args: any) {
             }
         }
         if (args.all === undefined && args.directory === undefined && args.file === undefined) {
-            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('You must select compress all, entire directory or single file'));
+            Printer.printError(new ErrorBuilder(Errors.MISSING_ARGUMENTS).message('You must select compress all, entire directory(s) or single file(s)'));
             return;
         }
         if (args.sortOrder) {

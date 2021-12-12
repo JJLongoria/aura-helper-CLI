@@ -1,6 +1,6 @@
 import { MetadataFactory } from '@aurahelper/metadata-factory';
 import { CoreUtils, PathUtils, FileChecker, FileWriter, MetadataDetail } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -97,7 +97,7 @@ function listLocalMetadata(args: any) {
             }
             let metadata: MetadataDetail[] = [];
             const username = ProjectUtils.getOrgAlias(args.root);
-            const connection = new Connection(username, args.apiVersion, args.root);
+            const connection = new SFConnector(username, args.apiVersion, args.root);
             const metadataDetails = await connection.listMetadataTypes();
             const folderMetadataMap = MetadataFactory.createFolderMetadataMap(metadataDetails);
             const metadataFromFileSystem = MetadataFactory.createMetadataTypesFromFileSystem(folderMetadataMap, args.root);

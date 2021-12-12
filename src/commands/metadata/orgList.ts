@@ -1,5 +1,5 @@
 import { CoreUtils, PathUtils, FileChecker, FileWriter } from "@aurahelper/core";
-import { Connection } from "@aurahelper/connector";
+import { SFConnector } from '@aurahelper/connector';
 import { CommandUtils } from '../utils';
 import { Printer } from '../../output';
 import { ErrorBuilder, ProgressBuilder, ResponseBuilder } from '../response';
@@ -99,7 +99,7 @@ function listOrgMetadata(args: any) {
             if (args.progress){
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Getting All Available Metadata Types'));}
             const username = ProjectUtils.getOrgAlias(args.root);
-            const connection = new Connection(username, args.apiVersion, args.root, undefined);
+            const connection = new SFConnector(username, args.apiVersion, args.root, undefined);
             const metadataDetails = await connection.listMetadataTypes();
             resolve(metadataDetails);
         } catch (error) {
