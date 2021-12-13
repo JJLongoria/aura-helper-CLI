@@ -69,7 +69,7 @@
     "@aurahelper/connector": "^2.0.0",
     "@aurahelper/core": "^2.0.0",
     "@aurahelper/dependencies-manager": "^2.0.0",
-    "@aurahelper/git-manager": "^2.0.0",
+    "@aurahelper/git-manager": "^2.0.1",
     "@aurahelper/ignore": "^2.0.0",
     "@aurahelper/metadata-factory": "^2.0.0",
     "@aurahelper/package-generator": "^2.0.0",
