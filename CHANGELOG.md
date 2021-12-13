@@ -1,13 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [2.0.0 - 2021-12-XX]
+## [4.0.0 - 2021-12-13]
 ### Added
-- Changed to Typescript
-- Added support to API 53.0
+- Changed to typescript
+- Added support to API v53.0
+- Fix all minor found errors
+- Add better support to projects with Metadata API Format
+- Improve general performance about 60-70%
+- Enhance **AuraHelper: Refresh All SObjects Definitions** to load definitions too much faster (improve speed about 95%)
+- Enhance **List and describe Metadata Types from org** too much faster (improve speed about 95%)
   
 ### Changed
 - Changed **metadata:local:compress** to support several directories or file paths separated by commas to compress
+
+### Fixed
+- Fix all minor errors
+
 
 ## [3.0.1 - 2021-09-18]
 ### Added

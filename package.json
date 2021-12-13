@@ -66,14 +66,14 @@
     "email": "juanjoselongoria@gmail.com"
   },
   "dependencies": {
-    "@aurahelper/connector": "file:../Aura Helper Framework/ah-connector",
-    "@aurahelper/core": "file:../Aura Helper Framework/ah-core",
-    "@aurahelper/dependencies-manager": "file:../Aura Helper Framework/ah-dependencies-manager",
-    "@aurahelper/git-manager": "file:../Aura Helper Framework/ah-git-manager",
-    "@aurahelper/ignore": "file:../Aura Helper Framework/ah-ignore",
-    "@aurahelper/metadata-factory": "file:../Aura Helper Framework/ah-metadata-factory",
-    "@aurahelper/package-generator": "file:../Aura Helper Framework/ah-package-generator",
-    "@aurahelper/xml-compressor": "file:../Aura Helper Framework/ah-xml-compressor",
+    "@aurahelper/connector": "^2.0.0",
+    "@aurahelper/core": "^2.0.0",
+    "@aurahelper/dependencies-manager": "^2.0.0",
+    "@aurahelper/git-manager": "^2.0.0",
+    "@aurahelper/ignore": "^2.0.0",
+    "@aurahelper/metadata-factory": "^2.0.0",
+    "@aurahelper/package-generator": "^2.0.0",
+    "@aurahelper/xml-compressor": "^2.0.0",
     "colors": "^1.4.0",
     "commander": "^5.1.0",
     "inquirer": "^7.3.3"
