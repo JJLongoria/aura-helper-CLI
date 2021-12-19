@@ -93,6 +93,7 @@ function loadPermissions(args: any) {
             reject(error);
         }
     });
+    
 }
 
 function reportRetrieveProgress(args: any, millis: number) {

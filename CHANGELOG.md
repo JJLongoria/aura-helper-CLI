@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [4.0.3 - 2021-12-17]
+### Added
+- Last version. Aura Helper CLI will be deprecated instead a converted SFDX Plugin. Install Aura Helper SFDX Plugin if you want to maintenance updates and new tools.
+
+### Fixed
+- Fix an error when compress XML files with some Array xml fields.
+
 ## [4.0.0 - 2021-12-13]
 ### Added
 - Changed to typescript

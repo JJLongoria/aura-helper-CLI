@@ -586,7 +586,7 @@ function loadStoredRecordTypes(args: any): Promise<void> {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Loading stored Record Types from target org'));
             }
             const connection = new SFConnector(username, args.apiVersion, undefined, undefined);
-            const records = await connection.query("Select Id, Name, DeveloperName, SobjectType from RecordType");
+            const records = await connection.query<any>("Select Id, Name, DeveloperName, SobjectType from RecordType");
             for (let record of records) {
                 if (!recordTypeByObject[record.SobjectType]) {
                     recordTypeByObject[record.SobjectType] = {

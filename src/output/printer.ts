@@ -1,4 +1,3 @@
-import * as colors from "colors";
 import { Color } from "./colorName";
 const { CoreUtils } = require('@aurahelper/core');
 const Utils = CoreUtils.Utils;
@@ -12,32 +11,30 @@ export class Printer {
     }
 
     static print(text: string, color: number) {
-        let selectedColor;
-        switch (color) {
-            case Color.WHITE:
-                selectedColor = colors.white;
-                break;
-            case Color.GREEN:
-                selectedColor = colors.green;
-                break;
-            case Color.BLUE:
-                selectedColor = colors.blue;
-                break;
-            case Color.RED:
-                selectedColor = colors.red;
-                break;
-            case Color.YELLOW:
-                selectedColor = colors.yellow;
-                break;
-            case Color.GRAY:
-                selectedColor = colors.gray;
-                break;
-            default:
-                selectedColor = colors.white;
-                break;
-        }
         if (colorized) {
-            console.log(selectedColor(text));
+            switch (color) {
+                case Color.WHITE:
+                    console.log('\x1b[37m' + text + '\x1b[0m');
+                    break;
+                case Color.GREEN:
+                    console.log('\x1b[32m' + text + '\x1b[0m');
+                    break;
+                case Color.BLUE:
+                    console.log('\x1b[34m' + text + '\x1b[0m');
+                    break;
+                case Color.RED:
+                    console.log('\x1b[31m' + text + '\x1b[0m');
+                    break;
+                case Color.YELLOW:
+                    console.log('\x1b[33m' + text + '\x1b[0m');
+                    break;
+                case Color.GRAY:
+                    console.log(text);
+                    break;
+                default:
+                    console.log('\x1b[37m' + text + '\x1b[0m');
+                    break;
+            }
         } else {
             console.log(text);
         }
@@ -75,9 +72,4 @@ export class Printer {
             Printer.print(text, Color.BLUE);
         }
     }
-
-    static printForHelp(args: any) {
-        console.log(colors.white('Execute ' + colors.grey(args.parent._name + ' ' + args._name + ' --help') + ' for get help about command usage'));
-    }
-
 }
