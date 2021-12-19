@@ -18,8 +18,11 @@ const IGNORE_FILE_NAME = '.ahignore.json';
 
 const createTypeAvailableValues: string[] = [
     "package",
+    "p",
     "destructive",
-    "both"
+    "d",
+    "both",
+    "b"
 ];
 
 const createFromAvailableValues: string[] = [
@@ -54,15 +57,15 @@ const argsList: string[] = [
 export function createCommand(program: any) {
     program
         .command('metadata:local:package:create')
-        .description('Command for create the package XML file and descrutiveChanges XML file. You can create the package from multiple sources (git or json file) or merge several package files into one file')
+        .description('Command to create the package XML file or/and descrutiveChanges XML file. You can create the package from multiple sources (git or json file) or merge several package files into one file')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
-        .option('-o, --output-path <target/files/path>', 'Path for save the generated files. By default is your manifest folder', './manifest')
-        .option('-c, --create-type <createType>', 'Option for select the generated type file. You can choose between package, destructive or both. Package by default', 'package')
+        .option('-o, --output-path <target/files/path>', 'Path to save the generated files. By default is your manifest folder', './manifest')
+        .option('-c, --create-type <createType>', 'Option to select the generated file type(s). You can choose between package, destructive or both. Both by default', 'both')
         .option('-f, --create-from <createFrom>', 'Option for select the source for generate the package. You can choose between git, json or package')
         .option('-d, --delete-order <beforeOrAfter>', 'This option allow to the user for select the order for delete metadata. Available values are before or after (after by  default). If you select before, destructiveChanges will be deployed before the package, after option deploy destructive changes after the package file', 'after')
         .option('-s, --source <source>', 'Option for select a source for compare. If you select create-from git, available values are a branch name, tag name or commit reference (or use "this" for select the active branch). If you select create-from json, the value are the path to the file. If you select create-from package, the values are a comma-separated list of the package paths, the package.xml files will be merge on one package, and same with destructiveChanges.xml files')
         .option('-t, --target <target>', 'Option for select a target for compare. If you select create-from git, available values are a branch name, tag name or commit reference. This options is only available for create-from git')
-        .option('-r, --raw', 'Option for return the data for crate the pacakge. With this options, the package and destructive files don\'t will be create, instead the output are the json file for create a package or use for another pourpose. This options only works for if you select --create-from git')
+        .option('-r, --raw', 'Option to return the data for crate the pacakge. With this options, the package and destructive files don\'t will be create, instead the output are the json file for create a package or use for another pourpose. This options only works for if you select --create-from git')
         .option('-v, --api-version <apiVersion>', 'Option for use another Salesforce API version. By default, Aura Helper CLI get the sourceApiVersion value from the sfdx-project.json file')
         .option('-u, --use-ignore', 'Option for ignore the metadata included in ignore file from the package and destructive files')
         .option('-i, --ignore-file <path/to/ignore/file>', 'Path to the ignore file. Use this if you not want to use the project root ignore file or have different name. By default use ' + IGNORE_FILE_NAME + '  file from your project root', './' + IGNORE_FILE_NAME)
@@ -274,14 +277,14 @@ function createFromGit(args: any) {
             let destructiveResult;
             if (args.raw) {
                 resolve(metadataFromGitDiffs);
-            } else if (args.createType === 'package') {
+            } else if (args.createType === 'package' || args.createType === 'p') {
                 if (args.progress) {
                     Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + PACKAGE_FILENAME));
                 }
                 if (metadataFromGitDiffs.toDeploy) {
                     packageResult = new PackageGenerator(args.apiVersion).setExplicit().createPackage(metadataFromGitDiffs.toDeploy, args.outputPath);
                 }
-            } else if (args.createType === 'destructive') {
+            } else if (args.createType === 'destructive' || args.createType === 'd') {
                 if (args.deployOrder === 'before') {
                     if (args.progress) {
                         Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_BEFORE_FILENAME));
@@ -352,12 +355,12 @@ function createFromJSON(args: any) {
             }
             let destructiveResult;
             let packageResult;
-            if (args.createType === 'package') {
+            if (args.createType === 'package' || args.createType === 'p') {
                 if (args.progress) {
                     Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + PACKAGE_FILENAME));
                 }
                 packageResult = new PackageGenerator(args.apiVersion).setExplicit(args.explicit).createPackage(metadataTypes, args.outputPath);
-            } else if (args.createType === 'destructive') {
+            } else if (args.createType === 'destructive' || args.createType === 'd') {
                 if (args.deployOrder === 'before') {
                     if (args.progress) {
                         Printer.printProgress(new ProgressBuilder(args.progress).message('Creating ' + DESTRUCT_BEFORE_FILENAME));
@@ -388,12 +391,12 @@ function createFromPackage(args: any, packages: string[]) {
                 Printer.printProgress(new ProgressBuilder(args.progress).message('Processing selected files'));
             }
             let result;
-            if (args.createType === 'package') {
+            if (args.createType === 'package'|| args.createType === 'p') {
                 if (args.progress) {
                     Printer.printProgress(new ProgressBuilder(args.progress).message('Merging Package Files'));
                 }
                 result = new PackageGenerator(args.apiVersion).setExplicit().setMergePackagesFiles().setIgnoreFile((args.useIgnore) ? args.ignoreFile : undefined).mergePackages(packages, args.outputPath);
-            } else if (args.createType === 'destructive') {
+            } else if (args.createType === 'destructive' || args.createType === 'd') {
                 if (args.progress) {
                     Printer.printProgress(new ProgressBuilder(args.progress).message('Merging Destructive Files'));
                 }

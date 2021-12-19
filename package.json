@@ -2,8 +2,8 @@
   "name": "aura-helper-cli",
   "productName": "Aura Helper CLI",
   "displayName": "Aura Helper CLI",
-  "version": "4.0.2",
-  "description": "Command Line Interface Application for support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects. Specially designed for DevOps workflows",
+  "version": "4.0.3",
+  "description": "Command Line Interface Application to support and enhance Aura Helper Plugin for VSCode or work with it with your salesforce projects. Specially designed for DevOps workflows. Deprecated and replaced by Aura Helper SFDX Plugin (https://github.com/JJLongoria/aura-helper-sfdx).",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -66,15 +66,14 @@
     "email": "juanjoselongoria@gmail.com"
   },
   "dependencies": {
-    "@aurahelper/connector": "^2.0.0",
-    "@aurahelper/core": "^2.0.0",
-    "@aurahelper/dependencies-manager": "^2.0.0",
+    "@aurahelper/connector": "^2.1.0",
+    "@aurahelper/core": "^2.2.0",
+    "@aurahelper/dependencies-manager": "^2.0.1",
     "@aurahelper/git-manager": "^2.0.2",
     "@aurahelper/ignore": "^2.0.0",
-    "@aurahelper/metadata-factory": "^2.0.0",
-    "@aurahelper/package-generator": "^2.0.0",
-    "@aurahelper/xml-compressor": "^2.0.0",
-    "colors": "^1.4.0",
+    "@aurahelper/metadata-factory": "^2.1.0",
+    "@aurahelper/package-generator": "^2.1.0",
+    "@aurahelper/xml-compressor": "^2.0.1",
     "commander": "^5.1.0",
     "inquirer": "^7.3.3"
   },

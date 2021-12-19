@@ -31,11 +31,11 @@ const sortOrderValues = Object.values(XMLCompressor.getSortOrderValues());
 export function createCommand(program: any) {
     program
         .command('metadata:local:repair')
-        .description('Repair local project such as dependencies on files and metadata types.')
+        .description('Command to Check or Repair dependencies errors on your local project. (Only check data and types stored in your local project, do not connect to the org)')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-a, --all', 'Repair all supported metadata types. ' + DependenciesManager.getSupportedTypes().join(', '))
         .option('-t, --type <MetadataTypeNames>', 'Repair specified metadata types. You can choose single type or a list separated by commas,  also you can choose to repair a specified objects like "MetadataTypeAPIName:MetadataObjectAPIName". For example, "CustomApplication:AppName1" for repair only AppName1 Custom App. This option does not take effet if select repair all')
-        .option('-o, --only-check', 'If you select this options, the command not repair dependencies, instead return the errors on the files for repair manually', false)
+        .option('-o, --only-check', 'Command to check error dependencies and return the errors by file', false)
         .option('-c, --compress', 'Add this option for compress modifieds files for repair operation.', false)
         .option('-s, --sort-order <sortOrder>', 'Sort order for the XML elements when compress XML files. By default, the elements are sorted with simple XML elements first. Values: ' + sortOrderValues.join(','), XMLCompressor.getSortOrderValues().SIMPLE_FIRST)
         .option('-u, --use-ignore', 'Option for ignore the metadata included in ignore file from the repair command')

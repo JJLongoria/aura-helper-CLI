@@ -8,6 +8,28 @@
 [![Code Size](https://img.shields.io/github/languages/code-size/jjlongoria/aura-helper-cli)](https://github.com/JJLongoria/aura-helper-cli)
 [![License](https://img.shields.io/github/license/jjlongoria/aura-helper-cli?logo=github)](https://github.com/JJLongoria/aura-helper-cli/blob/master/LICENSE)
 
+## [**Deprecation Advice**](#linkToSFDX)
+First of all, **many thanks** to all the people who have downloaded, installed and / or trusted on Aura Helper CLI as a tool for their work. Either because they use it through the extension for [**VSCode Aura Helper**](#https://marketplace.visualstudio.com/items?itemName=kanko.aura-helper&ssr=false#overview), or because you use the tool directly
+
+:heartpulse: **Thanks a lot** :heartpulse:
+
+I created **Aura Helper CLI** and all Aura Helper tools as a personal project, to learn and make tasks easier for my team and me at work, and over time it has become a powerful and important tool for development in Salesforce for many people. For this same reason, and with the intention of continuing to improve and provide tools for Salesforce developers, *Aura Helper CLI comes to an end*, but [**Aura Helper SFDX is born**](#https://github.com/JJLongoria/aura-helper-sfdx) :confetti_ball:.
+
+The reasons for this change are several:
+- Full integration with the SFDX tool
+- Installation is easier
+- NodeJS dependency removed
+
+It is the natural evolution of Aura Helper CLI. **Aura Helper CLI is dead, long life to Aura Helper SFDX!**
+
+## [**Aura Helper SFDX**](#https://github.com/JJLongoria/aura-helper-sfdx)
+
+Aura Helper SFDX has the same tools that Aura Helper CLI, with a little different organization and some enhancements.
+
+To download and install **Aura Helper SFDX** go to [**Aura Helper SFDX Repository**](#https://github.com/JJLongoria/aura-helper-sfdx#installation-guide) and follow the instructions. Aura Helper VSCode extension can install Aura Helper SFDX Plugin automatically.
+
+---
+
 Command Line Interface to work with Salesforce Projects. This application are entire developed using Aura Helper Framework and has powerfull commands to manage your projects, create Continous Integration and DevOps workflows and support developers to make some utils task on every project like import and export data, create package files (including from git differences), compare metadata from two orgs or from your local project and the auth org, and to much more. 
 
 Aura Helper CLI requires [SFDX CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) to work properly. 
@@ -561,11 +583,11 @@ Command to execute an Anonymous Apex script from file against the auth org.
 
 Execute an script 3 times without printing log with colorized output and progress report
 
-    aura-helper metadata:org:apex:executor -f "pathh/to/script.apex" -i 3 -b -p plaintext
+    aura-helper metadata:org:apex:executor -f "path/to/script.apex" -i 3 -b -p plaintext
 
 Execute an script 10 times wit printing log, colorized output and progress report
 
-    aura-helper metadata:org:apex:executor -f "pathh/to/script.apex" --iterations 3 --print-log -b -p plaintext
+    aura-helper metadata:org:apex:executor -f "path/to/script.apex" --iterations 3 --print-log -b -p plaintext
 
 ---
 
@@ -675,9 +697,9 @@ Update Aura Helper CLI to the latest version
 Aura Helper CLI has the same base JSON structure to all response but the error and progress responses has additional fields.
 ```json
     {
-        status: value, // Number Value
-        message: value, // String value 
-        result: value, // Object or Array value
+        "status": "value", // Number Value
+        "message": "value", // String value 
+        "result": {} | [], // Object or Array value
     }
 ```
 ## [**AH CLI OK Response**](#ah-cli-ok-response)
@@ -685,9 +707,9 @@ Aura Helper CLI has the same base JSON structure to all response but the error a
 The response when commands run successfully and not throw any error has the status value always with value 0 and the result object can ben an Object or Array with the command data response.
 ```json
     {
-        status: 0, // ALWAYS
-        message: value, // String value 
-        result: value, // Object or Array value
+        "status": 0, // ALWAYS
+        "message": "value", // String value 
+        "result": {} | [], // Object or Array value
     }
 ```
 ## [**AH CLI Progress Response**](#ah-cli-progress-response)
@@ -695,12 +717,12 @@ The response when commands run successfully and not throw any error has the stat
 If you choose *JSON (json)* format to show the progress, the response is similar to OK response, but have inProgress flag field and the increment and progress into the result object. If can't calculate the percetage progress, increment and percentage has -1 value.
 ```json
     {
-        status: 0, // ALWAYS
-        message: value, // String value
-        isProgress: true    // ALWAYS 
-        result: {
-            increment: value,    // Decimal value
-            percentage: value,    // Decimal value
+        "status": 0, // ALWAYS
+        "message": "value", // String value
+        "isProgress": true    // ALWAYS 
+        "result": {
+            "increment": 0.0,    // Decimal value
+            "percentage": 0.0,    // Decimal value
         }
     }
 ```
@@ -709,11 +731,11 @@ If you choose *JSON (json)* format to show the progress, the response is similar
 When Aura Helper CLI throw any error when running commands, return a similar response to OK but with status value -1. 
 ```json
     {
-        status: -1, // ALWAYS
-        code: 'ERROR_CODE_VALUE', // String value
-        name: 'EXCEPTION_NAME',     // If the errors is produced by exception, has the name on this field.
-        message: value, // String value
-        result: {}
+        "status": -1, // ALWAYS
+        "code": "ERROR_CODE_VALUE", // String value
+        "name": "EXCEPTION_NAME",     // If the errors is produced by exception, has the name on this field.
+        "message": "value", // String value
+        "result": {}
     }
 ```
 # [**Ignore File**](#ignore-file)
@@ -903,5 +925,3 @@ The describe metadata commands and compare commands return the metadata in a JSO
         }
     }
 ```
-
-

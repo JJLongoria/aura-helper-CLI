@@ -21,7 +21,7 @@ const argsList: string[] = [
 export function createCommand(program: any) {
     program
         .command('metadata:org:apex:executor')
-        .description('Command to execute an Anonymous Apex script from file against the auth org.')
+        .description('Command to execute an Anonymous Apex script from file against the auth org N times.')
         .option('-r, --root <path/to/project/root>', 'Path to project root. By default is your current folder', './')
         .option('-f, --file <path/to/apex/script>', 'Path to the Anonymous Apex Script file')
         .option('-l, --print-log', 'Option to print the result log of every execution', false)
